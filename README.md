@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Finance
 
-## Getting Started
+AI Finance 是一个基于 Next.js 的项目，旨在提供与金融相关的服务和功能。项目使用现代 Web 技术构建，支持用户注册、登录、权限管理等功能。
 
-First, run the development server:
+## 项目结构
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+next-env.d.ts
+next.config.ts
+package.json
+postcss.config.mjs
+README.md
+tsconfig.json
+public/
+    file.svg
+    globe.svg
+    next.svg
+    vercel.svg
+    window.svg
+src/
+    app/
+        favicon.ico
+        globals.css
+        layout.tsx
+        page.tsx
+        api/
+            account/
+                delete_account/
+                    route.ts
+                login/
+                    route.ts
+                logout/
+                    route.ts
+                signup/
+                    route.ts
+    lib/
+        auth.ts
+        db.ts
+        mongodb.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 主要功能
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **用户注册**：通过 `/api/account/signup` 接口注册新用户，支持管理员账户创建。
+- **用户登录**：通过 `/api/account/login` 接口登录用户，返回 JWT 并设置 HttpOnly Cookie。
+- **用户注销**：通过 `/api/account/logout` 接口清除用户的登录状态。
+- **删除用户**：通过 `/api/account/delete_account` 接口删除用户，仅限管理员权限。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 技术栈
 
-## Learn More
+- **前端框架**：Next.js
+- **数据库**：MongoDB
+- **认证**：基于 JWT 的身份验证
+- **样式**：CSS Modules
 
-To learn more about Next.js, take a look at the following resources:
+### 环境变量
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+在项目根目录下创建 `.env` 文件，并添加以下环境变量：
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=7d
+ADMIN_KEY=your_secure_admin_key
+```
 
-## Deploy on Vercel
+### 本地开发
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. 克隆项目：
+   ```bash
+   git clone <repository-url>
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. 安装依赖：
+   ```bash
+   npm install
+   ```
+
+3. 启动开发服务器：
+   ```bash
+   npm run dev
+   ```
+
+4. 打开浏览器访问：
+   ```
+   http://localhost:3000
+   ```
+
+### 部署
+
+1. 构建项目：
+   ```bash
+   npm run build
+   ```
+
+2. 启动生产服务器：
+   ```bash
+   npm start
+   ```
+
+### 注意事项
+
+- 确保在生产环境中使用 HTTPS，以保护用户数据。
+- 管理员账户的创建需要提供正确的 `ADMIN_KEY`。
+
+### 贡献
+
+欢迎提交 Issue 和 Pull Request 来改进项目！
+
+### 许可证
+
+MIT License
