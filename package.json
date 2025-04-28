@@ -9,20 +9,30 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-checkbox": "^1.2.3",
+    "@radix-ui/react-dialog": "^1.1.11",
+    "@radix-ui/react-slot": "^1.2.0",
     "bcryptjs": "^3.0.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "cookie": "^1.0.2",
     "jose": "^6.0.10",
+    "js-cookie": "^3.0.5",
+    "lucide-react": "^0.503.0",
     "mongodb": "^6.16.0",
     "next": "15.3.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.2.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
+    "tw-animate-css": "^1.2.8",
     "typescript": "^5"
   }
 }
