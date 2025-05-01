@@ -8,9 +8,11 @@ export default function HomePage() {
 
   useEffect(() => {
     const hasCookie = document.cookie.includes('access_token');
+    console.log('Cookie:', document.cookie);
     if (!hasCookie) {
       router.push('/login');
     }
+    router.push('/home');
   }, [router]);
 
   return (

@@ -1,5 +1,6 @@
 import clientPromise from "./mongodb";
 import { ObjectId } from 'mongodb';
+import type { ITransaction } from '@/app/types/transaction';
 
 
 export async function getDB() {
@@ -20,5 +21,5 @@ export async function getUserCollection() {
 
 export async function getTransactionCollection() {
     const db = await getDB();
-    return db.collection('transactions');
+    return db.collection<ITransaction>('transactions');
 }

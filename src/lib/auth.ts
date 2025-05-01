@@ -10,7 +10,7 @@ export async function getUserFromCookie(req: Request) {
     }
 
     const cookies = parse(cookieHeader);
-    const token = cookies.access_token;
+    const token = cookies.token;
     if (!token) {
         throw new Error('未提供身份验证令牌');
     }
