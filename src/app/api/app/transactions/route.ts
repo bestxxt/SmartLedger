@@ -57,8 +57,8 @@ export async function GET(req: Request): Promise<NextResponse> {
     }));
 
     const pagination: Pagination = { total, page, limit };
-    const isEnd = docs.length < limit;
-
+    const isEnd = page * limit >= total;
+    
     return NextResponse.json({ message: 'ok', data, pagination, isEnd });
   } catch (error) {
     console.error('Error fetching transactions:', error);

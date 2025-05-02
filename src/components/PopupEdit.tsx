@@ -41,16 +41,13 @@ export interface PopupEditState {
     type: 'income' | 'expense';
     category: string;
     subcategory?: string;
-    date: Date;
-    timestamp: string;
+    timestamp: Date;
 
     note?: string;
     currency?: string;
     tags?: string[];
     location?: string;
 
-    createdAt?: string;
-    updatedAt?: string;
     onSubmit: (data: PopupEditState) => void;
 }
 
@@ -60,8 +57,7 @@ export default function PopupEdit({ onSubmit }: PopupEditProps) {
         amount: 0,
         type: 'income',
         category: '',
-        date: new Date(),
-        timestamp: format(new Date(), "hh:mm a"), // Initialize with current time
+        timestamp: new Date(),
         onSubmit: () => { },
     });
 
@@ -75,8 +71,7 @@ export default function PopupEdit({ onSubmit }: PopupEditProps) {
             amount: 0,
             type: 'expense',
             category: '',
-            date: new Date(),
-            timestamp: format(new Date(), "hh:mm a"), // Reset to current time
+            timestamp: new Date(),
             onSubmit: () => { },
         });
     };
@@ -116,61 +111,81 @@ export default function PopupEdit({ onSubmit }: PopupEditProps) {
                                         >
                                             <CalendarIcon />
                                             <div className='flex items-center w-full'>
-                                                {format(new Date(form.date), "PPP")}
-                                                <span className="ml-2">{form.timestamp}</span>
+                                                {format(form.timestamp, "PPp")}
                                             </div>
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent align="start">
                                         <Calendar
                                             mode="single"
-                                            selected={new Date(form.date)}
+                                            selected={form.timestamp}
                                             onSelect={(selectedDate) => {
-                                                setForm((prev) => ({
-                                                    ...prev,
-                                                    date: selectedDate || prev.date,
-                                                }));
+                                                if (!selectedDate) return;
+
+                                                setForm((prev) => {
+                                                    const oldTime = prev.timestamp;
+                                                    const newDate = new Date(selectedDate);
+
+                                                    // 把旧时间的小时和分钟设置到新日期上
+                                                    newDate.setHours(oldTime.getHours());
+                                                    newDate.setMinutes(oldTime.getMinutes());
+                                                    newDate.setSeconds(oldTime.getSeconds());
+
+                                                    return {
+                                                        ...prev,
+                                                        timestamp: newDate,
+                                                    };
+                                                });
                                             }}
                                             initialFocus
                                         />
                                         <hr />
                                         <div className="flex items-center gap-2 p-4">
+                                            {/* AM/PM */}
                                             <Select
                                                 onValueChange={(value) => {
-                                                    const [hours, minutes, period] = form.timestamp.split(/[: ]/);
-                                                    setForm((prev) => {
-                                                        if (value === 'AM' || value === 'PM') {
-                                                            return { ...prev, time: `${hours}:${minutes || '00'} ${value}` };
-                                                        } else if (parseInt(value) >= 1 && parseInt(value) <= 12) {
-                                                            return { ...prev, time: `${value}:${minutes || '00'} ${period || 'AM'}` };
+                                                    setForm(prev => {
+                                                        const date = new Date(prev.timestamp);
+                                                        const hours = date.getHours();
+                                                        let newHour = hours;
+                                                        if (value === 'AM') {
+                                                            if (hours >= 12) newHour = hours - 12;
                                                         } else {
-                                                            return { ...prev, time: `${hours}:${value} ${period || 'AM'}` };
+                                                            if (hours < 12) newHour = hours + 12;
                                                         }
+                                                        date.setHours(newHour);
+                                                        return { ...prev, timestamp: date };
                                                     });
                                                 }}
                                             >
                                                 <SelectTrigger className="w-[70px]">
-                                                    <SelectValue placeholder={form.timestamp.split(' ')[1] || 'AM'} />
+                                                    <SelectValue placeholder={format(form.timestamp, 'a')} />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="AM">AM</SelectItem>
                                                     <SelectItem value="PM">PM</SelectItem>
                                                 </SelectContent>
                                             </Select>
+                                            {/* Hour */}
                                             <Select
                                                 onValueChange={(value) => {
-                                                    const [, minutes, period] = form.timestamp.split(/[: ]/);
-                                                    setForm((prev) => ({
-                                                        ...prev,
-                                                        time: `${value}:${minutes || '00'} ${period || 'AM'}`,
-                                                    }));
+                                                    setForm(prev => {
+                                                        const date = new Date(prev.timestamp);
+                                                        const minutes = date.getMinutes();
+                                                        const isPM = date.getHours() >= 12;
+                                                        let hr = parseInt(value, 10);
+                                                        if (isPM && hr < 12) hr += 12;
+                                                        if (!isPM && hr === 12) hr = 0;
+                                                        date.setHours(hr);
+                                                        return { ...prev, timestamp: date };
+                                                    });
                                                 }}
                                             >
                                                 <SelectTrigger className="w-[70px]">
-                                                    <SelectValue placeholder={form.timestamp.split(':')[0] || '12'} />
+                                                    <SelectValue placeholder={format(form.timestamp, 'hh')} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
+                                                    {Array.from({ length: 12 }, (_, i) => i + 1).map(hour => (
                                                         <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
                                                             {hour.toString().padStart(2, '0')}
                                                         </SelectItem>
@@ -178,22 +193,23 @@ export default function PopupEdit({ onSubmit }: PopupEditProps) {
                                                 </SelectContent>
                                             </Select>
                                             <span>:</span>
+                                            {/* Minute */}
                                             <Select
                                                 onValueChange={(value) => {
-                                                    const [hours, , period] = form.timestamp.split(/[: ]/);
-                                                    setForm((prev) => ({
-                                                        ...prev,
-                                                        time: `${hours}:${value} ${period || 'AM'}`,
-                                                    }));
+                                                    setForm(prev => {
+                                                        const date = new Date(prev.timestamp);
+                                                        date.setMinutes(parseInt(value, 10));
+                                                        return { ...prev, timestamp: date };
+                                                    });
                                                 }}
                                             >
                                                 <SelectTrigger className="w-[70px]">
-                                                    <SelectValue placeholder={form.timestamp.split(':')[1]?.split(' ')[0] || '00'} />
+                                                    <SelectValue placeholder={format(form.timestamp, 'mm')} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {Array.from({ length: 60 }, (_, i) => i).map((minute) => (
-                                                        <SelectItem key={minute} value={minute.toString().padStart(2, '0')}>
-                                                            {minute.toString().padStart(2, '0')}
+                                                    {Array.from({ length: 60 }, (_, i) => i).map(min => (
+                                                        <SelectItem key={min} value={min.toString().padStart(2, '0')}>
+                                                            {min.toString().padStart(2, '0')}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -203,7 +219,7 @@ export default function PopupEdit({ onSubmit }: PopupEditProps) {
 
 
                                 </Popover>
-                                <div className='flex gap-1'>
+                                <div className='flex gap-2'>
                                     <button
                                         type="button"
                                         onClick={() => setForm((prev) => ({ ...prev, type: 'income' }))}

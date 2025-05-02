@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, FormEvent, useCallback } from "react";
+import { useEffect, useState, FormEvent, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -8,17 +8,13 @@ import { Button } from '@/components/ui/button';
 import PopupEdit, { PopupEditState } from '@/components/PopupEdit';
 import { Transaction } from '@/types/transaction';
 import { format } from 'date-fns';
-
-import { Info } from 'lucide-react';
+import FormattedNumber  from "@/components/FormattedNumber";
 
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
 
 
 export default function Home() {
@@ -33,13 +29,6 @@ export default function Home() {
     const { totalIncome, totalExpense, balance, totalCount } = stats;
     const incomeWidth = balance !== 0 ? `${((totalIncome / (totalIncome + totalExpense)) * 100 - 1).toFixed(2)}%` : '50%';
     const expensesWidth = balance !== 0 ? `${((totalExpense / (totalIncome + totalExpense)) * 100 - 1).toFixed(2)}%` : '50%';
-
-    // const incomePct = totalIncome + totalExpense > 0
-    //     ? ((totalIncome / (totalIncome + totalExpense)) * 100).toFixed(2)
-    //     : '50';
-    // const expensePct = totalIncome + totalExpense > 0
-    //     ? ((totalExpense / (totalIncome + totalExpense)) * 100).toFixed(2)
-    //     : '50';
 
     // fetch aggregated stats
     const fetchStats = useCallback(async () => {
@@ -60,7 +49,12 @@ export default function Home() {
                 `/api/app/transactions?page=${pageNumber}&limit=${limit}`
             );
             if (!res.ok) throw new Error('Network response was not ok');
-            const json = await res.json();
+            const json = await res.json() as {
+                data: Transaction[];
+                pagination: { total: number; page: number; limit: number };
+                isEnd: boolean;
+            };
+            console.log('Fetched transactions:', json);
             const items: Transaction[] = json.data.map((item: Transaction) => ({
                 ...item,
                 timestamp: new Date(item.timestamp),
@@ -69,14 +63,14 @@ export default function Home() {
             }));
 
             setTransactions(prev => append ? [...prev, ...items] : items);
-            setHasMore((append ? transactions.length + items.length : items.length) < stats.totalCount);
             setPage(pageNumber);
+            setHasMore(!json.isEnd);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
             if (append) setLoadingMore(false);
         }
-    }, [limit, stats.totalCount, transactions.length]);
+    }, [limit]);
 
 
     const handleAdd = async (txData: PopupEditState) => {
@@ -132,17 +126,27 @@ export default function Home() {
     }, [fetchStats, fetchData]);
 
     // Infinite scroll: load next page when reaching bottom and more is available
+    // Use IntersectionObserver for infinite scroll
+    const loaderRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
-        if (!hasMore) return;
-        const onScroll = () => {
-            if (loadingMore) return;
-            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
-                if (transactions.length < stats.totalCount) fetchData(page + 1, true);
-            }
+        if (!hasMore || loadingMore) return;
+        const observer = new IntersectionObserver(
+            entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        fetchData(page + 1, true);
+                    }
+                });
+            },
+            { root: null, rootMargin: '0px', threshold: 1.0 }
+        );
+        const loader = loaderRef.current;
+        if (loader) observer.observe(loader);
+        return () => {
+            if (loader) observer.unobserve(loader);
+            observer.disconnect();
         };
-        window.addEventListener('scroll', onScroll);
-        return () => window.removeEventListener('scroll', onScroll);
-    }, [hasMore, loadingMore, page, stats.totalCount, transactions.length, fetchData]);
+    }, [hasMore, loadingMore, page, fetchData]);
 
     const handleLogout = async () => {
         try {
@@ -160,9 +164,6 @@ export default function Home() {
     };
 
 
-
-
-
     return (
         <main className="relative flex items-start justify-center min-h-screen bg-[#F5EFE9] py-10">
             <div className="w-full max-w-md px-6">
@@ -170,7 +171,8 @@ export default function Home() {
                 <div className="shadow-md bg-[#FEF8F3] p-4 rounded-xl mb-6 flex justify-between items-center">
                     <div>
                         <h2 className="text-gray-500 text-xl">Current Balance</h2>
-                        <p className="text-4xl font-bold text-gray-900">${balance.toFixed(2)}</p>
+                        <p className="text-4xl font-bold text-gray-900">$<FormattedNumber value={balance.toFixed(2)}/></p>
+                        
                     </div>
                     <img
                         src="https://api.dicebear.com/7.x/avataaars/svg?seed=happy"
@@ -182,44 +184,41 @@ export default function Home() {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex flex-col items-center bg-green-100 rounded-xl p-4 shadow-md mr-2 min-w-20" style={{ width: incomeWidth }}>
                         <h4 className="text-sm font-medium text-green-600">Income</h4>
-                        <p className="text-lg font-bold text-green-800">${totalIncome.toFixed(2)}</p>
+                        <p className="text-lg font-bold text-green-800">$<FormattedNumber value={totalIncome.toFixed(2)}/></p>
                     </div>
                     <div className="flex flex-col items-center bg-red-100 rounded-xl p-4 shadow-md ml-2 min-w-20" style={{ width: expensesWidth }}>
                         <h4 className="text-sm font-medium text-red-600">Expenses</h4>
-                        <p className="text-lg font-bold text-red-800">${totalExpense.toFixed(2)}</p>
+                        <p className="text-lg font-bold text-red-800">$<FormattedNumber value={totalExpense.toFixed(2)}/></p>
                     </div>
                 </div>
                 {/* Transaction List */}
                 <h3 className="text-lg font-semibold mb-3 text-gray-800">Transactions</h3>
-                <ul className="shadow-md rounded-xl p-4 bg-[#FEF8F3]">
+                <ul className="shadow-md rounded-xl px-4 py-2 bg-[#FEF8F3]">
                     {transactions.map(tx => (
                         <li key={tx.id}>
-                            <DropdownMenu>
-                                <div className="flex items-center justify-between cursor-pointer rounded-md px-2 py-2 hover:bg-orange-100 ">
-                                    <div className="flex items-center gap-3">
-                                        {/* <span className="text-xl">{tx.icon}</span> */}
-                                        <div>
-                                            <p className="font-medium text-gray-800">{tx.category}</p>
-                                            <p className="text-sm text-gray-500">
-                                                {format(tx.timestamp, 'yyyy/MM/dd HH:mm')}
-                                            </p>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <div className="flex items-center justify-between cursor-pointer rounded-md py-2 hover:bg-orange-100 ">
+                                        <div className="flex items-center gap-3">
+                                            {/* <span className="text-xl">{tx.icon}</span> */}
+                                            <div>
+                                                <p className="font-medium text-gray-800">{tx.category}</p>
+                                                <p className="text-sm text-gray-500">
+                                                    {format(tx.timestamp, 'yyyy/MM/dd HH:mm')}
+                                                </p>
+                                            </div>
                                         </div>
+                                        <p className={`font-semibold ${tx.type === 'income' ? 'text-teal-600' : 'text-red-500'}`}>
+                                            {tx.type === 'expense' ? `-$${Math.abs(tx.amount)}` : `$${tx.amount}`}
+                                        </p>
+
                                     </div>
-                                    <p className={`font-semibold ${tx.type === 'income' ? 'text-teal-600' : 'text-red-500'}`}>
-                                        {tx.type === 'expense' ? `-$${Math.abs(tx.amount)}` : `$${tx.amount}`}
-                                    </p>
-                                    <DropdownMenuTrigger asChild>
-                                        <Info />
-                                    </DropdownMenuTrigger>
-                                    
-                                </div>
+                                </PopoverTrigger>
                                 {!transactions[transactions.length - 1] || transactions[transactions.length - 1].id !== tx.id ? <hr /> : null}
-                                <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => console.log('Details', tx.id)}>Details</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => console.log('Edit', tx.id)}>Edit</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => deleteTransaction(tx.id)}>Delete</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                                <PopoverContent>
+                                    {tx.id}
+                                </PopoverContent>
+                            </Popover>
                         </li>
                     ))}
                     {hasMore && (
@@ -228,6 +227,7 @@ export default function Home() {
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                             </svg>
+                            <div ref={loaderRef} className="h-4"></div>
                         </li>
                     )}
                 </ul>
