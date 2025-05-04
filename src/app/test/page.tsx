@@ -1,46 +1,65 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+import React, { useEffect, useRef } from "react";
+import { WavRecorder } from "webm-to-wav-converter";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
+export default function App() {
+  const recorderRef = useRef<InstanceType<typeof WavRecorder> | null>(null);
 
-export default function Test() {
-    const [date, setDate] = React.useState<Date | undefined>(new Date())
-    return (
-        <main className="flex flex-col items-center justify-center min-h-screen bg-cover bg-center">
+  useEffect(() => {
+    recorderRef.current = new WavRecorder();
+  }, []);
 
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant={"outline"}
-                        className={cn(
-                            "w-[240px] justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
-                        )}
-                    >
-                        <CalendarIcon />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                    />
-                </PopoverContent>
-            </Popover>
+  const startRecording = () => {
+    recorderRef.current?.start();
+  };
 
-        </main>
-    );
+  const stopRecording = () => {
+    recorderRef.current?.stop();
+  };
+
+  const download16Bit = () => {
+    recorderRef.current?.download();
+  };
+
+  const download32Bit = () => {
+    recorderRef.current?.download("MyWAVFile", true);
+  };
+
+  return (
+    <div className="p-8 text-center space-y-4">
+      <h1 className="text-2xl font-semibold">WavRecorder Class Usage</h1>
+
+      <button
+        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
+        onClick={startRecording}
+      >
+        Start
+      </button>
+      <br />
+
+      <button
+        className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded"
+        onClick={stopRecording}
+      >
+        Stop
+      </button>
+      <br />
+
+      <button
+        className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded"
+        onClick={download16Bit}
+      >
+        Download 16-bit WAV
+      </button>
+      <br />
+
+      <button
+        className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded"
+        onClick={download32Bit}
+      >
+        Download 32-bit WAV
+      </button>
+    </div>
+  );
 }

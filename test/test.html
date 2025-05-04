@@ -1,0 +1,60 @@
+<button id="start">开始录音</button>
+<button id="stop" disabled>停止录音</button>
+
+<script>
+  let stream, recorder, chunks = [];
+
+  document.getElementById('start').onclick = async () => {
+    // 获取麦克风流
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recorder = new MediaRecorder(stream);
+
+    // 每当有数据可用就 push
+    recorder.ondataavailable = e => chunks.push(e.data);
+
+    recorder.start();
+    document.getElementById('start').disabled = true;
+    document.getElementById('stop').disabled = false;
+    console.log('录音开始');
+  };
+
+  document.getElementById('stop').onclick = async () => {
+    // 在 stop 时触发 upload 流程
+    recorder.onstop = async () => {
+      // 1. 合并音频块成 Blob
+      const blob = new Blob(chunks, { type: 'audio/webm' });
+      // 2. 转成 File 对象
+      const file = new File([blob], 'recording.webm', { type: blob.type });
+      // 3. 构建 FormData
+      const form = new FormData();
+      form.append('file', file);
+
+      try {
+        // 4. post 到后端
+        const resp = await fetch('http://10.0.0.45:8000/transcribe_sync', {
+          method: 'POST',
+          body: form
+        });
+        // 5. 假设返回 JSON
+        const result = await resp.json();
+        console.log('转写结果：', result);
+      } catch (err) {
+        console.error('上传失败：', err);
+      }
+
+      // 可选：继续播放录音
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+    //   audio.play();
+
+      // 重置 chunks，准备下一次录制
+      chunks = [];
+    };
+
+    // 触发 onstop
+    recorder.stop();
+    document.getElementById('start').disabled = false;
+    document.getElementById('stop').disabled = true;
+    console.log('录音停止，正在上传……');
+  };
+</script>

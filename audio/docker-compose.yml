@@ -1,0 +1,11 @@
+services:
+  whisper:
+    image: xintaoxie/whisper-cpu:latest
+    container_name: whisper
+    ports:
+      - "8000:8000"
+    environment:
+      - WHISPER_MODEL_SIZE=small
+    volumes:
+      - ./whisper_cache:/app/whisper_cache
+    restart: unless-stopped

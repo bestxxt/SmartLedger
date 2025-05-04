@@ -1,0 +1,248 @@
+import { FormEvent, useEffect, useState, useRef } from 'react';
+import { Mic, Loader, Check, X, ArrowUpFromLine, RefreshCcw } from 'lucide-react';
+import {
+    Drawer,
+    DrawerTrigger,
+    DrawerContent,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerFooter,
+    DrawerClose,
+} from '@/components/ui/drawer';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from "@/lib/utils"
+
+import { TranscriptionResult } from '@/types/transcription';
+
+export interface PopupAudioProps {
+    onSubmit?: (data: PopupAudioState) => void;
+    onChange?: (value: string) => void;
+}
+
+export interface PopupAudioState {
+    id: string;
+    amount: number;
+    type: 'income' | 'expense';
+    category: string;
+    subcategory?: string;
+    timestamp: Date;
+
+    note?: string;
+    currency?: string;
+    tags?: string[];
+    location?: string;
+
+    onSubmit: (data: PopupAudioState) => void;
+}
+
+export default function PopupAudio({ onSubmit }: PopupAudioProps) {
+    const [recordState, setRecordState] = useState<'idle' | 'recording' | 'recorded' | 'uploading' | 'finished'>('idle');
+    const [open, setOpen] = useState(false);
+    const [response, setResponse] = useState<any>("null");
+    const [volume, setVolume] = useState<number>(0);
+    const [buttonEnabled, setButtonEnabled] = useState(true);
+
+    // refs to hold recording state
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<BlobPart[]>([]);
+    const streamRef = useRef<MediaStream | null>(null);
+    const analyserRef = useRef<AnalyserNode | null>(null);
+    const rafIdRef = useRef<number>(0);
+
+    // 更新音量（RMS）并循环调用
+    const updateVolume = () => {
+        const analyser = analyserRef.current;
+        if (analyser) {
+            const buffer = new Uint8Array(analyser.fftSize);
+            analyser.getByteTimeDomainData(buffer);
+            let sum = 0;
+            for (let i = 0; i < buffer.length; i++) {
+                const v = (buffer[i] - 128) / 128;
+                sum += v * v;
+            }
+            const rms = Math.sqrt(sum / buffer.length);
+            setVolume(rms);
+        }
+        rafIdRef.current = requestAnimationFrame(updateVolume);
+    };
+
+    const handleRecordStateChange = async () => {
+        switch (recordState) {
+            case 'idle':
+                // 1. idle -> 开始录制
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    streamRef.current = stream;
+                    const recorder = new MediaRecorder(stream);
+                    mediaRecorderRef.current = recorder;
+                    audioChunksRef.current = [];
+                    recorder.ondataavailable = (e) => audioChunksRef.current.push(e.data);
+                    recorder.start();
+                    setRecordState('recording');
+
+                    // 设置 Web Audio 分析器
+                    const audioCtx = new AudioContext();
+                    const source = audioCtx.createMediaStreamSource(stream);
+                    const analyser = audioCtx.createAnalyser();
+                    analyser.fftSize = 256;
+                    source.connect(analyser);
+                    analyserRef.current = analyser;
+                    updateVolume();
+                } catch (err) {
+                    console.error('无法获取麦克风权限', err);
+                }
+                break;
+            case 'recording':
+                // 2. recording -> 停止录制并释放 stream
+                mediaRecorderRef.current?.stop();
+                streamRef.current?.getTracks().forEach((track) => track.stop());
+                cancelAnimationFrame(rafIdRef.current);
+                setRecordState('recorded');
+                break;
+            case 'recorded':
+                // 3. recorded -> 上传到后端
+                setButtonEnabled(false);
+                setRecordState('uploading');
+                const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                const file = new File([blob], 'recording.webm', { type: blob.type });
+                const form = new FormData();
+                form.append('file', file);
+                // setResponse('Uploading...');
+                try {
+                    const res = await fetch('http://10.0.0.45:8000/transcribe_sync', {
+                        method: 'POST',
+                        body: form,
+                    });
+                    const data: TranscriptionResult = await res.json();
+                    setResponse(data.segments.map((segment) => segment.text).join('\n'));
+                } catch (err) {
+                    console.error('上传失败', err);
+                    setResponse('上传失败');
+                } finally {
+                    setButtonEnabled(true);
+                    setRecordState('finished');
+                }
+                break;
+            case 'finished':
+                // 4. finished -> 重置状态
+                setRecordState('idle');
+                setResponse('null');
+                setVolume(0);
+                audioChunksRef.current = [];
+                mediaRecorderRef.current = null;
+                streamRef.current = null;
+                analyserRef.current = null;
+                cancelAnimationFrame(rafIdRef.current);
+                break;
+        }
+    };
+
+    // 根据 volume 渲染圆形大小，最小20px最大100px
+    const [volumeHistory, setVolumeHistory] = useState<number[]>([]);
+    const smoothedVolume = volumeHistory.reduce((sum, v) => sum + v, 0) / volumeHistory.length || 0;
+
+    useEffect(() => {
+        setVolumeHistory((prev) => {
+            const updated = [...prev, volume];
+            if (updated.length > 10) updated.shift(); // Keep the last 10 values
+            return updated;
+        });
+    }, [volume]);
+
+    const circleSize = 200 + Math.min(Math.max(smoothedVolume, 0), 1) * 600;
+
+    return (
+        <Drawer open={open} onOpenChange={setOpen}>
+            <DrawerTrigger asChild>
+                <button
+                    className="fixed bottom-24 right-6 bg-teal-500 hover:bg-teal-600 text-white rounded-full p-4 shadow-lg"
+                    aria-label="Add transaction"
+                >
+                    <Mic />
+                </button>
+            </DrawerTrigger>
+            <DrawerContent className="p-6 w-full h-full">
+                <DrawerHeader>
+                    <DrawerTitle className="flex justify-center gap-2 text-gray-500">
+                        {(() => {
+                            switch (recordState) {
+                                case 'idle':
+                                    return <p className="text-gray-500">Tap the button below to start.</p>;
+                                case 'recording':
+                                    return <p className="text-red-500">Recording... Speak now!</p>;
+                                case 'recorded':
+                                    return <p className="text-blue-500">Recording complete. Preparing to upload...</p>;
+                                case 'finished':
+                                    return <p className="text-green-500">Transcription complete. Check the results below.</p>;
+                                default:
+                                    return null;
+                            }
+                        })()}
+                    </DrawerTitle>
+                </DrawerHeader>
+                <div className='flex flex-col h-full items-center'>
+                    {/* Recording visualization or transcription results */}
+                    <div className="h-full w-full mb-6 flex flex-col items-center">
+                        {recordState !== 'finished' && (
+                            <div className="flex flex-col h-[50%] justify-center mt-10">
+                                <div
+                                    className={cn(
+                                        "rounded-full transition-colors duration-200 ease-in-out  max-w-80 max-h-80",
+                                        recordState === 'idle' ? "bg-indigo-300 opacity-50" :
+                                            recordState === 'recording' ? "bg-indigo-500 opacity-70" :
+                                                recordState === 'recorded' ? "bg-indigo-300 opacity-50" : ""
+                                    )}
+                                    style={{
+                                        width: `${circleSize}px`,
+                                        height: `${circleSize}px`,
+                                    }}
+                                />
+                            </div>
+                        )}
+                        {recordState === 'finished' && (
+                            <ScrollArea className="h-auto max-h-[70%] w-full flex shadow-md rounded-lg bg-red-200">
+                                <div className="bg-white p-4 w-full">
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Transcription Result</h3>
+                                    <p className="text-gray-700 whitespace-pre-line">
+                                        {response}
+                                    </p>
+                                </div>
+                            </ScrollArea>
+                        )}
+                    </div>
+
+                    {/* Control buttons */}
+                    <div className='flex justify-evenly w-full fixed bottom-6 left-0 right-0 px-4'>
+                        {/* Cancel button */}
+                        <button
+                            onClick={() => setOpen(false)}
+                            className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white text-black flex items-center justify-center border-4 border-black"
+                        >
+                            <X size={32} className="md:size-48" />
+                        </button>
+
+                        {/* Action button - changes based on recording state */}
+                        <button
+                            disabled={!buttonEnabled}
+                            onClick={handleRecordStateChange}
+                            className={cn(
+                                'w-24 h-24 md:w-32 md:h-32 rounded-full text-white flex items-center justify-center transition-all duration-300 ease-in-out transform',
+                                !buttonEnabled ? 'bg-gray-400 scale-100' :
+                                    recordState === 'idle' ? 'bg-teal-500 scale-100' :
+                                        recordState === 'recording' ? 'bg-red-500 scale-110' : 'bg-black scale-100'
+                            )}
+                        >
+                            {recordState === 'idle' && <Mic size={32} />}
+                            {recordState === 'recording' && <Check size={32} />}
+                            {recordState === 'recorded' && <ArrowUpFromLine size={32} />}
+                            {recordState === 'uploading' &&  <Loader className="animate-spin" />}
+                            {recordState === 'finished' && <RefreshCcw size={32} />}
+                        </button>
+                    </div>
+                </div>
+
+            </DrawerContent>
+        </Drawer>
+    );
+}
+

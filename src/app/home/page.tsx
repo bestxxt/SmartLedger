@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import PopupEdit, { PopupEditState } from '@/components/PopupEdit';
 import { Transaction } from '@/types/transaction';
 import { format } from 'date-fns';
-import FormattedNumber  from "@/components/FormattedNumber";
-
+import FormattedNumber from "@/components/FormattedNumber";
+import PopupEdit, { PopupEditState } from '@/components/PopupEdit';
+import PopupAudio from "@/components/PopupAudio";
+import { Loader } from "lucide-react"
 import {
     Popover,
     PopoverContent,
@@ -23,20 +24,23 @@ export default function Home() {
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const limit = 10;
+    const [loading, setLoading] = useState(true);
 
     // stats API state
     const [stats, setStats] = useState({ totalIncome: 0, totalExpense: 0, balance: 0, totalCount: 0 });
     const { totalIncome, totalExpense, balance, totalCount } = stats;
-    const incomeWidth = balance !== 0 ? `${((totalIncome / (totalIncome + totalExpense)) * 100 - 1).toFixed(2)}%` : '50%';
-    const expensesWidth = balance !== 0 ? `${((totalExpense / (totalIncome + totalExpense)) * 100 - 1).toFixed(2)}%` : '50%';
+    const incomeWidth = balance !== 0 ? `${((totalIncome / (totalIncome + totalExpense)) * 100).toFixed(2)}%` : '50%';
+    const expensesWidth = balance !== 0 ? `${((totalExpense / (totalIncome + totalExpense)) * 100).toFixed(2)}%` : '50%';
 
     // fetch aggregated stats
     const fetchStats = useCallback(async () => {
         try {
+            setLoading(true);
             const res = await fetch('/api/app/transactions/stats');
             if (!res.ok) throw new Error('Failed to fetch stats');
             const json = await res.json();
             setStats(json.data);
+            setLoading(false);
         } catch (err) {
             console.error('Error fetching stats:', err);
         }
@@ -54,7 +58,7 @@ export default function Home() {
                 pagination: { total: number; page: number; limit: number };
                 isEnd: boolean;
             };
-            console.log('Fetched transactions:', json);
+            // console.log('Fetched transactions:', json);
             const items: Transaction[] = json.data.map((item: Transaction) => ({
                 ...item,
                 timestamp: new Date(item.timestamp),
@@ -165,80 +169,206 @@ export default function Home() {
 
 
     return (
-        <main className="relative flex items-start justify-center min-h-screen bg-[#F5EFE9] py-10">
-            <div className="w-full max-w-md px-6">
+        <main className="relative flex items-start justify-center min-h-screen bg-white py-10">
+            <div className="w-full max-w-md ">
                 {/* Balance fetched from stats API */}
-                <div className="shadow-md bg-[#FEF8F3] p-4 rounded-xl mb-6 flex justify-between items-center">
-                    <div>
-                        <h2 className="text-gray-500 text-xl">Current Balance</h2>
-                        <p className="text-4xl font-bold text-gray-900">$<FormattedNumber value={balance.toFixed(2)}/></p>
-                        
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl mb-6 shadow-sm">
+                    <div className="flex justify-between items-center">
+                        <div className="space-y-2">
+                            <h2 className="text-gray-600 text-sm font-medium uppercase tracking-wider">Current Balance</h2>
+                            {loading ? (
+                                <div className="flex items-center space-x-2">
+                                    <Loader className="h-5 w-5 animate-spin text-blue-500" />
+                                    <span className="text-gray-500">Loading...</span>
+                                </div>
+                            ) : (
+                                <div className="flex items-baseline">
+                                    <span className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">$</span>
+                                    <span className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                                        <FormattedNumber value={balance.toFixed(2)} />
+                                    </span>
+                                </div>
+                            )}
+                            <p className="text-xs text-gray-500">Updated {format(new Date(), 'MMM d, yyyy')}</p>
+                        </div>
+                        <div className="bg-white p-2 rounded-full shadow-md">
+                            <img
+                                src="https://api.dicebear.com/7.x/avataaars/svg?seed=happy"
+                                alt="User Avatar"
+                                className="w-14 h-14 rounded-full"
+                            />
+                        </div>
                     </div>
-                    <img
-                        src="https://api.dicebear.com/7.x/avataaars/svg?seed=happy"
-                        alt="User Avatar"
-                        className="w-16 h-16 rounded-full mr-5 border-2 border-gray-300"
-                    />
                 </div>
                 {/* Stats fetched from API */}
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex flex-col items-center bg-green-100 rounded-xl p-4 shadow-md mr-2 min-w-20" style={{ width: incomeWidth }}>
-                        <h4 className="text-sm font-medium text-green-600">Income</h4>
-                        <p className="text-lg font-bold text-green-800">$<FormattedNumber value={totalIncome.toFixed(2)}/></p>
-                    </div>
-                    <div className="flex flex-col items-center bg-red-100 rounded-xl p-4 shadow-md ml-2 min-w-20" style={{ width: expensesWidth }}>
-                        <h4 className="text-sm font-medium text-red-600">Expenses</h4>
-                        <p className="text-lg font-bold text-red-800">$<FormattedNumber value={totalExpense.toFixed(2)}/></p>
+                <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div className="flex flex-col p-4">
+                        <h3 className="text-gray-700 font-medium mb-3">Financial Summary</h3>
+                        
+                        {/* Comparison Bar */}
+                        <div className="w-full h-8 bg-gray-100 rounded-full mb-4 overflow-hidden flex">
+                            {loading ? (
+                                <div className="w-full flex items-center justify-center">
+                                    <Loader className="h-5 w-5 animate-spin text-blue-500" />
+                                </div>
+                            ) : (
+                                <>
+                                    <div 
+                                        className="h-full bg-green-400 flex items-center justify-center text-xs font-medium text-white"
+                                        style={{ width: incomeWidth }}
+                                    >
+                                        {parseInt(incomeWidth) > 15 && `${parseInt(incomeWidth)}%`}
+                                    </div>
+                                    <div 
+                                        className="h-full bg-red-400 flex items-center justify-center text-xs font-medium text-white"
+                                        style={{ width: expensesWidth }}
+                                    >
+                                        {parseInt(expensesWidth) > 15 && `${parseInt(expensesWidth)}%`}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        
+                        {/* Stats Cards */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-green-50 rounded-lg p-3 border-l-4 border-green-400">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-green-600 font-medium">Income</span>
+                                    <span className="bg-green-100 p-1 rounded-full">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                                        </svg>
+                                    </span>
+                                </div>
+                                {loading ? (
+                                    <div className="mt-2 flex items-center">
+                                        <Loader className="h-4 w-4 animate-spin text-green-600 mr-2" />
+                                    </div>
+                                ) : (
+                                    <p className="text-lg font-bold text-gray-800 mt-1">
+                                        ${totalIncome.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                    </p>
+                                )}
+                            </div>
+                            
+                            <div className="bg-red-50 rounded-lg p-3 border-l-4 border-red-400">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-red-600 font-medium">Expenses</span>
+                                    <span className="bg-red-100 p-1 rounded-full">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                                        </svg>
+                                    </span>
+                                </div>
+                                {loading ? (
+                                    <div className="mt-2 flex items-center">
+                                        <Loader className="h-4 w-4 animate-spin text-red-600 mr-2" />
+                                    </div>
+                                ) : (
+                                    <p className="text-lg font-bold text-gray-800 mt-1">
+                                        ${totalExpense.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {/* Transaction List */}
                 <h3 className="text-lg font-semibold mb-3 text-gray-800">Transactions</h3>
-                <ul className="shadow-md rounded-xl px-4 py-2 bg-[#FEF8F3]">
-                    {transactions.map(tx => (
-                        <li key={tx.id}>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <div className="flex items-center justify-between cursor-pointer rounded-md py-2 hover:bg-orange-100 ">
-                                        <div className="flex items-center gap-3">
-                                            {/* <span className="text-xl">{tx.icon}</span> */}
-                                            <div>
-                                                <p className="font-medium text-gray-800">{tx.category}</p>
-                                                <p className="text-sm text-gray-500">
-                                                    {format(tx.timestamp, 'yyyy/MM/dd HH:mm')}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <p className={`font-semibold ${tx.type === 'income' ? 'text-teal-600' : 'text-red-500'}`}>
-                                            {tx.type === 'expense' ? `-$${Math.abs(tx.amount)}` : `$${tx.amount}`}
-                                        </p>
+                
+                {/* Group transactions by month */}
+                {(() => {
+                    // Create groups by month
+                    const groups: Record<string, Transaction[]> = {};
+                    transactions.forEach(tx => {
+                        const monthKey = format(tx.timestamp, 'yyyy-MM');
+                        if (!groups[monthKey]) {
+                            groups[monthKey] = [];
+                        }
+                        groups[monthKey].push(tx);
+                    });
 
-                                    </div>
-                                </PopoverTrigger>
-                                {!transactions[transactions.length - 1] || transactions[transactions.length - 1].id !== tx.id ? <hr /> : null}
-                                <PopoverContent>
-                                    {tx.id}
-                                </PopoverContent>
-                            </Popover>
-                        </li>
-                    ))}
-                    {hasMore && (
-                        <li className="text-center py-4 flex justify-center">
-                            <svg className="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                            </svg>
-                            <div ref={loaderRef} className="h-4"></div>
-                        </li>
-                    )}
-                </ul>
+                    // Sort month keys in descending order (newest first)
+                    const sortedMonthKeys = Object.keys(groups).sort().reverse();
+                    
+                    return sortedMonthKeys.map(monthKey => {
+                        const monthTransactions = groups[monthKey];
+                        // 修复: 使用正确的日期格式化方式来显示月份
+                        // 原来的格式: monthKey + '-01' 可能导致时区问题
+                        // 直接从 monthKey 中提取年和月，确保正确显示
+                        const [year, month] = monthKey.split('-');
+                        const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+                        const monthName = format(date, 'MMMM yyyy');
+                        
+                        return (
+                            <div key={monthKey} className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
+                                <div className="bg-gray-50 px-4 py-2 border-b">
+                                    <h4 className="font-medium text-gray-700">{monthName}</h4>
+                                </div>
+                                <ul className="py-2 px-2">
+                                    {monthTransactions.map(tx => (
+                                        <li key={tx.id} 
+                                            className={`mb-1 rounded-md ${tx.type === 'income' ? 'bg-green-50' : 'bg-red-50'}`}>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <div className={`flex items-center justify-between cursor-pointer rounded-md p-3 
+                                                                    hover:bg-orange-100 border-l-4 ${tx.type === 'income' ? 'border-green-500' : 'border-red-500'}`}>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center 
+                                                                        ${tx.type === 'income' ? 'bg-green-200' : 'bg-red-200'}`}>
+                                                                <span className="text-xl">{tx.type === 'income' ? '↑' : '↓'}</span>
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-gray-800">{tx.category}</p>
+                                                                <p className="text-sm text-gray-500">
+                                                                    {format(tx.timestamp, 'yyyy/MM/dd HH:mm')}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <p className={`font-semibold ${tx.type === 'income' ? 'text-green-600' : 'text-red-500'}`}>
+                                                            {tx.type === 'expense' ? `-$${Math.abs(tx.amount)}` : `$${tx.amount}`}
+                                                        </p>
+                                                    </div>
+                                                </PopoverTrigger>
+                                                <PopoverContent>
+                                                    <div className="flex flex-col items-start p-2">
+                                                        <p className="text-sm text-gray-600">Transaction ID: {tx.id}</p>
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            className="mt-2 w-full"
+                                                            onClick={() => deleteTransaction(tx.id)}
+                                                        >
+                                                            Delete
+                                                        </Button>
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        );
+                    });
+                })()}
+                
+                {hasMore && (
+                    <div className="text-center py-4 flex justify-center">
+                        <Loader className="animate-spin" />
+                        <div ref={loaderRef} className="h-4"></div>
+                    </div>
+                )}
             </div>
 
             {/* Replace Drawer popup with PopupEdit component */}
             <PopupEdit
                 onSubmit={handleAdd}
             />
+            <PopupAudio
+                onSubmit={handleAdd}
+            />
 
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-4 right-4 hidden">
                 <Button variant="outline" onClick={handleLogout}>
                     Logout
                 </Button>
