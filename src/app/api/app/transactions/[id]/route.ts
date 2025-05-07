@@ -1,13 +1,14 @@
 import { getUserFromCookie } from '@/lib/auth';
 import { getTransactionCollection } from '@/lib/db';
 import { ObjectId } from 'mongodb';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { ITransaction, Transaction } from '@/types/transaction';
 
-type Params = { params: { id: string } };
-
 // GET /api/app/transactions/:id
-export async function GET(req: Request, { params }: Params) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id } = await params;
   let txId: ObjectId;
   try {
@@ -16,7 +17,7 @@ export async function GET(req: Request, { params }: Params) {
     return NextResponse.json({ message: 'Invalid transaction ID' }, { status: 400 });
   }
   try {
-    const user = await getUserFromCookie(req);
+    const user = await getUserFromCookie(request);
     const col = await getTransactionCollection();
     const record = await col.findOne(
       { _id: txId, userId: new ObjectId(user.userId as string) }
@@ -47,7 +48,10 @@ export async function GET(req: Request, { params }: Params) {
 }
 
 // PATCH /api/app/transactions/:id
-export async function PATCH(req: Request, { params }: Params) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id } = await params;
   let txId: ObjectId;
   try {
@@ -57,8 +61,8 @@ export async function PATCH(req: Request, { params }: Params) {
   }
 
   try {
-    const user = await getUserFromCookie(req);
-    const updates = await req.json();
+    const user = await getUserFromCookie(request);
+    const updates = await request.json();
     if (!updates || typeof updates !== 'object') {
       return NextResponse.json({ message: 'No update data provided' }, { status: 400 });
     }
@@ -99,7 +103,10 @@ export async function PATCH(req: Request, { params }: Params) {
 }
 
 // DELETE /api/app/transactions/:id
-export async function DELETE(req: Request, { params }: Params) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id } = await params;
   let txId: ObjectId;
   try {
@@ -109,7 +116,7 @@ export async function DELETE(req: Request, { params }: Params) {
   }
 
   try {
-    const user = await getUserFromCookie(req);
+    const user = await getUserFromCookie(request);
     const col = await getTransactionCollection();
     const result = await col.deleteOne({ _id: txId, userId: new ObjectId(user.userId as string) });
     if (result.deletedCount === 0) {

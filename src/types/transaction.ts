@@ -15,6 +15,7 @@ export interface ITransaction extends Document {
     currency?: string;
     tags?: string[];
     location?: string;
+    emoji?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -34,6 +35,7 @@ const TransactionSchema = new Schema<ITransaction>(
         currency: { type: String },
         tags: { type: [String], default: [] },
         location: { type: String },
+        emoji: { type: String },
     },
     { timestamps: true }
 );
@@ -58,6 +60,24 @@ export type Transaction = {
     currency?: string;
     tags?: string[];
     location?: string;
+    emoji?: string;
     createdAt?: Date;
     updatedAt?: Date;
 };
+
+/**
+ * Frontend data type for Transaction
+ */
+export type EditableTransaction = {
+    amount: number;
+    type: 'income' | 'expense';
+    category: string;
+    subcategory?: string;
+    timestamp: Date;
+    note?: string;
+    currency?: string;
+    tags?: string[];
+    location?: string;
+    emoji?: string;
+};
+

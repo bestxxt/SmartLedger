@@ -1,6 +1,6 @@
 import clientPromise from "./mongodb";
 import { ObjectId } from 'mongodb';
-import type { ITransaction } from '@/app/types/transaction';
+import type { ITransaction } from '@/types/transaction';
 
 
 export async function getDB() {

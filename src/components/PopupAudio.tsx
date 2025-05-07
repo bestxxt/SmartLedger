@@ -12,35 +12,46 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from "@/lib/utils"
 
-import { TranscriptionResult } from '@/types/transcription';
+import { Transaction, EditableTransaction } from '@/types/transaction';
+import { ConfirmBillCard } from './BillCard';
 
 export interface PopupAudioProps {
-    onSubmit?: (data: PopupAudioState) => void;
+    /** called to add a transaction to parent state */
+    onSubmit?: (tx: EditableTransaction) => Promise<void>;
     onChange?: (value: string) => void;
 }
 
-export interface PopupAudioState {
-    id: string;
-    amount: number;
-    type: 'income' | 'expense';
-    category: string;
-    subcategory?: string;
-    timestamp: Date;
 
-    note?: string;
-    currency?: string;
-    tags?: string[];
-    location?: string;
+/**
+ * Response type for transaction transcription
+ */
+export type TransactionResponse = {
+    success: boolean;
+    transcription: string;
+    result: {
+        found: boolean;
+        transaction?: {
+            amount: number;
+            type: 'income' | 'expense';
+            category: string;
+            subcategory?: string;
+            timestamp: string; // ISO string format
+            note?: string;
+            currency?: string;
+            location?: string;
+            tags?: string[];
+            emoji?: string;
+        };
+    };
+};
 
-    onSubmit: (data: PopupAudioState) => void;
-}
-
-export default function PopupAudio({ onSubmit }: PopupAudioProps) {
+export default function PopupAudio({ onSubmit, onChange }: PopupAudioProps) {
     const [recordState, setRecordState] = useState<'idle' | 'recording' | 'recorded' | 'uploading' | 'finished'>('idle');
     const [open, setOpen] = useState(false);
     const [response, setResponse] = useState<any>("null");
     const [volume, setVolume] = useState<number>(0);
     const [buttonEnabled, setButtonEnabled] = useState(true);
+    const [transactionCards, setTransactionCards] = useState<EditableTransaction[]>([]);
 
     // refs to hold recording state
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -48,6 +59,38 @@ export default function PopupAudio({ onSubmit }: PopupAudioProps) {
     const streamRef = useRef<MediaStream | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const rafIdRef = useRef<number>(0);
+    const startTime = useRef<number>(0);
+
+    useEffect(() => {
+        if (!open) {
+            resetState();
+        }
+    }, [open]);
+
+    // reset state when the component unmounts
+    const resetState = () => {
+        setRecordState('idle');
+        setResponse('null');
+        setTransactionCards([]);
+        setVolume(0);
+        startTime.current = 0;
+        audioChunksRef.current = [];
+        
+        // Stop the media recorder if it's active
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+        }
+        
+        // Release stream tracks
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+        }
+        
+        mediaRecorderRef.current = null;
+        streamRef.current = null;
+        analyserRef.current = null;
+        cancelAnimationFrame(rafIdRef.current);
+    }
 
     // 更新音量（RMS）并循环调用
     const updateVolume = () => {
@@ -79,6 +122,7 @@ export default function PopupAudio({ onSubmit }: PopupAudioProps) {
                     recorder.ondataavailable = (e) => audioChunksRef.current.push(e.data);
                     recorder.start();
                     setRecordState('recording');
+                    startTime.current = Date.now();
 
                     // 设置 Web Audio 分析器
                     const audioCtx = new AudioContext();
@@ -107,14 +151,42 @@ export default function PopupAudio({ onSubmit }: PopupAudioProps) {
                 const file = new File([blob], 'recording.webm', { type: blob.type });
                 const form = new FormData();
                 form.append('file', file);
-                // setResponse('Uploading...');
                 try {
-                    const res = await fetch('http://10.0.0.45:8000/transcribe_sync', {
+                    const res = await fetch('/api/app/ai/audioToBill', {
                         method: 'POST',
                         body: form,
                     });
-                    const data: TranscriptionResult = await res.json();
-                    setResponse(data.segments.map((segment) => segment.text).join('\n'));
+
+                    if (!res.ok) {
+                        throw new Error(`API error: ${res.statusText}`);
+                    }
+
+                    const data: TransactionResponse = await res.json();
+                    if (!data.result.found) {
+                        setResponse('未找到交易信息');
+                        return;
+                    }
+                    const transactions = Array.isArray(data.result.transaction)
+                        ? data.result.transaction
+                        : [data.result.transaction];
+
+                    const transactionCards = transactions.map((transaction) => ({
+                        amount: transaction.amount,
+                        type: transaction.type,
+                        category: transaction.category,
+                        subcategory: transaction.subcategory,
+                        timestamp: new Date(transaction.timestamp),
+                        note: transaction.note,
+                        currency: transaction.currency,
+                        tags: transaction.tags,
+                        location: transaction.location,
+                        emoji: transaction.emoji,
+                    }));
+
+                    setTransactionCards(transactionCards);
+                    console.log('Transactions:', transactions);
+
+                    // setResponse(data.segments.map((segment) => segment.text).join('\n'));
                 } catch (err) {
                     console.error('上传失败', err);
                     setResponse('上传失败');
@@ -125,14 +197,7 @@ export default function PopupAudio({ onSubmit }: PopupAudioProps) {
                 break;
             case 'finished':
                 // 4. finished -> 重置状态
-                setRecordState('idle');
-                setResponse('null');
-                setVolume(0);
-                audioChunksRef.current = [];
-                mediaRecorderRef.current = null;
-                streamRef.current = null;
-                analyserRef.current = null;
-                cancelAnimationFrame(rafIdRef.current);
+                resetState();
                 break;
         }
     };
@@ -149,7 +214,7 @@ export default function PopupAudio({ onSubmit }: PopupAudioProps) {
         });
     }, [volume]);
 
-    const circleSize = 200 + Math.min(Math.max(smoothedVolume, 0), 1) * 600;
+    const circleSize = 200 + Math.min(Math.max(smoothedVolume, 0), 1) * 500;
 
     return (
         <Drawer open={open} onOpenChange={setOpen}>
@@ -164,49 +229,111 @@ export default function PopupAudio({ onSubmit }: PopupAudioProps) {
             <DrawerContent className="p-6 w-full h-full">
                 <DrawerHeader>
                     <DrawerTitle className="flex justify-center gap-2 text-gray-500">
-                        {(() => {
-                            switch (recordState) {
-                                case 'idle':
-                                    return <p className="text-gray-500">Tap the button below to start.</p>;
-                                case 'recording':
-                                    return <p className="text-red-500">Recording... Speak now!</p>;
-                                case 'recorded':
-                                    return <p className="text-blue-500">Recording complete. Preparing to upload...</p>;
-                                case 'finished':
-                                    return <p className="text-green-500">Transcription complete. Check the results below.</p>;
-                                default:
-                                    return null;
-                            }
-                        })()}
+                        <p className={cn(
+                            "text-center transition-color duration-200",
+                            recordState === 'idle' ? "text-gray-500" :
+                                recordState === 'recording' ? "text-red-500" :
+                                    recordState === 'recorded' ? "text-blue-500" :
+                                        recordState === 'finished' ? "text-green-500" : ""
+                        )}>
+                            {recordState === 'idle' ? "Tap the button below to start." :
+                                recordState === 'recording' ? "Recording... Speak now!" :
+                                    recordState === 'recorded' ? "Preparing to upload..." :
+                                        recordState === 'finished' ? "Identified transaction" : ""}
+                        </p>
                     </DrawerTitle>
                 </DrawerHeader>
                 <div className='flex flex-col h-full items-center'>
                     {/* Recording visualization or transcription results */}
                     <div className="h-full w-full mb-6 flex flex-col items-center">
                         {recordState !== 'finished' && (
-                            <div className="flex flex-col h-[50%] justify-center mt-10">
-                                <div
-                                    className={cn(
-                                        "rounded-full transition-colors duration-200 ease-in-out  max-w-80 max-h-80",
-                                        recordState === 'idle' ? "bg-indigo-300 opacity-50" :
-                                            recordState === 'recording' ? "bg-indigo-500 opacity-70" :
-                                                recordState === 'recorded' ? "bg-indigo-300 opacity-50" : ""
+                            <div className='h-[50%] w-full flex flex-col items-center justify-center'>
+                                <div className="fixed top-26 text-gray-500">
+                                    {(recordState === 'recording' || recordState === 'recorded') && (
+                                        <p
+                                            className={cn(
+                                                "text-3xl font-bold transition-colors duration-500",
+                                                recordState === 'recording' ? "text-red-500" : "text-gray-700"
+                                            )}
+                                        >
+                                            {Math.floor((Date.now() - startTime.current) / 1000)}s
+                                        </p>
                                     )}
-                                    style={{
-                                        width: `${circleSize}px`,
-                                        height: `${circleSize}px`,
-                                    }}
-                                />
+                                </div>
+                                <div className='fixed h-[50%] w-full flex justify-center items-center top-32 pointer-events-none'>
+                                    <div className="relative flex items-center justify-center">
+                                        {/* Pulsing background circles */}
+                                        <div className={cn(
+                                            "absolute rounded-full opacity-10 animate-pulse",
+                                            recordState === 'recording' ? "bg-indigo-400" : "bg-gray-400"
+                                        )}
+                                        style={{
+                                            width: `${circleSize * 1.4}px`,
+                                            height: `${circleSize * 1.4}px`,
+                                            // transition: 'all 0.5s ease-in-out'
+                                        }}
+                                        />
+                                        <div className={cn(
+                                            "absolute rounded-full opacity-20 animate-pulse",
+                                            recordState === 'recording' ? "bg-indigo-500" : "bg-gray-500"
+                                        )}
+                                        style={{
+                                            width: `${circleSize * 1.2}px`,
+                                            height: `${circleSize * 1.2}px`,
+                                            animationDelay: '0.3s',
+                                           
+                                        }}
+                                        />
+                                        
+                                        {/* Main circle with gradient */}
+                                        <div
+                                            className={cn(
+                                                "rounded-full shadow-lg flex items-center justify-center transition-all duration-300 ease-in-out",
+                                                recordState === 'idle' ? "bg-gradient-to-r from-indigo-300 to-blue-300 opacity-60" :
+                                                recordState === 'recording' ? "bg-gradient-to-r from-indigo-500 to-violet-500 opacity-80" :
+                                                recordState === 'recorded' ? "bg-gradient-to-r from-blue-400 to-indigo-400 opacity-70" : ""
+                                            )}
+                                            style={{
+                                                width: `${circleSize}px`,
+                                                height: `${circleSize}px`,
+                                                transform: recordState === 'recording' ? 'scale(1.05)' : 'scale(1)'
+                                            }}
+                                        >
+                                            {/* {recordState === 'recording' && (
+                                                <div className="h-4 w-4 rounded-full bg-red-500 animate-pulse"></div>
+                                            )} */}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                         {recordState === 'finished' && (
-                            <ScrollArea className="h-auto max-h-[70%] w-full flex shadow-md rounded-lg bg-red-200">
-                                <div className="bg-white p-4 w-full">
-                                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Transcription Result</h3>
-                                    <p className="text-gray-700 whitespace-pre-line">
-                                        {response}
-                                    </p>
-                                </div>
+                            <ScrollArea className="h-auto max-h-[70%] w-full flex flex-col">
+                                {transactionCards.length > 0 ? (
+                                    transactionCards.map((transactionCard, index) => (
+                                        <ConfirmBillCard
+                                            key={index}
+                                            transaction={transactionCard}
+                                            onConfirm={async (tx) => {
+                                                if (onSubmit) await onSubmit(tx);
+                                            }}
+                                            onSuccess={() => {
+                                                setTransactionCards(prev => prev.filter(tc => tc !== transactionCard));
+                                            }}
+                                        />
+                                    ))
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center p-8 border border-dashed border-gray-300 rounded-lg my-4 text-center">
+                                        <X size={48} className="text-gray-400 mb-4" />
+                                        <h3 className="text-lg font-medium text-gray-700">
+                                            No transactions found
+                                        </h3>
+                                        <p className="text-gray-500 mt-2">
+                                            We couldn't identify any transactions from your recording.
+                                            Try again with a clearer description.
+                                        </p>
+                                    </div>
+                                )}
                             </ScrollArea>
                         )}
                     </div>
@@ -235,7 +362,7 @@ export default function PopupAudio({ onSubmit }: PopupAudioProps) {
                             {recordState === 'idle' && <Mic size={32} />}
                             {recordState === 'recording' && <Check size={32} />}
                             {recordState === 'recorded' && <ArrowUpFromLine size={32} />}
-                            {recordState === 'uploading' &&  <Loader className="animate-spin" />}
+                            {recordState === 'uploading' && <Loader className="animate-spin" />}
                             {recordState === 'finished' && <RefreshCcw size={32} />}
                         </button>
                     </div>

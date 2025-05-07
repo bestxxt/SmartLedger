@@ -51,6 +51,7 @@ export async function GET(req: Request): Promise<NextResponse> {
       note: doc.note,
       currency: doc.currency,
       tags: doc.tags,
+      emoji: doc.emoji,
       location: doc.location,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
@@ -80,6 +81,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         { status: 400 }
       );
     }
+    // console.log('Creating transaction:', body);
     const now = new Date();
     const toInsert: Partial<ITransaction> & { userId: ObjectId; createdAt: Date; updatedAt: Date } = {
       userId: new ObjectId(user.userId as string),
@@ -92,13 +94,16 @@ export async function POST(req: Request): Promise<NextResponse> {
       currency: body.currency,
       tags: body.tags,
       location: body.location,
+      emoji: body.emoji,
       createdAt: now,
       updatedAt: now,
     };
-
+    // console.log('toInsert:', toInsert);
+    
     const col = (await getTransactionCollection()) as Collection<ITransaction>;
     const res = await col.insertOne(toInsert as ITransaction);
     const doc = await col.findOne({ _id: res.insertedId });
+    // console.log('Inserted transaction:', doc);
 
     if (!doc) {
       return NextResponse.json({ message: 'Insert failed' }, { status: 500 });
@@ -113,6 +118,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       timestamp: doc.timestamp,
       note: doc.note,
       currency: doc.currency,
+      emoji: doc.emoji,
       tags: doc.tags,
       location: doc.location,
       createdAt: doc.createdAt,
