@@ -2,6 +2,8 @@ import { parse } from 'cookie';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/utils/authOptions";
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
@@ -59,5 +61,18 @@ export async function checkAuth() {
 export async function getCurrentUserId() {
     const user = await checkAuth();
     return user ? user.userId : null;
+}
+
+export async function getCurrentUser() {
+    const session = await getServerSession(authOptions);
+    return session?.user;
+}
+
+export async function requireAuth() {
+    const user = await getCurrentUser();
+    if (!user) {
+        throw new Error('Unauthorized');
+    }
+    return user;
 }
 

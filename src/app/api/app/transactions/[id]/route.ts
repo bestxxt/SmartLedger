@@ -1,8 +1,9 @@
-import { getUserFromCookie } from '@/lib/auth';
+import { getServerSession } from "next-auth/next";
 import { getTransactionCollection } from '@/lib/db';
 import { ObjectId } from 'mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 import { ITransaction, Transaction } from '@/types/transaction';
+import { authOptions } from '@/app/utils/authOptions';
 
 // GET /api/app/transactions/:id
 export async function GET(
@@ -17,10 +18,14 @@ export async function GET(
     return NextResponse.json({ message: 'Invalid transaction ID' }, { status: 400 });
   }
   try {
-    const user = await getUserFromCookie(request);
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
     const col = await getTransactionCollection();
     const record = await col.findOne(
-      { _id: txId, userId: new ObjectId(user.userId as string) }
+      { _id: txId, userId: new ObjectId(session.user.id) }
     ) as ITransaction | null;
     if (!record) {
       return NextResponse.json({ message: 'Transaction not found' }, { status: 404 });
@@ -61,7 +66,11 @@ export async function PATCH(
   }
 
   try {
-    const user = await getUserFromCookie(request);
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
     const updates = await request.json();
     if (!updates || typeof updates !== 'object') {
       return NextResponse.json({ message: 'No update data provided' }, { status: 400 });
@@ -69,7 +78,7 @@ export async function PATCH(
 
     const col = await getTransactionCollection();
     const result = await col.findOneAndUpdate(
-      { _id: txId, userId: new ObjectId(user.userId as string) },
+      { _id: txId, userId: new ObjectId(session.user.id) },
       { $set: updates },
       { returnDocument: 'after' }
     );
@@ -116,9 +125,13 @@ export async function DELETE(
   }
 
   try {
-    const user = await getUserFromCookie(request);
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
     const col = await getTransactionCollection();
-    const result = await col.deleteOne({ _id: txId, userId: new ObjectId(user.userId as string) });
+    const result = await col.deleteOne({ _id: txId, userId: new ObjectId(session.user.id) });
     if (result.deletedCount === 0) {
       return NextResponse.json({ message: 'Transaction not found' }, { status: 404 });
     }

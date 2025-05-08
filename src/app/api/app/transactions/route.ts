@@ -1,4 +1,5 @@
-import { getUserFromCookie } from '@/lib/auth';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from '@/app/utils/authOptions';
 import { getTransactionCollection } from '@/lib/db';
 import { ObjectId, Filter, Collection } from 'mongodb';
 import { NextResponse } from 'next/server';
@@ -13,27 +14,31 @@ type Pagination = {
 // GET /api/app/transactions
 export async function GET(req: Request): Promise<NextResponse> {
   try {
-    const user = await getUserFromCookie(req);
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
     const url = new URL(req.url);
     const page = parseInt(url.searchParams.get('page') || '1', 10);
     const limit = parseInt(url.searchParams.get('limit') || '10', 10);
     const search = url.searchParams.get('search') || '';
 
-    // 构造查询条件
-    const filter: Filter<ITransaction> = { userId: new ObjectId(user.userId as string) as any };
+    const filter: Filter<ITransaction> = { userId: new ObjectId(session.user.id) as any };
+    
     if (search) {
-      // 假如你在 schema 里有 description 或 category 需要模糊搜索
       filter.category = { $regex: search, $options: 'i' } as any;
     }
     url.searchParams.forEach((value, key) => {
       if (!['page', 'limit', 'search'].includes(key)) {
-        // @ts-ignore
         filter[key] = value;
       }
     });
 
     const col = (await getTransactionCollection()) as Collection<ITransaction>;
     const total = await col.countDocuments(filter);
+    
     const docs = await col
       .find(filter)
       .sort({ timestamp: -1 })
@@ -62,18 +67,21 @@ export async function GET(req: Request): Promise<NextResponse> {
     
     return NextResponse.json({ message: 'ok', data, pagination, isEnd });
   } catch (error) {
-    console.error('Error fetching transactions:', error);
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
 
 // POST /api/app/transactions
 export async function POST(req: Request): Promise<NextResponse> {
   try {
-    const user = await getUserFromCookie(req);
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = (await req.json()) as Partial<TransactionDTO>;
 
-    // 必填字段校验
     const { amount, type, category, timestamp } = body;
     if (amount == null || !type || !category || !timestamp) {
       return NextResponse.json(
@@ -81,10 +89,10 @@ export async function POST(req: Request): Promise<NextResponse> {
         { status: 400 }
       );
     }
-    // console.log('Creating transaction:', body);
+
     const now = new Date();
     const toInsert: Partial<ITransaction> & { userId: ObjectId; createdAt: Date; updatedAt: Date } = {
-      userId: new ObjectId(user.userId as string),
+      userId: new ObjectId(session.user.id),
       amount,
       type,
       category,
@@ -98,12 +106,11 @@ export async function POST(req: Request): Promise<NextResponse> {
       createdAt: now,
       updatedAt: now,
     };
-    // console.log('toInsert:', toInsert);
     
     const col = (await getTransactionCollection()) as Collection<ITransaction>;
     const res = await col.insertOne(toInsert as ITransaction);
+    
     const doc = await col.findOne({ _id: res.insertedId });
-    // console.log('Inserted transaction:', doc);
 
     if (!doc) {
       return NextResponse.json({ message: 'Insert failed' }, { status: 500 });
@@ -127,7 +134,6 @@ export async function POST(req: Request): Promise<NextResponse> {
 
     return NextResponse.json({ message: 'Transaction created', transaction });
   } catch (error) {
-    console.error('Error creating transaction:', error);
-    return NextResponse.json({ message: 'Failed to create transaction' }, { status: 400 });
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

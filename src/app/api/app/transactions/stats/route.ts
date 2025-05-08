@@ -1,4 +1,5 @@
-import { getUserFromCookie } from '@/lib/auth';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/utils/authOptions";
 import { getTransactionCollection } from '@/lib/db';
 import { ObjectId } from 'mongodb';
 import { NextResponse } from 'next/server';
@@ -6,8 +7,13 @@ import { NextResponse } from 'next/server';
 // GET /api/app/transactions/stats
 export async function GET(req: Request) {
   try {
-    const user = await getUserFromCookie(req);
-    const userId = new ObjectId(user.userId as string);
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = new ObjectId(session.user.id);
     const transactions = await getTransactionCollection();
 
     // aggregate income sum
@@ -15,6 +21,7 @@ export async function GET(req: Request) {
       { $match: { userId, type: 'income' } },
       { $group: { _id: null, total: { $sum: '$amount' } } }
     ]).toArray();
+    
     // aggregate expense sum
     const expenseAgg = await transactions.aggregate([
       { $match: { userId, type: 'expense' } },
@@ -33,6 +40,7 @@ export async function GET(req: Request) {
       data: { totalIncome, totalExpense, balance, totalCount }
     });
   } catch (error) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    console.error('Error in GET /api/app/transactions/stats:', error);
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

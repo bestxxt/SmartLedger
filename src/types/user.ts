@@ -26,11 +26,10 @@ export interface IUserSettings {
  * Mongoose Document interface for User
  */
 export interface IUser extends Document {
-  username: string;
   email: string;
+  name: string;
   role: 'admin' | 'user';
   settings: IUserSettings;
-
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,8 +67,8 @@ const SettingsSchema = new Schema<IUserSettings>(
  */
 const UserSchema = new Schema<IUser>(
   {
-    username: { type: String, required: true, unique: true, index: true },
     email: { type: String, required: true, unique: true, index: true },
+    name: { type: String, required: true },
     role: { type: String, enum: ['admin', 'user'], default: 'user' },
     settings: { type: SettingsSchema, default: () => ({}) },
   },
@@ -88,8 +87,8 @@ export type Language = 'en' | 'zh' | 'ja' | 'ko' | 'es' | 'fr' | 'de' | 'it' | '
 
 export type User = {
   id: string;
-  username: string;
   email: string;
+  name: string;
   role: 'admin' | 'user';
   settings: {
     avatar: string;
@@ -99,13 +98,14 @@ export type User = {
     tags: Tag[];
   };
   createdAt: string;
-  updatedAt: string; // Made updatedAt non-optional
+  updatedAt: string;
 };
 
 /**
  * Editable user type for frontend use
  */
 export type EditableUser = Omit<User, 'id' | 'role' | 'createdAt' | 'updatedAt'>;
+
 /**
  * DeepPartial utility for nested updates
  */

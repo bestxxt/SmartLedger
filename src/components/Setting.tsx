@@ -21,17 +21,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
 import { Label } from "@/components/ui/label"
-import { Settings, Upload, Globe } from "lucide-react"
+import { Settings, Upload, Globe, LogOut } from "lucide-react"
 import React, { useState, ChangeEvent, KeyboardEvent, useRef } from 'react'
 import { useEffect } from 'react'
 import { User, EditableUser, Language } from "@/types/user"
 import { toast } from "sonner"
 import { Plus } from "lucide-react"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
 import {
     Select,
     SelectContent,
@@ -40,6 +35,8 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { signOut } from "next-auth/react"
 
 type UserProps = {
     user: User | null;
@@ -97,7 +94,7 @@ async function compressImage(file: File, maxSizeKB: number = 128): Promise<strin
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                
+
                 // 如果图片太大，按比例缩小
                 const maxDimension = 1024; // 最大尺寸
                 if (width > maxDimension || height > maxDimension) {
@@ -137,7 +134,7 @@ export default function Setting({ user }: UserProps) {
     // State
     if (!user) return null
     const [state, setState] = useState<EditableUser>({
-        username: user.username,
+        name: user.name,
         email: user.email,
         settings: {
             avatar: user.settings.avatar,
@@ -152,6 +149,7 @@ export default function Setting({ user }: UserProps) {
     const [newTagName, setNewTagName] = useState('');
     const [openLocationId, setOpenLocationId] = useState<string | null>(null);
     const [newLocationName, setNewLocationName] = useState('');
+    const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
     // Handlers
     const handleAvatarChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -172,7 +170,7 @@ export default function Setting({ user }: UserProps) {
 
                 // 压缩图片并转换为 base64
                 const base64 = await compressImage(file);
-                
+
                 setState(prev => ({
                     ...prev,
                     settings: {
@@ -180,7 +178,7 @@ export default function Setting({ user }: UserProps) {
                         avatar: base64
                     }
                 }));
-                
+
                 toast.success('Avatar updated successfully');
             } catch (error) {
                 console.error('Error processing image:', error);
@@ -193,6 +191,21 @@ export default function Setting({ user }: UserProps) {
         fileInputRef.current?.click();
     }
 
+    const handleTagEdit = (tagId: string, newName: string, newColor?: string) => {
+        const updatedTags = state.settings.tags.map(t =>
+            t.id === tagId
+                ? { ...t, name: newName, color: newColor || t.color }
+                : t
+        );
+        setState(prev => ({
+            ...prev,
+            settings: {
+                ...prev.settings,
+                tags: updatedTags,
+            },
+        }));
+    };
+
     const addTag = () => {
         const value = newTagName.trim()
         if (value && !state.settings.tags.some(tag => tag.name === value)) {
@@ -203,12 +216,13 @@ export default function Setting({ user }: UserProps) {
                     tags: [...prev.settings.tags, {
                         id: `tag_${crypto.randomUUID()}`,
                         name: value,
-                        color: TAG_COLORS[0].value,
+                        color: selectedColor || TAG_COLORS[0].value,
                         createdAt: new Date().toISOString()
                     }]
                 }
             }))
             setNewTagName('')
+            setSelectedColor(null)
             setOpenTagId(null)
         }
     }
@@ -255,12 +269,12 @@ export default function Setting({ user }: UserProps) {
                 throw new Error('Failed to save settings');
             }
 
-
-            const updatedUser = await response.json();
+            const res = await response.json();
+            const updatedUser = res.data;
             toast.success('Settings saved successfully');
             // Update user with the returned value
             setState({
-                username: updatedUser.username,
+                name: updatedUser.name,
                 email: updatedUser.email,
                 settings: {
                     avatar: updatedUser.settings.avatar,
@@ -277,21 +291,6 @@ export default function Setting({ user }: UserProps) {
             // Show error message
         }
     }
-
-    const handleTagEdit = (tagId: string, newName: string, newColor?: string) => {
-        const updatedTags = state.settings.tags.map(t =>
-            t.id === tagId
-                ? { ...t, name: newName, color: newColor || t.color }
-                : t
-        );
-        setState(prev => ({
-            ...prev,
-            settings: {
-                ...prev.settings,
-                tags: updatedTags,
-            },
-        }));
-    };
 
     const addLocation = () => {
         const value = newLocationName.trim()
@@ -328,7 +327,7 @@ export default function Setting({ user }: UserProps) {
                 ...prev,
                 settings: {
                     ...prev.settings,
-                    locations: prev.settings.locations.map(loc => 
+                    locations: prev.settings.locations.map(loc =>
                         loc.id === id ? { ...loc, name: newName } : loc
                     )
                 }
@@ -345,134 +344,147 @@ export default function Setting({ user }: UserProps) {
                     <Settings className="h-5 w-5" />
                 </button>
             </SheetTrigger>
-            <SheetContent className="w-full">
+            <SheetContent className="w-full [&>button]:hidden">
+
                 <SheetHeader>
-                    <SheetTitle>Settings</SheetTitle>
-                    <SheetDescription>
-                        Customize your profile and preferences
-                    </SheetDescription>
-                </SheetHeader>
-
-                <div className="space-y-6 p-6 ">
-                    {/* Avatar Section */}
-                    <div className="space-y-2 ">
-                        <Label>Profile Picture</Label>
-                        <div className="flex flex-col items-center gap-4">
-                            <div 
-                                className="relative w-20 h-20 rounded-full overflow-hidden cursor-pointer group"
-                                onClick={handleAvatarClick}
-                            >
-                                {state.settings.avatar ? (
-                                    <img
-                                        src={state.settings.avatar}
-                                        alt="Profile"
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                        <Upload className="w-8 h-8 text-gray-400" />
-                                    </div>
-                                )}
-                                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Upload className="w-6 h-6 text-white" />
-                                </div>
-                            </div>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleAvatarChange}
-                                className="hidden"
-                            />
-                            <p className="text-sm text-gray-500">
-                                Click the avatar to change. Max size: 5MB
-                            </p>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <SheetTitle>Settings</SheetTitle>
+                            <SheetDescription>
+                                Customize your profile and preferences
+                            </SheetDescription>
                         </div>
-                    </div>
-                    <hr />
-
-                    {/* Language Section */}
-                    <div className="space-y-2">
-                        <Label>Language</Label>
-                        <Select
-                            value={state.settings.language}
-                            onValueChange={(value) => {
-                                setState(prev => ({
-                                    ...prev,
-                                    settings: {
-                                        ...prev.settings,
-                                        language: value as Language
-                                    }
-                                }));
-                            }}
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-12 w-12"
+                            onClick={() => signOut({ callbackUrl: '/login' })}
                         >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select language">
-                                    {state.settings.language && (
-                                        <div className="flex items-center gap-2">
-                                            <Globe className="h-4 w-4" />
-                                            <span>
-                                                {LANGUAGES.find(lang => lang.code === state.settings.language)?.nativeName || 
-                                                 LANGUAGES.find(lang => lang.code === state.settings.language)?.name}
-                                            </span>
+                            <LogOut/>
+                        </Button>
+                    </div>
+                </SheetHeader>
+                <ScrollArea className="h-[85%] ">
+
+                    <div className="space-y-6 p-6 ">
+                        {/* Avatar Section */}
+                        <div className="space-y-2 ">
+                            <Label>Profile Picture</Label>
+                            <div className="flex flex-col items-center gap-4">
+                                <div
+                                    className="relative w-20 h-20 rounded-full overflow-hidden cursor-pointer group"
+                                    onClick={handleAvatarClick}
+                                >
+                                    {state.settings.avatar ? (
+                                        <img
+                                            src={state.settings.avatar}
+                                            alt="Profile"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                            <Upload className="w-8 h-8 text-gray-400" />
                                         </div>
                                     )}
-                                </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                                {LANGUAGES.map((language) => (
-                                    <SelectItem key={language.code} value={language.code}>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-medium">{language.nativeName}</span>
-                                            <span className="text-gray-400 text-sm">({language.name})</span>
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <hr />
+                                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Upload className="w-6 h-6 text-white" />
+                                    </div>
+                                </div>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleAvatarChange}
+                                    className="hidden"
+                                />
+                                <p className="text-sm text-gray-500">
+                                    Click the avatar to change. Max size: 5MB
+                                </p>
+                            </div>
+                        </div>
+                        <hr />
 
-                    {/* Currency Section */}
-                    <div className="space-y-2">
-                        <Label>Default Currency</Label>
-                        <Select
-                            value={state.settings.currency}
-                            onValueChange={(value) => {
-                                setState(prev => ({
-                                    ...prev,
-                                    settings: {
-                                        ...prev.settings,
-                                        currency: value
-                                    }
-                                }));
-                            }}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select currency" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {CURRENCIES.map((currency) => (
-                                    <SelectItem key={currency.code} value={currency.code}>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-medium">{currency.symbol}</span>
-                                            <span className="text-gray-500">{currency.code}</span>
-                                            <span className="text-gray-400 text-sm">({currency.name})</span>
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <hr />
+                        {/* Language Section */}
+                        <div className="space-y-2">
+                            <Label>Language</Label>
+                            <Select
+                                value={state.settings.language}
+                                onValueChange={(value) => {
+                                    setState(prev => ({
+                                        ...prev,
+                                        settings: {
+                                            ...prev.settings,
+                                            language: value as Language
+                                        }
+                                    }));
+                                }}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select language">
+                                        {state.settings.language && (
+                                            <div className="flex items-center gap-2">
+                                                <Globe className="h-4 w-4" />
+                                                <span>
+                                                    {LANGUAGES.find(lang => lang.code === state.settings.language)?.nativeName ||
+                                                        LANGUAGES.find(lang => lang.code === state.settings.language)?.name}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {LANGUAGES.map((language) => (
+                                        <SelectItem key={language.code} value={language.code}>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium">{language.nativeName}</span>
+                                                <span className="text-gray-400 text-sm">({language.name})</span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <hr />
 
-                    {/* Tags Section */}
-                    <div className="space-y-2">
-                        <Label>Tags</Label>
-                        <div className="flex flex-wrap gap-2">
-                            {state.settings.tags.map(tag => (
-                                <Popover key={tag.id}>
-                                    <PopoverTrigger asChild>
+                        {/* Currency Section */}
+                        <div className="space-y-2">
+                            <Label>Default Currency</Label>
+                            <Select
+                                value={state.settings.currency}
+                                onValueChange={(value) => {
+                                    setState(prev => ({
+                                        ...prev,
+                                        settings: {
+                                            ...prev.settings,
+                                            currency: value
+                                        }
+                                    }));
+                                }}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select currency" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {CURRENCIES.map((currency) => (
+                                        <SelectItem key={currency.code} value={currency.code}>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium">{currency.symbol}</span>
+                                                <span className="text-gray-500">{currency.code}</span>
+                                                <span className="text-gray-400 text-sm">({currency.name})</span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <hr />
+
+                        {/* Tags Section */}
+                        <div className="space-y-2">
+                            <Label>Tags</Label>
+                            <div className="flex flex-wrap gap-2">
+                                {state.settings.tags.map(tag => (
+                                    <React.Fragment key={tag.id}>
                                         <Button
                                             variant="outline"
                                             className={cn(
@@ -484,27 +496,93 @@ export default function Setting({ user }: UserProps) {
                                                 backgroundColor: tag.color ? `${tag.color}20` : undefined,
                                                 color: tag.color || undefined
                                             }}
+                                            onClick={() => setOpenTagId(tag.id)}
                                         >
                                             <span className="whitespace-nowrap px-2">{tag.name}</span>
                                         </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent 
-                                        className="w-80" 
-                                        forceMount
-                                    >
-                                        <div className="grid gap-4" onClick={(e) => e.stopPropagation()}>
-                                            <div className="space-y-2">
-                                                <h4 className="font-medium leading-none">Edit Tag</h4>
-                                                <p className="text-sm text-muted-foreground">
-                                                    Customize your tag appearance
-                                                </p>
-                                            </div>
+                                        <Drawer open={openTagId === tag.id} onOpenChange={(open) => !open && setOpenTagId(null)}>
+                                            <DrawerContent>
+                                                <DrawerHeader>
+                                                    <DrawerTitle>Edit Tag</DrawerTitle>
+                                                    <DrawerDescription>
+                                                        Customize your tag appearance
+                                                    </DrawerDescription>
+                                                </DrawerHeader>
+                                                <div className="grid gap-4 p-4">
+                                                    <div className="grid gap-2">
+                                                        <Label htmlFor="tag-name">Tag Name</Label>
+                                                        <Input
+                                                            id="tag-name"
+                                                            value={tag.name}
+                                                            onChange={e => handleTagEdit(tag.id, e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <div className="grid gap-2">
+                                                        <Label>Color</Label>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {TAG_COLORS.map(color => (
+                                                                <button
+                                                                    key={color.value}
+                                                                    type="button"
+                                                                    className={cn(
+                                                                        "w-8 h-8 rounded-full border-2 transition-all",
+                                                                        tag.color === color.value ? "border-foreground" : "border-transparent"
+                                                                    )}
+                                                                    style={{ backgroundColor: color.value }}
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        handleTagEdit(tag.id, tag.name, color.value);
+                                                                    }}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <DrawerFooter>
+                                                    <DrawerClose asChild>
+                                                        <Button variant="outline">Cancel</Button>
+                                                    </DrawerClose>
+                                                    <Button
+                                                        variant="destructive"
+                                                        onClick={() => {
+                                                            removeTag(tag.id);
+                                                            setOpenTagId(null);
+                                                        }}
+                                                    >
+                                                        Remove Tag
+                                                    </Button>
+                                                </DrawerFooter>
+                                            </DrawerContent>
+                                        </Drawer>
+                                    </React.Fragment>
+                                ))}
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => setOpenTagId('new')}
+                                    className="rounded-full"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                </Button>
+                                <Drawer open={openTagId === 'new'} onOpenChange={(open) => !open && setOpenTagId(null)}>
+                                    <DrawerContent>
+                                        <DrawerHeader>
+                                            <DrawerTitle>Add New Tag</DrawerTitle>
+                                            <DrawerDescription>
+                                                Create a new tag for your transactions
+                                            </DrawerDescription>
+                                        </DrawerHeader>
+                                        <form onSubmit={(e) => {
+                                            e.preventDefault();
+                                            addTag();
+                                        }} className="grid gap-4 p-4">
                                             <div className="grid gap-2">
-                                                <Label htmlFor="tag-name">Name</Label>
+                                                <Label htmlFor="new-tag">Tag Name</Label>
                                                 <Input
-                                                    id="tag-name"
-                                                    value={tag.name}
-                                                    onChange={e => handleTagEdit(tag.id, e.target.value)}
+                                                    id="new-tag"
+                                                    value={newTagName}
+                                                    onChange={e => setNewTagName(e.target.value)}
+                                                    placeholder="Enter tag name"
                                                 />
                                             </div>
                                             <div className="grid gap-2">
@@ -513,193 +591,139 @@ export default function Setting({ user }: UserProps) {
                                                     {TAG_COLORS.map(color => (
                                                         <button
                                                             key={color.value}
+                                                            type="button"
                                                             className={cn(
                                                                 "w-8 h-8 rounded-full border-2 transition-all",
-                                                                tag.color === color.value ? "border-foreground" : "border-transparent"
+                                                                selectedColor === color.value ? "border-foreground" : "border-transparent"
                                                             )}
                                                             style={{ backgroundColor: color.value }}
-                                                            onClick={() => handleTagEdit(tag.id, tag.name, color.value)}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                setSelectedColor(color.value);
+                                                            }}
                                                         />
                                                     ))}
                                                 </div>
                                             </div>
+                                        </form>
+                                        <DrawerFooter>
+                                            <DrawerClose asChild>
+                                                <Button variant="outline">Cancel</Button>
+                                            </DrawerClose>
                                             <Button
-                                                variant="destructive"
-                                                size="sm"
-                                                onClick={() => removeTag(tag.id)}
+                                                onClick={addTag}
+                                                disabled={!newTagName}
                                             >
-                                                Remove Tag
+                                                Add Tag
                                             </Button>
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
-                            ))}
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="rounded-full"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent 
-                                    className="w-80"
-                                    side="right"
-                                    align="start"
-                                    sideOffset={5}
-                                    alignOffset={0}
-                                    forceMount
-                                >
-                                    <div className="grid gap-4" onClick={(e) => e.stopPropagation()}>
-                                        <div className="space-y-2">
-                                            <h4 className="font-medium leading-none">Add New Tag</h4>
-                                            <p className="text-sm text-muted-foreground">
-                                                Create a new tag for your transactions
-                                            </p>
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="new-tag">Name</Label>
-                                            <Input
-                                                id="new-tag"
-                                                value={newTagName}
-                                                onChange={e => setNewTagName(e.target.value)}
-                                                placeholder="Enter tag name"
-                                            />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Color</Label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {TAG_COLORS.map(color => (
-                                                    <button
-                                                        key={color.value}
-                                                        className={cn(
-                                                            "w-8 h-8 rounded-full border-2 transition-all",
-                                                            newTagName && "hover:border-foreground"
-                                                        )}
-                                                        style={{ backgroundColor: color.value }}
-                                                        onClick={() => {
-                                                            if (newTagName) {
-                                                                addTag();
-                                                            }
-                                                        }}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </div>
+                                        </DrawerFooter>
+                                    </DrawerContent>
+                                </Drawer>
+                            </div>
+                        </div>
+                        <hr />
+
+                        {/* Location Section */}
+                        <div className="space-y-2">
+                            <Label>Locations</Label>
+                            <div className="flex flex-wrap gap-2">
+                                {state.settings.locations.map(location => (
+                                    <React.Fragment key={location.id}>
                                         <Button
-                                            onClick={addTag}
-                                            disabled={!newTagName}
+                                            variant="outline"
+                                            className="rounded-full min-w-fit"
+                                            onClick={() => setOpenLocationId(location.id)}
                                         >
-                                            Add Tag
+                                            <span className="whitespace-nowrap px-2">{location.name}</span>
                                         </Button>
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-                    </div>
-                    <hr />
-
-                    {/* Location Section */}
-                    <div className="space-y-2">
-                        <Label>Locations</Label>
-                        <div className="flex flex-wrap gap-2">
-                            {state.settings.locations.map(location => (
-                                <React.Fragment key={location.id}>
-                                    <Button
-                                        variant="outline"
-                                        className="rounded-full min-w-fit"
-                                        onClick={() => setOpenLocationId(location.id)}
-                                    >
-                                        <span className="whitespace-nowrap px-2">{location.name}</span>
-                                    </Button>
-                                    <Drawer open={openLocationId === location.id} onOpenChange={(open) => !open && setOpenLocationId(null)}>
-                                        <DrawerContent>
-                                            <DrawerHeader>
-                                                <DrawerTitle>Edit Location</DrawerTitle>
-                                                <DrawerDescription>
-                                                    Changes are saved automatically as you type.
-                                                </DrawerDescription>
-                                            </DrawerHeader>
-                                            <div className="grid gap-4 p-4">
-                                                <div className="grid gap-2">
-                                                    <Label htmlFor="location-name">Location Name</Label>
-                                                    <Input
-                                                        id="location-name"
-                                                        value={location.name}
-                                                        onChange={e => handleLocationEdit(location.id, e.target.value)}
-                                                    />
+                                        <Drawer open={openLocationId === location.id} onOpenChange={(open) => !open && setOpenLocationId(null)}>
+                                            <DrawerContent>
+                                                <DrawerHeader>
+                                                    <DrawerTitle>Edit Location</DrawerTitle>
+                                                    <DrawerDescription>
+                                                        Changes are saved automatically as you type.
+                                                    </DrawerDescription>
+                                                </DrawerHeader>
+                                                <div className="grid gap-4 p-4">
+                                                    <div className="grid gap-2">
+                                                        <Label htmlFor="location-name">Location Name</Label>
+                                                        <Input
+                                                            id="location-name"
+                                                            value={location.name}
+                                                            onChange={e => handleLocationEdit(location.id, e.target.value)}
+                                                        />
+                                                    </div>
                                                 </div>
+                                                <DrawerFooter>
+                                                    <DrawerClose asChild>
+                                                        <Button variant="outline">Cancel</Button>
+                                                    </DrawerClose>
+                                                    <Button
+                                                        variant="destructive"
+                                                        onClick={() => {
+                                                            removeLocation(location.id);
+                                                            setOpenLocationId(null);
+                                                        }}
+                                                    >
+                                                        Remove Location
+                                                    </Button>
+                                                </DrawerFooter>
+                                            </DrawerContent>
+                                        </Drawer>
+                                    </React.Fragment>
+                                ))}
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => setOpenLocationId('new')}
+                                    className="rounded-full"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                </Button>
+                                <Drawer open={openLocationId === 'new'} onOpenChange={(open) => !open && setOpenLocationId(null)}>
+                                    <DrawerContent>
+                                        <DrawerHeader>
+                                            <DrawerTitle>Add New Location</DrawerTitle>
+                                            <DrawerDescription>
+                                                Add a new location for your transactions.
+                                            </DrawerDescription>
+                                        </DrawerHeader>
+                                        <div className="grid gap-4 p-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="new-location">Location Name</Label>
+                                                <Input
+                                                    id="new-location"
+                                                    value={newLocationName}
+                                                    onChange={e => setNewLocationName(e.target.value)}
+                                                    placeholder="Enter location name"
+                                                />
                                             </div>
-                                            <DrawerFooter>
-                                                <DrawerClose asChild>
-                                                    <Button variant="outline">Cancel</Button>
-                                                </DrawerClose>
-                                                <Button
-                                                    variant="destructive"
-                                                    onClick={() => {
-                                                        removeLocation(location.id);
-                                                        setOpenLocationId(null);
-                                                    }}
-                                                >
-                                                    Remove Location
-                                                </Button>
-                                            </DrawerFooter>
-                                        </DrawerContent>
-                                    </Drawer>
-                                </React.Fragment>
-                            ))}
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => setOpenLocationId('new')}
-                                className="rounded-full"
-                            >
-                                <Plus className="h-4 w-4" />
-                            </Button>
-                            <Drawer open={openLocationId === 'new'} onOpenChange={(open) => !open && setOpenLocationId(null)}>
-                                <DrawerContent>
-                                    <DrawerHeader>
-                                        <DrawerTitle>Add New Location</DrawerTitle>
-                                        <DrawerDescription>
-                                            Add a new location for your transactions.
-                                        </DrawerDescription>
-                                    </DrawerHeader>
-                                    <div className="grid gap-4 p-4">
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="new-location">Location Name</Label>
-                                            <Input
-                                                id="new-location"
-                                                value={newLocationName}
-                                                onChange={e => setNewLocationName(e.target.value)}
-                                                placeholder="Enter location name"
-                                            />
                                         </div>
-                                    </div>
-                                    <DrawerFooter>
-                                        <DrawerClose asChild>
-                                            <Button variant="outline">Cancel</Button>
-                                        </DrawerClose>
-                                        <Button onClick={addLocation}>
-                                            Add Location
-                                        </Button>
-                                    </DrawerFooter>
-                                </DrawerContent>
-                            </Drawer>
+                                        <DrawerFooter>
+                                            <DrawerClose asChild>
+                                                <Button variant="outline">Cancel</Button>
+                                            </DrawerClose>
+                                            <Button onClick={addLocation}>
+                                                Add Location
+                                            </Button>
+                                        </DrawerFooter>
+                                    </DrawerContent>
+                                </Drawer>
+                            </div>
                         </div>
+                        <hr />
                     </div>
-                    <hr />
-                </div>
 
-                <SheetFooter>
-                    <div className="flex justify-evenly space-x-2">
-                        <SheetClose asChild>
-                            <Button variant="outline" className="w-[45%]">Cancel</Button>
-                        </SheetClose>
-                        <Button className="w-[45%]" onClick={handleSave}>Save Changes</Button>
-                    </div>
-                </SheetFooter>
+
+                    <SheetFooter>
+                        <div className="flex justify-evenly space-x-2 mb-6">
+                            <SheetClose asChild>
+                                <Button variant="outline" className="w-[45%] h-11">Cancel</Button>
+                            </SheetClose>
+                            <Button className="w-[45%] h-11" onClick={handleSave}>Save Changes</Button>
+                        </div>
+                    </SheetFooter>
+                </ScrollArea>
             </SheetContent>
         </Sheet>
     )

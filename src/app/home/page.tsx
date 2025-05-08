@@ -1,12 +1,9 @@
 'use client';
 
 import { useEffect, useState, FormEvent, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Transaction } from '@/types/transaction';
 import { User } from '@/types/user';
-import { format } from 'date-fns';
 import { Loader } from "lucide-react"
 import PopupEdit from '@/components/PopupEdit';
 import PopupAudio from "@/components/PopupAudio";
@@ -28,19 +25,14 @@ export default function Home() {
 
     // stats API state
     const [stats, setStats] = useState({ totalIncome: 0, totalExpense: 0, balance: 0, totalCount: 0 });
-    const { totalIncome, totalExpense, balance } = stats;
-    const incomeWidth = balance !== 0 ? `${((totalIncome / (totalIncome + totalExpense)) * 100).toFixed(2)}%` : '50%';
-    const expensesWidth = balance !== 0 ? `${((totalExpense / (totalIncome + totalExpense)) * 100).toFixed(2)}%` : '50%';
-
-    // fetch user data
+    const { totalIncome, totalExpense, balance } = stats;    // fetch user data
     const [user, setUser] = useState<User | null>(null);
     const fetchUser = useCallback(async () => {
         try {
             const res = await fetch('/api/app/me');
             if (!res.ok) throw new Error('Failed to fetch user data');
             const json = await res.json();
-            // console.log('Fetched user data:', json);
-            setUser(json.user);
+            setUser(json.data);
         } catch (err) {
             console.error('Error fetching user data:', err);
         }
@@ -169,22 +161,6 @@ export default function Home() {
         };
     }, [hasMore, loadingMore, page, fetchData]);
 
-    const handleLogout = async () => {
-        try {
-            const response = await fetch('/api/account/logout', {
-                method: 'POST',
-            });
-            if (response.ok) {
-                window.location.href = '/login';
-            } else {
-                console.error('Logout failed');
-            }
-        } catch (error) {
-            console.error('Error during logout:', error);
-        }
-    };
-
-
     return (
         <main className="relative flex items-start justify-center min-h-screen bg-white py-10">
             <div className="w-full max-w-md ">
@@ -217,13 +193,6 @@ export default function Home() {
                 user={user}
             />
             <Setting user={user} />
-            
-            <div className="absolute top-4 right-4">
-                <Button variant="outline" onClick={handleLogout}>
-                    Logout
-                </Button>
-            </div>
-
         </main>
     );
 }
