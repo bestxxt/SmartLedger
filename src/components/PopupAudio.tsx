@@ -156,6 +156,7 @@ export default function PopupAudio({ onSubmit, onChange }: PopupAudioProps) {
                         method: 'POST',
                         body: form,
                     });
+                    console.log(res)
 
                     if (!res.ok) {
                         throw new Error(`API error: ${res.statusText}`);

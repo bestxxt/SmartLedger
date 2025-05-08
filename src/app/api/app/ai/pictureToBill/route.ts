@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { checkAuth } from '@/lib/auth';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/utils/authOptions";
 import { main_income_categories, main_expense_categories, sub_expense_categories } from '@/lib/constants';
 import type { Transaction } from '@/types/transaction';
 
 export async function POST(req: NextRequest) {
     try {
-        const user = await checkAuth();
-        if (!user) {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -39,11 +40,8 @@ export async function POST(req: NextRequest) {
                 Transaction[] = {
                     amount: number,                // numeric amount of the transaction, default to 0
                     type: "income" | "expense",    // type of transaction
-                    category: string,              // You must choose from the following categories:
-                        income: ${main_income_categories.join(', ')};
-                        expense: ${main_expense_categories.join(', ')}.
-                    subcategory?: string,          // You must choose from the following categories:
-                        expense: ${sub_expense_categories.join(', ')}.
+                    category: string,               // You must choose from the categories I give to you
+                    subcategory?: string,          // You must choose from the subcategory I give to you
                     timestamp: string,             // ISO 8601 date-time (default to current date if not provided)
                     note: string,                 // extra details, use objective, factual description instead.
                     currency?: string,             // optional, guess based on location, default to "USD"
@@ -53,6 +51,10 @@ export async function POST(req: NextRequest) {
 
                 Information you can rely on:
                 Current time: ${new Date().toISOString()}
+                Current time: ${new Date().toISOString()}
+                income category: ${main_income_categories.join(', ')};
+                expense category: ${main_expense_categories.join(', ')};
+                expense subcategory: ${sub_expense_categories.join(', ')}.
 
                 If found return: {
                     found: true,

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from "@google/genai";
 import { Transaction } from '@/types/transaction';
-import { checkAuth } from '@/lib/auth';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/utils/authOptions";
 import { main_income_categories, main_expense_categories, sub_expense_categories } from '@/lib/constants';
 // 音频转写服务的URL (same as in transcribe API)
 const TRANSCRIPTION_SERVICE_URL = 'http://10.0.0.45:8000/transcribe_sync';
@@ -9,8 +10,8 @@ const TRANSCRIPTION_SERVICE_URL = 'http://10.0.0.45:8000/transcribe_sync';
 export async function POST(req: NextRequest) {
     try {
         // Check authentication
-        const user = await checkAuth();
-        if (!user) {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -89,12 +90,9 @@ export async function POST(req: NextRequest) {
 
                 Transaction[] = {
                     amount: number,                // numeric amount of the transaction, default to 0
-                    type: "income" | "expense",    // type of transaction
-                    category: string,              // You must choose from the following categories:
-                        income: ${main_income_categories.join(', ')};
-                        expense: ${main_expense_categories.join(', ')}.
-                    subcategory?: string,          
-                        expense: ${sub_expense_categories.join(', ')}.
+                    type: "income" | "expense", 
+                    category: string,              // You must choose from the categories I give to you
+                    subcategory?: string,           // You must choose from the subcategory I give to you
                     timestamp: string,             // ISO 8601 date-time (default to current date if not provided)
                     note: string,                 // extra details, use objective, factual description instead.
                     currency?: string,             // optional, default to "USD"
@@ -104,6 +102,9 @@ export async function POST(req: NextRequest) {
 
                 Information you can rely on:
                 Current time: ${new Date().toISOString()}
+                income category: ${main_income_categories.join(', ')};
+                expense category: ${main_expense_categories.join(', ')};
+                expense subcategory: ${sub_expense_categories.join(', ')}.
 
                 Transaction details:
                 Text: ${transcriptionText}
