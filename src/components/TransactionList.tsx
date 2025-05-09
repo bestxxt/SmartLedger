@@ -1,12 +1,14 @@
 import { Transaction, EditableTransaction } from '@/types/transaction';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { BillCard } from './BillCard';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
+import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { User } from '@/types/user';
 import { useState } from 'react';
 import PopupEdit from './PopupEdit';
 import { toast } from 'sonner';
+import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 
 type TransactionListProps = {
   transactions: Transaction[];
@@ -37,22 +39,40 @@ export default function TransactionList({ transactions, deleteTransaction, user,
     }
   };
 
-  // group by month
-  const groups: Record<string, Transaction[]> = {};
+  // Group by month and calculate monthly statistics
+  const groups: Record<string, { 
+    transactions: Transaction[],
+    income: number,
+    expense: number
+  }> = {};
+
   transactions.forEach(tx => {
     const key = format(tx.timestamp, 'yyyy-MM');
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(tx);
+    if (!groups[key]) {
+      groups[key] = {
+        transactions: [],
+        income: 0,
+        expense: 0
+      };
+    }
+    groups[key].transactions.push(tx);
+    if (tx.type === 'income') {
+      groups[key].income += tx.amount;
+    } else {
+      groups[key].expense += tx.amount;
+    }
   });
+
   const sortedKeys = Object.keys(groups).sort().reverse();
 
   return (
     <>
       {sortedKeys.map(monthKey => {
-        const items = groups[monthKey];
+        const { transactions: items, income, expense } = groups[monthKey];
         const [year, month] = monthKey.split('-');
         const date = new Date(+year, +month - 1, 1);
         const title = format(date, 'MMMM yyyy');
+        
         return (
           <motion.div
             key={monthKey}
@@ -62,101 +82,124 @@ export default function TransactionList({ transactions, deleteTransaction, user,
             transition={{ duration: 0.3 }}
             className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden"
           >
-            <div className="bg-gray-50 px-4 py-2 border-b">
-              <h4 className="font-medium text-gray-700">{title}</h4>
+            <div className="bg-gray-50 px-4 py-3 border-b">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-gray-700">{title}</h4>
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1.5">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="text-green-600">{income.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <TrendingDown className="h-4 w-4 text-red-500" />
+                    <span className="text-red-500">{expense.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Wallet className="h-4 w-4 text-gray-600" />
+                    <span className="text-gray-600">{(income - expense).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <ul className="py-2 px-2">
               <AnimatePresence>
-                {items.map((tx, index) => (
-                  <motion.li
-                    key={tx.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ 
-                      duration: 0.3,
-                      delay: index * 0.1
-                    }}
-                    className={`mb-2 rounded-md ${tx.type === 'income' ? 'bg-green-50' : 'bg-red-50'}`}
-                  > 
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <div className={`flex items-center justify-between cursor-pointer rounded-md p-3 hover:bg-orange-100 border-l-4 ${tx.type === 'income' ? 'border-green-500' : 'border-red-500'}`}
-                        >
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <motion.div 
-                              className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${tx.type === 'income' ? 'bg-green-200' : 'bg-red-200'}`}
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.95 }}
-                            > 
-                              <span className="text-xl">{tx.emoji}</span>
-                            </motion.div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1">
-                                <p className="font-medium text-gray-800 truncate">
-                                    {tx.category}
-                                {tx.subcategory && (
-                                        <span className="text-sm text-gray-500 ml-1">• {tx.subcategory}</span>
-                                )}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2 mt-1">
-                                <p className="text-sm text-gray-500">{format(tx.timestamp, 'MM/dd HH:mm')}</p>
-                                {/* {tx.location && (
-                                  <span className="text-sm text-gray-500">• {tx.location}</span>
-                                )} */}
-                              </div>
-                              {tx.tags && tx.tags.length > 0 && (
-                                <motion.div 
-                                  className="flex flex-wrap gap-1 mt-1"
-                                  initial={{ opacity: 0 }}
-                                  whileInView={{ opacity: 1 }}
-                                  viewport={{ once: true }}
-                                  transition={{ delay: 0.2 }}
-                                >
-                                  {tx.tags.map((tag, index) => (
-                                    <motion.span
-                                      key={index}
-                                      initial={{ scale: 0.8, opacity: 0 }}
-                                      whileInView={{ scale: 1, opacity: 1 }}
-                                      viewport={{ once: true }}
-                                      transition={{ delay: 0.3 + index * 0.1 }}
-                                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
-                                    >
-                                      {tag}
-                                    </motion.span>
-                                  ))}
-                                </motion.div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end ml-4 flex-shrink-0">
-                            <p className={`font-semibold ${tx.type === 'income' ? 'text-green-600' : 'text-red-500'}`}> 
-                              {tx.type === 'income' ? `${tx.amount} ${tx.currency || '$'}` : `-${Math.abs(tx.amount)} ${tx.currency || '$'}`}
-                            </p>
-                            {tx.note && (
-                              <p className="text-xs text-gray-500 mt-1 max-w-[150px] truncate">
-                                {tx.note}
-                              </p>
-                            )}
-                          </div>
+                {items.map((tx, index) => {
+                  const showDateSeparator = index === 0 || !isSameDay(tx.timestamp, items[index - 1].timestamp);
+                  
+                  return (
+                    <motion.li
+                      key={tx.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-50px" }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ 
+                        duration: 0.3,
+                        delay: index * 0.1
+                      }}
+                    >
+                      {showDateSeparator && (
+                        <div className="px-3 py-2 text-sm text-gray-500 font-medium">
+                          {format(tx.timestamp, 'EEEE, MMMM d')}
                         </div>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full bg-transparent border-none shadow-none">
-                        <BillCard 
-                          transaction={tx} 
-                          onDelete={deleteTransaction}
-                          user={user}
-                          onEdit={() => {
-                            setSelectedTransaction(tx);
-                            setIsEditing(true);
-                          }}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </motion.li>
-                ))}
+                      )}
+                      <div className={`mb-2 rounded-md ${tx.type === 'income' ? 'bg-green-50' : 'bg-red-50'}`}>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <div className={`flex items-center justify-between cursor-pointer rounded-md p-3 hover:bg-orange-100 border-l-4 ${tx.type === 'income' ? 'border-green-500' : 'border-red-500'}`}
+                            >
+                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <motion.div 
+                                  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${tx.type === 'income' ? 'bg-green-200' : 'bg-red-200'}`}
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.95 }}
+                                > 
+                                  <span className="text-xl">{tx.emoji}</span>
+                                </motion.div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1">
+                                    <p className="font-medium text-gray-800 truncate">
+                                      {tx.category}
+                                      {tx.subcategory && (
+                                        <span className="text-sm text-gray-500 ml-1">• {tx.subcategory}</span>
+                                      )}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <p className="text-sm text-gray-500">{format(tx.timestamp, 'h:mm a')}</p>
+                                  </div>
+                                  {tx.tags && tx.tags.length > 0 && (
+                                    <motion.div 
+                                      className="flex flex-wrap gap-1 mt-1"
+                                      initial={{ opacity: 0 }}
+                                      whileInView={{ opacity: 1 }}
+                                      viewport={{ once: true }}
+                                      transition={{ delay: 0.2 }}
+                                    >
+                                      {tx.tags.map((tag, index) => (
+                                        <motion.span
+                                          key={index}
+                                          initial={{ scale: 0.8, opacity: 0 }}
+                                          whileInView={{ scale: 1, opacity: 1 }}
+                                          viewport={{ once: true }}
+                                          transition={{ delay: 0.3 + index * 0.1 }}
+                                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
+                                        >
+                                          {tag}
+                                        </motion.span>
+                                      ))}
+                                    </motion.div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-end ml-4 flex-shrink-0">
+                                <p className={`font-semibold ${tx.type === 'income' ? 'text-green-600' : 'text-red-500'}`}> 
+                                  {tx.type === 'income' ? `${tx.amount} ${tx.currency || '$'}` : `-${Math.abs(tx.amount)} ${tx.currency || '$'}`}
+                                </p>
+                                {tx.note && (
+                                  <p className="text-xs text-gray-500 mt-1 max-w-[150px] truncate">
+                                    {tx.note}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full bg-transparent border-none shadow-none">
+                            <BillCard 
+                              transaction={tx} 
+                              onDelete={deleteTransaction}
+                              user={user}
+                              onEdit={() => {
+                                setSelectedTransaction(tx);
+                                setIsEditing(true);
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </motion.li>
+                  );
+                })}
               </AnimatePresence>
             </ul>
           </motion.div>

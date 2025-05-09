@@ -209,7 +209,14 @@ export default function Home() {
                 <FinancialSummary loading={loading} totalIncome={totalIncome} totalExpense={totalExpense} balance={balance} />
 
                 {/* Transaction List */}
-                <h3 className="text-lg font-semibold mb-3 text-gray-800">Transactions</h3>
+                <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-dashed border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                        <h3 className="text-lg font-semibold bg-white px-4 text-gray-800">Transactions</h3>
+                    </div>
+                </div>
                 <TransactionList 
                     transactions={transactions} 
                     deleteTransaction={deleteTransaction}
