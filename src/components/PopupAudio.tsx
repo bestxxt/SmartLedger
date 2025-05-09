@@ -18,7 +18,8 @@ import { ConfirmBillCard } from './BillCard';
 export interface PopupAudioProps {
     /** called to add a transaction to parent state */
     onSubmit?: (tx: EditableTransaction) => Promise<void>;
-    onChange?: (value: string) => void;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }
 
 
@@ -45,9 +46,8 @@ export type TransactionResponse = {
     };
 };
 
-export default function PopupAudio({ onSubmit, onChange }: PopupAudioProps) {
+export default function PopupAudio({ onSubmit, open, onOpenChange }: PopupAudioProps) {
     const [recordState, setRecordState] = useState<'idle' | 'recording' | 'recorded' | 'uploading' | 'finished'>('idle');
-    const [open, setOpen] = useState(false);
     const [response, setResponse] = useState<any>("null");
     const [volume, setVolume] = useState<number>(0);
     const [buttonEnabled, setButtonEnabled] = useState(true);
@@ -217,15 +217,22 @@ export default function PopupAudio({ onSubmit, onChange }: PopupAudioProps) {
 
     const circleSize = 200 + Math.min(Math.max(smoothedVolume, 0), 1) * 500;
 
+    // Add function to handle card removal
+    const handleCardRemoval = (index: number) => {
+        setTransactionCards(prev => {
+            const newCards = prev.filter((_, idx) => idx !== index);
+            // If this was the last card and we're in finished state, close the drawer
+            if (newCards.length === 0 && recordState === 'finished') {
+                onOpenChange?.(false);
+            }
+            return newCards;
+        });
+    };
+
     return (
-        <Drawer open={open} onOpenChange={setOpen}>
+        <Drawer open={open} onOpenChange={onOpenChange}>
             <DrawerTrigger asChild>
-                <button
-                    className="fixed bottom-24 right-6 bg-teal-500 hover:bg-teal-600 text-white rounded-full p-4 shadow-lg"
-                    aria-label="Add transaction"
-                >
-                    <Mic />
-                </button>
+                
             </DrawerTrigger>
             <DrawerContent className="p-6 w-full h-full">
                 <DrawerHeader>
@@ -318,9 +325,8 @@ export default function PopupAudio({ onSubmit, onChange }: PopupAudioProps) {
                                             onConfirm={async (tx) => {
                                                 if (onSubmit) await onSubmit(tx);
                                             }}
-                                            onSuccess={() => {
-                                                setTransactionCards(prev => prev.filter(tc => tc !== transactionCard));
-                                            }}
+                                            onSuccess={() => handleCardRemoval(index)}
+                                            onCancel={() => handleCardRemoval(index)}
                                         />
                                     ))
                                 ) : (
@@ -343,7 +349,7 @@ export default function PopupAudio({ onSubmit, onChange }: PopupAudioProps) {
                     <div className='flex justify-evenly w-full fixed bottom-6 left-0 right-0 px-4'>
                         {/* Cancel button */}
                         <button
-                            onClick={() => setOpen(false)}
+                            onClick={() => onOpenChange?.(false)}
                             className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white text-black flex items-center justify-center border-4 border-black"
                         >
                             <X size={32} className="md:size-48" />

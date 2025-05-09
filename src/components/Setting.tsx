@@ -38,9 +38,11 @@ import { cn } from "@/lib/utils"
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { signOut } from "next-auth/react"
 
-type UserProps = {
+export interface UserProps {
     user: User | null;
-};
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+}
 
 const TAG_COLORS = [
     { name: 'Red', value: '#ef4444' },
@@ -130,7 +132,7 @@ async function compressImage(file: File, maxSizeKB: number = 128): Promise<strin
     });
 }
 
-export default function Setting({ user }: UserProps) {
+export default function Setting({ user, open, onOpenChange }: UserProps) {
     // State
     if (!user) return null
     const [state, setState] = useState<EditableUser>({
@@ -336,16 +338,8 @@ export default function Setting({ user }: UserProps) {
     }
 
     return (
-        <Sheet>
-            <SheetTrigger asChild>
-                <button
-                    className="fixed bottom-60 right-6 bg-teal-500 hover:bg-teal-600 text-white rounded-full p-4 shadow-lg"
-                >
-                    <Settings className="h-5 w-5" />
-                </button>
-            </SheetTrigger>
+        <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="w-full [&>button]:hidden">
-
                 <SheetHeader>
                     <div className="flex justify-between items-center">
                         <div>
@@ -357,15 +351,15 @@ export default function Setting({ user }: UserProps) {
                         <Button
                             variant="outline"
                             size="icon"
-                            className="h-12 w-12"
+                            className="h-12 w-auto px-4"
                             onClick={() => signOut({ callbackUrl: '/login' })}
                         >
+                            Logout
                             <LogOut/>
                         </Button>
                     </div>
                 </SheetHeader>
-                <ScrollArea className="h-[85%] ">
-
+                <ScrollArea className="h-[85%]">
                     <div className="space-y-6 p-6 ">
                         {/* Avatar Section */}
                         <div className="space-y-2 ">
@@ -713,7 +707,6 @@ export default function Setting({ user }: UserProps) {
                         </div>
                         <hr />
                     </div>
-
 
                     <SheetFooter>
                         <div className="flex justify-evenly space-x-2 mb-6">

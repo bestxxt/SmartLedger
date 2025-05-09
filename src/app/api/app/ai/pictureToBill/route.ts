@@ -41,17 +41,16 @@ export async function POST(req: NextRequest) {
                     amount: number,                // numeric amount of the transaction, default to 0
                     type: "income" | "expense",    // type of transaction
                     category: string,               // You must choose from the categories I give to you
-                    subcategory?: string,          // You must choose from the subcategory I give to you
-                    timestamp: string,             // ISO 8601 date-time (default to current date if not provided)
+                    subcategory?: string,          // optional, You must choose from the subcategory I give to you
+                    timestamp: string,             // ISO 8601 date-time (default to current date if not in picture)
                     note: string,                 // extra details, use objective, factual description instead.
-                    currency?: string,             // optional, guess based on location, default to "USD"
-                    location?: string,             // optional, location of transaction in text's language
+                    currency: string,             // guess based on location, default to "USD"
+                    location: string,             // location of transaction in text's language
                     emoji: string                  //  emoji representing the transaction
                 }
 
                 Information you can rely on:
-                Current time: ${new Date().toISOString()}
-                Current time: ${new Date().toISOString()}
+                Current time:  ${new Date().toLocaleString()}
                 income category: ${main_income_categories.join(', ')};
                 expense category: ${main_expense_categories.join(', ')};
                 expense subcategory: ${sub_expense_categories.join(', ')}.

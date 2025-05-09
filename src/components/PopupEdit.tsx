@@ -1,6 +1,5 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useState, useEffect } from 'react';
 import { 
-    Plus, 
     CircleDollarSign, 
     CirclePlus, 
     CircleMinus, 
@@ -86,7 +85,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { EditableTransaction } from "@/types/transaction"
+import { EditableTransaction, Transaction } from "@/types/transaction"
 import { Input } from "@/components/ui/input"
 import { User } from "@/types/user"
 import { main_income_categories, main_expense_categories, sub_expense_categories } from "@/lib/constants"
@@ -486,40 +485,79 @@ export interface PopupEditProps {
     onSubmit?: (tx: EditableTransaction) => Promise<void>
     onChange?: (value: string) => void;
     user: User | null;
+    transaction?: Transaction;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    source?: 'home' | 'transaction';
 }
 
-export default function PopupEdit({ onSubmit, user }: PopupEditProps) {
+export default function PopupEdit({ onSubmit, user, transaction, open, onOpenChange, source = 'home' }: PopupEditProps) {
     const [form, setForm] = useState<EditableTransaction>({
-        amount: 0,
-        type: 'expense',
-        category: 'Other',
-        subcategory: 'Other',
-        timestamp: new Date(),
-        note: '',
-        currency: 'USD',
-        tags: [],
-        location: '',
-        emoji: '💰',
+        amount: transaction?.amount || 0,
+        type: transaction?.type || 'expense',
+        category: transaction?.category || 'Other',
+        subcategory: transaction?.subcategory || 'Other',
+        timestamp: transaction?.timestamp || new Date(),
+        note: transaction?.note || '',
+        currency: transaction?.currency || 'USD',
+        tags: transaction?.tags || [],
+        location: transaction?.location || '',
+        emoji: transaction?.emoji || '💰',
     });
 
+    const isEditMode = !!transaction;
+
+    useEffect(() => {
+        if (transaction) {
+            setForm({
+                amount: transaction.amount,
+                type: transaction.type,
+                category: transaction.category,
+                subcategory: transaction.subcategory,
+                timestamp: transaction.timestamp,
+                note: transaction.note || '',
+                currency: transaction.currency || 'USD',
+                tags: transaction.tags || [],
+                location: transaction.location || '',
+                emoji: transaction.emoji || '💰',
+            });
+        }
+    }, [transaction]);
+
+    const handleSubmit = async () => {
+        try {
+            if (onSubmit) {
+                await onSubmit(form);
+            }
+            
+            if (!isEditMode) {
+                setForm({
+                    amount: 0,
+                    type: 'expense',
+                    category: 'Other',
+                    subcategory: 'Other',
+                    timestamp: new Date(),
+                    note: '',
+                    currency: 'USD',
+                    tags: [],
+                    location: '',
+                    emoji: '💰',
+                });
+            }
+        } catch (error) {
+            console.error('Error submitting transaction:', error);
+        }
+    };
+
     return (
-        <Drawer>
-            <DrawerTrigger asChild>
-                <button
-                    className="fixed bottom-6 right-6 bg-teal-500 hover:bg-teal-600 text-white rounded-full p-4 shadow-lg"
-                    aria-label="Add transaction"
-                >
-                    <Plus />
-                </button>
-            </DrawerTrigger>
+        <Drawer open={open} onOpenChange={onOpenChange}>
             <DrawerContent className="p-6 w-full h-full">
                 <DrawerHeader>
                     <DrawerTitle className="flex justify-center gap-2">
                         <CircleDollarSign />
-                        Add Transaction
+                        {isEditMode ? 'Edit Transaction' : 'Add Transaction'}
                     </DrawerTitle>
                 </DrawerHeader>
-
                 <ScrollArea className="h-[90%]">
                     <div className="space-y-6">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -594,6 +632,7 @@ export default function PopupEdit({ onSubmit, user }: PopupEditProps) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="USD">USD ($)</SelectItem>
+                                <SelectItem value="CAD">CAD ($)</SelectItem>
                                 <SelectItem value="CNY">CNY (¥)</SelectItem>
                                 <SelectItem value="EUR">EUR (€)</SelectItem>
                                 <SelectItem value="GBP">GBP (£)</SelectItem>
@@ -621,20 +660,33 @@ export default function PopupEdit({ onSubmit, user }: PopupEditProps) {
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Emoji
                         </label>
-                        <div className="flex flex-wrap gap-2">
-                            {['💰', '🍔', '🚗', '🏠', '👕', '🎮', '📱', '✈️', '🎬', '📚'].map((emoji) => (
-                                <Button
-                                    key={emoji}
-                                    variant="outline"
-                                    className={cn(
-                                        "text-2xl",
-                                        form.emoji === emoji && "bg-primary text-primary-foreground"
-                                    )}
-                                    onClick={() => setForm((prev) => ({ ...prev, emoji }))}
-                                >
-                                    {emoji}
-                                </Button>
-                            ))}
+                        <div className="flex flex-col gap-2">
+                            <div className="flex flex-wrap gap-2">
+                                {['💰', '🍔', '🚗', '🏠', '👕', '🎮', '📱', '✈️', '🎬', '📚'].map((emoji) => (
+                                    <Button
+                                        key={emoji}
+                                        variant="outline"
+                                        className={cn(
+                                            "text-2xl",
+                                            form.emoji === emoji && "bg-primary text-primary-foreground"
+                                        )}
+                                        onClick={() => setForm((prev) => ({ ...prev, emoji }))}
+                                    >
+                                        {emoji}
+                                    </Button>
+                                ))}
+                            </div>
+                            <div className="flex items-center gap-2 mt-2">
+                                <Input
+                                    type="text"
+                                    value={form.emoji}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, emoji: e.target.value }))}
+                                    className="w-28 text-2xl text-center p-0"
+                                    placeholder="😊"
+                                    maxLength={2}
+                                />
+                                <span className="text-sm text-gray-500">Input custom emoji</span>
+                            </div>
                         </div>
                         <DrawerFooter className="pt-4 ">
                             <div className='flex justify-between'>
@@ -644,24 +696,9 @@ export default function PopupEdit({ onSubmit, user }: PopupEditProps) {
                                 <DrawerClose asChild>
                                     <Button 
                                         className="w-[49%] h-12"
-                                        onClick={() => {
-                                            if (onSubmit) {
-                                                onSubmit(form);
-                                            }
-                                            setForm({
-                                                amount: 0,
-                                                type: 'expense',
-                                                category: '',
-                                                timestamp: new Date(),
-                                                note: '',
-                                                currency: 'USD',
-                                                tags: [],
-                                                location: '',
-                                                emoji: '💰',
-                                            });
-                                        }}
+                                        onClick={handleSubmit}
                                     >
-                                        Add
+                                        {isEditMode ? 'Save Changes' : 'Add'}
                                     </Button>
                                 </DrawerClose>
                             </div>

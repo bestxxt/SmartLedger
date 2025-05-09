@@ -86,7 +86,7 @@ export async function PATCH(
     if (!result) {
       return NextResponse.json({ message: 'Transaction not found or update failed' }, { status: 404 });
     }
-    console.log('Updated transaction:', result);
+    // console.log('Updated transaction:', result);
 
     const updated = result as ITransaction;
     const dto: Transaction = {
@@ -99,6 +99,7 @@ export async function PATCH(
       note: updated.note,
       currency: updated.currency,
       tags: updated.tags,
+      emoji: updated.emoji,
       location: updated.location,
       createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,

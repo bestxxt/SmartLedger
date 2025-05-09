@@ -5,9 +5,12 @@ import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerFooter } from
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ConfirmBillCard } from './BillCard';
 import { EditableTransaction } from '@/types/transaction';
+import { cn } from '@/lib/utils';
 
 export interface PopupPictureProps {
     onSubmit?: (tx: EditableTransaction) => Promise<void>;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -34,13 +37,24 @@ export type TransactionResponse = {
 };
 
 
-export default function PopupPicture({ onSubmit }: PopupPictureProps) {
-    const [open, setOpen] = useState(false);
+export default function PopupPicture({ onSubmit, open, onOpenChange }: PopupPictureProps) {
     const [photo, setPhoto] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [state, setState] = useState<'idle' | 'selected' | 'uploading' | 'finished'>('idle');
     const [transactionCards, setTransactionCards] = useState<EditableTransaction[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    // Add function to handle card removal
+    const handleCardRemoval = (index: number) => {
+        setTransactionCards(prev => {
+            const newCards = prev.filter((_, idx) => idx !== index);
+            // If this was the last card and we're in finished state, close the drawer
+            if (newCards.length === 0 && state === 'finished') {
+                onOpenChange?.(false);
+            }
+            return newCards;
+        });
+    };
 
     useEffect(() => {
         if (!open) {
@@ -63,11 +77,14 @@ export default function PopupPicture({ onSubmit }: PopupPictureProps) {
         if (files && files[0]) {
             setPhoto(files[0]);
             setState('selected');
-            setOpen(true);
         }
     };
 
     const handleUpload = async () => {
+        if (state === 'idle') {
+            inputRef.current?.click();
+            return;
+        }
         if (!photo) return;
         setState('uploading');
         const form = new FormData();
@@ -124,16 +141,21 @@ export default function PopupPicture({ onSubmit }: PopupPictureProps) {
                 ref={inputRef}
                 onChange={handleFileChange}
             />
-            <button
-                className="fixed bottom-42 right-6 bg-teal-500 hover:bg-teal-600 text-white rounded-full p-4 shadow-lg"
-                aria-label="Upload picture"
-                onClick={() => inputRef.current?.click()}
-            >
-                <Camera />
-            </button>
-            <Drawer open={open} onOpenChange={setOpen}>
+            <Drawer open={open} onOpenChange={onOpenChange}>
                 <DrawerContent className="p-6 w-full h-full">
                     <div className="flex-1 flex flex-col items-center">
+                        {state === 'idle' && (
+                            <div className="flex flex-col items-center justify-center h-[70%] text-center px-4">
+                                <Camera className="w-16 h-16 text-gray-400 mb-4" />
+                                <h3 className="text-xl font-medium text-gray-700 mb-2">
+                                    Take a Photo of Your Receipt
+                                </h3>
+                                <p className="text-gray-500">
+                                    Click the upload button below to take a photo of your receipt or bill.
+                                    We'll automatically extract the transaction details for you.
+                                </p>
+                            </div>
+                        )}
                         {state === 'selected' && previewUrl && (
                             <img src={previewUrl} alt="Preview" className="max-h-[70%] object-contain mb-4" />
                         )}
@@ -148,9 +170,8 @@ export default function PopupPicture({ onSubmit }: PopupPictureProps) {
                                             onConfirm={async confirmTx => {
                                                 if (onSubmit) await onSubmit(confirmTx);
                                             }}
-                                            onSuccess={() =>
-                                                setTransactionCards(prev => prev.filter((_, idx) => idx !== i))
-                                            }
+                                            onSuccess={() => handleCardRemoval(i)}
+                                            onCancel={() => handleCardRemoval(i)}
                                         />
                                     ))
                                 ) : (
@@ -167,16 +188,22 @@ export default function PopupPicture({ onSubmit }: PopupPictureProps) {
                     </div>
                     <div className="flex justify-evenly w-full fixed bottom-6 left-0 right-0 px-4">
                         <button
-                            onClick={() => setOpen(false)}
+                            onClick={() => onOpenChange?.(false)}
                             className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white text-black flex items-center justify-center border-4 border-black"
                         >
                             <X size={32} />
                         </button>
                         <button
-                            disabled={state !== 'selected'}
                             onClick={handleUpload}
-                            className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-black text-white flex items-center justify-center transition-all duration-300 ease-in-out disabled:bg-gray-400"
+                            className={cn(
+                                "w-24 h-24 md:w-32 md:h-32 rounded-full text-white flex items-center justify-center transition-all duration-300 ease-in-out",
+                                state === 'idle' ? 'bg-black' : 
+                                state === 'selected' ? 'bg-black' :
+                                state === 'uploading' ? 'bg-gray-400' :
+                                'bg-black'
+                            )}
                         >
+                            {state === 'idle' && <Camera size={32} />}
                             {state === 'selected' && <ArrowUpFromLine size={32} />}
                             {state === 'uploading' && <Loader className="animate-spin" />}
                             {state === 'finished' && <RefreshCcw size={32} />}

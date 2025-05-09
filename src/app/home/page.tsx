@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, FormEvent, useCallback, useRef } from "react";
-import { Button } from '@/components/ui/button';
 import { Transaction } from '@/types/transaction';
 import { User } from '@/types/user';
 import { Loader } from "lucide-react"
@@ -14,6 +13,7 @@ import FinancialSummary from '@/components/FinancialSummary';
 import TransactionList from '@/components/TransactionList';
 import Setting from '@/components/Setting';
 import { toast } from "sonner";
+import { Plus, Mic, Camera, Settings } from "lucide-react";
 
 export default function Home() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -22,6 +22,12 @@ export default function Home() {
     const [loadingMore, setLoadingMore] = useState(false);
     const limit = 10;
     const [loading, setLoading] = useState(true);
+
+    // Drawer states
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isAudioOpen, setIsAudioOpen] = useState(false);
+    const [isPictureOpen, setIsPictureOpen] = useState(false);
+    const [isSettingOpen, setIsSettingOpen] = useState(false);
 
     // stats API state
     const [stats, setStats] = useState({ totalIncome: 0, totalExpense: 0, balance: 0, totalCount: 0 });
@@ -132,6 +138,51 @@ export default function Home() {
         }
     };
 
+    const handleTransactionUpdate = (updatedTx: Transaction) => {
+        console.log('Updating transaction:', updatedTx);
+        
+        // 更新交易列表
+        setTransactions(prev => {
+            const newTransactions = prev.map(tx => 
+                tx.id === updatedTx.id ? updatedTx : tx
+            );
+            console.log('New transactions:', newTransactions);
+            return newTransactions;
+        });
+        
+        // 更新统计数据
+        fetchStats();
+    };
+
+    const handleEdit = async (editedTx: EditableTransaction, id: string) => {
+        try {
+            const res = await fetch(`/api/app/transactions/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editedTx),
+            });
+            if (!res.ok) throw new Error('Failed to update transaction');
+            const json = await res.json();
+            if (json.transaction) {
+                const updatedTx: Transaction = {
+                    ...json.transaction,
+                    timestamp: new Date(json.transaction.timestamp),
+                    updatedAt: json.transaction.updatedAt ? new Date(json.transaction.updatedAt) : undefined,
+                };
+                // 更新交易列表
+                setTransactions(prev => prev.map(tx => 
+                    tx.id === updatedTx.id ? updatedTx : tx
+                ));
+                // 更新统计数据
+                fetchStats();
+                toast.success('Transaction updated successfully');
+            }
+        } catch (err) {
+            console.error('Error updating transaction:', err);
+            toast.error('Failed to update transaction');
+        }
+    };
+
     useEffect(() => {
         fetchStats();
         fetchUser();
@@ -171,7 +222,12 @@ export default function Home() {
 
                 {/* Transaction List */}
                 <h3 className="text-lg font-semibold mb-3 text-gray-800">Transactions</h3>
-                <TransactionList transactions={transactions} deleteTransaction={deleteTransaction} />
+                <TransactionList 
+                    transactions={transactions} 
+                    deleteTransaction={deleteTransaction}
+                    user={user}
+                    onEdit={handleEdit}
+                />
 
                 {hasMore && (
                     <div className="text-center py-4 flex justify-center">
@@ -181,18 +237,60 @@ export default function Home() {
                 )}
             </div>
 
-            {/* Replace Drawer popup with PopupEdit component */}
-            <PopupPicture
-                onSubmit={handleAdd}
-            />
-            <PopupAudio
-                onSubmit={handleAdd}
-            />
+            {/* Floating action buttons */}
+            <div className="fixed bottom-6 right-6 flex flex-col gap-4">
+                <button
+                    onClick={() => setIsEditOpen(true)}
+                    className="bg-teal-500 hover:bg-teal-600 text-white rounded-full p-4 shadow-lg"
+                    aria-label="Add transaction"
+                >
+                    <Plus />
+                </button>
+                <button
+                    onClick={() => setIsAudioOpen(true)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-4 shadow-lg"
+                    aria-label="Record audio"
+                >
+                    <Mic />
+                </button>
+                <button
+                    onClick={() => setIsPictureOpen(true)}
+                    className="bg-purple-500 hover:bg-purple-600 text-white rounded-full p-4 shadow-lg"
+                    aria-label="Take picture"
+                >
+                    <Camera />
+                </button>
+                <button
+                    onClick={() => setIsSettingOpen(true)}
+                    className="bg-gray-500 hover:bg-gray-600 text-white rounded-full p-4 shadow-lg"
+                    aria-label="Settings"
+                >
+                    <Settings />
+                </button>
+            </div>
+
+            {/* Drawer components */}
             <PopupEdit
+                open={isEditOpen}
+                onOpenChange={setIsEditOpen}
                 onSubmit={handleAdd}
                 user={user}
             />
-            <Setting user={user} />
+            <PopupAudio
+                open={isAudioOpen}
+                onOpenChange={setIsAudioOpen}
+                onSubmit={handleAdd}
+            />
+            <PopupPicture
+                open={isPictureOpen}
+                onOpenChange={setIsPictureOpen}
+                onSubmit={handleAdd}
+            />
+            <Setting 
+                open={isSettingOpen}
+                onOpenChange={setIsSettingOpen}
+                user={user} 
+            />
         </main>
     );
 }

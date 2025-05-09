@@ -1,17 +1,44 @@
-import { Transaction } from '@/types/transaction';
+import { Transaction, EditableTransaction } from '@/types/transaction';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { BillCard } from './BillCard';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { User } from '@/types/user';
+import { useState } from 'react';
+import PopupEdit from './PopupEdit';
+import { toast } from 'sonner';
 
 type TransactionListProps = {
   transactions: Transaction[];
-  deleteTransaction: (id: string) => void;
+  deleteTransaction: (id: string) => Promise<void>;
+  user: User | null;
+  onEdit: (editedTx: EditableTransaction, id: string) => Promise<void>;
 };
 
-export default function TransactionList({ transactions, deleteTransaction }: TransactionListProps) {
+type BillCardProps = {
+  transaction: Transaction;
+  onDelete: (id: string) => Promise<void>;
+  user: User | null;
+  onEdit: () => void;
+};
+
+export default function TransactionList({ transactions, deleteTransaction, user, onEdit }: TransactionListProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+
+  const handleEdit = async (editedTx: EditableTransaction) => {
+    if (!selectedTransaction?.id) return;
+    try {
+      await onEdit(editedTx, selectedTransaction.id);
+      setIsEditing(false);
+      setSelectedTransaction(null);
+    } catch (err) {
+      console.error('Error updating transaction:', err);
+    }
+  };
+
   // group by month
   const groups: Record<string, Transaction[]> = {};
   transactions.forEach(tx => {
@@ -117,12 +144,15 @@ export default function TransactionList({ transactions, deleteTransaction }: Tra
                         </div>
                       </PopoverTrigger>
                       <PopoverContent className="w-full bg-transparent border-none shadow-none">
-                        <BillCard transaction={tx} />
-                        <div className="mt-4 px-4 pb-2">
-                          <Button variant="destructive" size="sm" className="w-full" onClick={() => deleteTransaction(tx.id)}>
-                            Delete
-                          </Button>
-                        </div>
+                        <BillCard 
+                          transaction={tx} 
+                          onDelete={deleteTransaction}
+                          user={user}
+                          onEdit={() => {
+                            setSelectedTransaction(tx);
+                            setIsEditing(true);
+                          }}
+                        />
                       </PopoverContent>
                     </Popover>
                   </motion.li>
@@ -132,6 +162,15 @@ export default function TransactionList({ transactions, deleteTransaction }: Tra
           </motion.div>
         );
       })}
+
+      <PopupEdit
+        transaction={selectedTransaction || undefined}
+        open={isEditing}
+        onOpenChange={setIsEditing}
+        onSubmit={handleEdit}
+        user={user}
+        source="transaction"
+      />
     </>
   );
 }

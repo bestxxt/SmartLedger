@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Step 1: Get form data with audio file
+        // Step 1: Get form data with audio file and optional parameters
         let formData;
         try {
             formData = await req.formData();
@@ -32,6 +32,8 @@ export async function POST(req: NextRequest) {
                 error: 'Missing audio file'
             }, { status: 400 });
         }
+
+
 
         // Step 2: Transcribe the audio
         let transcriptionText;
@@ -93,15 +95,15 @@ export async function POST(req: NextRequest) {
                     type: "income" | "expense", 
                     category: string,              // You must choose from the categories I give to you
                     subcategory?: string,           // You must choose from the subcategory I give to you
-                    timestamp: string,             // ISO 8601 date-time (default to current date if not provided)
+                    timestamp: string,             // ISO 8601 date-time (default to current time if not provided)
                     note: string,                 // extra details, use objective, factual description instead.
-                    currency?: string,             // optional, default to "USD"
+                    currency: string,             //  default to "USD"
                     location?: string,             // optional, location of transaction in text's language
                     emoji: string                  //  emoji representing the transaction
                 }
 
                 Information you can rely on:
-                Current time: ${new Date().toISOString()}
+                Current time: ${new Date().toLocaleString()}
                 income category: ${main_income_categories.join(', ')};
                 expense category: ${main_expense_categories.join(', ')};
                 expense subcategory: ${sub_expense_categories.join(', ')}.
