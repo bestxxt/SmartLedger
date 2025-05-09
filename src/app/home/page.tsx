@@ -120,9 +120,11 @@ export default function Home() {
                 };
                 setTransactions(prev => [tx, ...prev]);
                 fetchStats();
+                toast.success('Transaction added successfully');
             }
         } catch (err) {
-            console.error('添加交易失败', err);
+            console.error('Failed to add transaction', err);
+            toast.error('Failed to add transaction');
         }
     };
 
@@ -133,25 +135,11 @@ export default function Home() {
             if (!res.ok) throw new Error('Delete failed');
             setTransactions(prev => prev.filter(tx => tx.id !== id));
             fetchStats();
+            toast.success('Transaction deleted successfully');
         } catch (err) {
             console.error('Error deleting transaction:', err);
+            toast.error('Failed to delete transaction');
         }
-    };
-
-    const handleTransactionUpdate = (updatedTx: Transaction) => {
-        console.log('Updating transaction:', updatedTx);
-        
-        // 更新交易列表
-        setTransactions(prev => {
-            const newTransactions = prev.map(tx => 
-                tx.id === updatedTx.id ? updatedTx : tx
-            );
-            console.log('New transactions:', newTransactions);
-            return newTransactions;
-        });
-        
-        // 更新统计数据
-        fetchStats();
     };
 
     const handleEdit = async (editedTx: EditableTransaction, id: string) => {
