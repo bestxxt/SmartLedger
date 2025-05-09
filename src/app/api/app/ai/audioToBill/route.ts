@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/utils/authOptions";
 import { main_income_categories, main_expense_categories, sub_expense_categories } from '@/lib/constants';
 // 音频转写服务的URL (same as in transcribe API)
-const TRANSCRIPTION_SERVICE_URL = 'http://10.0.0.45:8000/transcribe_sync';
+const TRANSCRIPTION_SERVICE_URL = 'https://whisper.12080123.site/transcribe_sync';
 
 export async function POST(req: NextRequest) {
     try {
@@ -40,12 +40,15 @@ export async function POST(req: NextRequest) {
         try {
             // Forward request to audio transcription service
             const transcriptionResponse = await fetch(TRANSCRIPTION_SERVICE_URL, {
-                method: 'POST',
-                body: formData,
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-API-Key': process.env.TRANSCRIPTION_API_KEY || ''
+            }
             });
 
             if (!transcriptionResponse.ok) {
-                throw new Error(`Transcription service responded with status: ${transcriptionResponse.status}`);
+            throw new Error(`Transcription service responded with status: ${transcriptionResponse.status}`);
             }
 
             // Parse the transcription result
@@ -53,13 +56,13 @@ export async function POST(req: NextRequest) {
 
             // Extract the text from the response
             if (transcriptionResult.text) {
-                // Simple text response from some API versions
-                transcriptionText = transcriptionResult.text;
+            // Simple text response from some API versions
+            transcriptionText = transcriptionResult.text;
             } else if (transcriptionResult.segments) {
-                // Response with segments from other API versions
-                transcriptionText = transcriptionResult.segments.map((segment: any) => segment.text).join(' ');
+            // Response with segments from other API versions
+            transcriptionText = transcriptionResult.segments.map((segment: any) => segment.text).join(' ');
             } else {
-                throw new Error('Invalid transcription response format');
+            throw new Error('Invalid transcription response format');
             }
 
         } catch (error) {
