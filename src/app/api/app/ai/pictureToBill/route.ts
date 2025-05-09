@@ -23,6 +23,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing image file' }, { status: 400 });
         }
 
+        // Get local time from form data or use current time as fallback
+        const localTime = formData.get('localTime')?.toString() || new Date().toISOString();
+
         const imageFile = formData.get('file') as File;
         const arrayBuffer = await imageFile.arrayBuffer();
         const base64 = Buffer.from(arrayBuffer).toString('base64');
@@ -50,7 +53,7 @@ export async function POST(req: NextRequest) {
                 }
 
                 Information you can rely on:
-                Current time:  ${new Date().toLocaleString()}
+                Current time:  ${localTime}
                 income category: ${main_income_categories.join(', ')};
                 expense category: ${main_expense_categories.join(', ')};
                 expense subcategory: ${sub_expense_categories.join(', ')}.

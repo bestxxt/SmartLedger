@@ -89,6 +89,7 @@ export default function PopupPicture({ onSubmit, open, onOpenChange }: PopupPict
         setState('uploading');
         const form = new FormData();
         form.append('file', photo);
+        form.append('localTime', new Date().toISOString());
         try {
             const res = await fetch('/api/app/ai/pictureToBill', { method: 'POST', body: form });
             if (!res.ok) throw new Error(res.statusText);

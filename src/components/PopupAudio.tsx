@@ -151,6 +151,7 @@ export default function PopupAudio({ onSubmit, open, onOpenChange }: PopupAudioP
                 const file = new File([blob], 'recording.webm', { type: blob.type });
                 const form = new FormData();
                 form.append('file', file);
+                form.append('localTime', new Date().toISOString());
                 try {
                     const res = await fetch('/api/app/ai/audioToBill', {
                         method: 'POST',

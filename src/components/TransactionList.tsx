@@ -1,9 +1,7 @@
 import { Transaction, EditableTransaction } from '@/types/transaction';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { BillCard } from './BillCard';
-import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { User } from '@/types/user';
 import { useState } from 'react';
@@ -95,11 +93,13 @@ export default function TransactionList({ transactions, deleteTransaction, user,
                               <span className="text-xl">{tx.emoji}</span>
                             </motion.div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="font-medium text-gray-800 truncate">{tx.category}</p>
+                              <div className="flex items-center gap-1">
+                                <p className="font-medium text-gray-800 truncate">
+                                    {tx.category}
                                 {tx.subcategory && (
-                                  <span className="text-sm text-gray-500">• {tx.subcategory}</span>
+                                        <span className="text-sm text-gray-500 ml-1">• {tx.subcategory}</span>
                                 )}
+                                </p>
                               </div>
                               <div className="flex items-center gap-2 mt-1">
                                 <p className="text-sm text-gray-500">{format(tx.timestamp, 'MM/dd HH:mm')}</p>
