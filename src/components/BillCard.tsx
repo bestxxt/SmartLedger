@@ -41,7 +41,7 @@ export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps)
     return (
         <>
             <Card className="w-[350px] hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
+                <CardHeader>
                     <div className="flex justify-between items-center">
                         <CardTitle className="flex items-center gap-2">
                             <span>{transaction.emoji || '💰'}</span>
@@ -55,7 +55,7 @@ export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps)
                         <CardDescription className="text-sm">{transaction.subcategory}</CardDescription>
                     )}
                 </CardHeader>
-                <CardContent className="pb-2">
+                <CardContent>
                     <div className="text-sm space-y-1">
                         <p className="text-gray-600">{transaction.note || "No description available"}</p>
                         <p className="text-gray-500">{transaction.timestamp.toLocaleString()}</p>
@@ -70,17 +70,17 @@ export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps)
                 </CardContent>
                 <CardFooter className="pt-0 text-xs text-gray-500 flex justify-between items-center">
                     <p>{transaction.location || "No location"}</p>
-                    <div className="flex gap-2">
+                    <div className="flex gap-4">
                         <button
                             onClick={onEdit}
-                            className="p-2 hover:bg-blue-100 rounded-full transition-colors text-blue-500"
+                            className="p-2 hover:bg-blue-100 bg-blue-50 rounded-full transition-colors text-blue-500"
                             aria-label="Edit transaction"
                         >
                             <Pencil className="w-4 h-4" />
                         </button>
                         <button
                             onClick={() => onDelete?.(transaction.id)}
-                            className="p-2 hover:bg-red-100 rounded-full transition-colors text-red-500"
+                            className="p-2 hover:bg-red-100 bg-red-50 rounded-full transition-colors text-red-500"
                             aria-label="Delete transaction"
                         >
                             <Trash2 className="w-4 h-4" />
