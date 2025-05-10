@@ -34,8 +34,9 @@ export default function LoginPage() {
                 setError('Invalid email or password');
                 return;
             }
-
-            router.push('/home');
+            // router.push('/home');
+            // Force immediate redirect
+            window.location.href = '/home';
         } catch (error) {
             setError('An error occurred. Please try again.');
         } finally {
