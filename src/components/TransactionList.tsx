@@ -115,7 +115,7 @@ export default function TransactionList({ transactions, deleteTransaction, user,
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ 
                         duration: 0.3,
-                        delay: index * 0.1
+                        delay: 0.1
                       }}
                     >
                       {showDateSeparator && (
@@ -154,7 +154,7 @@ export default function TransactionList({ transactions, deleteTransaction, user,
                                       initial={{ opacity: 0 }}
                                       whileInView={{ opacity: 1 }}
                                       viewport={{ once: true }}
-                                      transition={{ delay: 0.2 }}
+                                      transition={{ delay: 0.1 }}
                                     >
                                       {tx.tags.map((tag, index) => (
                                         <motion.span

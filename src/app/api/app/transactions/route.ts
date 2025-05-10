@@ -41,7 +41,9 @@ export async function GET(req: Request): Promise<NextResponse> {
     
     const docs = await col
       .find(filter)
-      .sort({ timestamp: -1 })
+      .sort({ 
+        timestamp: -1,
+      })
       .skip((page - 1) * limit)
       .limit(limit)
       .toArray();

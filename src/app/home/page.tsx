@@ -103,7 +103,6 @@ export default function Home() {
                 location: txData.location,
                 emoji: txData.emoji,
             };
-            // console.log('Adding transaction:', payload);
             const res = await fetch('/api/app/transactions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -112,13 +111,8 @@ export default function Home() {
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const json = await res.json();
             if (json.transaction) {
-                const tx: Transaction = {
-                    ...json.transaction,
-                    timestamp: new Date(json.transaction.timestamp),
-                    createdAt: new Date(json.transaction.createdAt),
-                    updatedAt: new Date(json.transaction.updatedAt),
-                };
-                setTransactions(prev => [tx, ...prev]);
+                // Instead of manually adding to the list, refresh the data
+                await fetchData(1); // Reset to first page and fetch fresh data
                 fetchStats();
                 toast.success('Transaction added successfully');
             }

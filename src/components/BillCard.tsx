@@ -24,7 +24,6 @@ type BillCardProps = {
 export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [isVisible, setIsVisible] = useState(true);
 
     const handleEdit = async (editedTx: EditableTransaction) => {
         try {
@@ -40,12 +39,6 @@ export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps)
             console.error('Error updating transaction:', err);
         }
     };
-
-    const handleEditClick = () => {
-        setIsEditing(true);
-        setIsVisible(false);
-    };
-
     const handleDelete = async () => {
         if (!onDelete || isDeleting) return;
         setIsDeleting(true);
@@ -57,18 +50,6 @@ export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps)
             setIsDeleting(false);
         }
     };
-
-    if (!isVisible) {
-        return (
-            <PopupEdit
-                transaction={transaction}
-                open={isEditing}
-                onOpenChange={setIsEditing}
-                onSubmit={handleEdit}
-                user={user}
-            />
-        );
-    }
 
     return (
         <>
@@ -104,7 +85,7 @@ export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps)
                 <p>{transaction.location || "No location"}</p>
                     <div className="flex gap-4">
                         <button
-                            onClick={handleEditClick}
+                            onClick={onEdit}
                             className="p-2 hover:bg-blue-100 bg-blue-50 rounded-full transition-colors text-blue-500"
                             aria-label="Edit transaction"
                         >
@@ -130,6 +111,13 @@ export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps)
                     </div>
             </CardFooter>
         </Card>
+        <PopupEdit
+                transaction={transaction}
+                open={isEditing}
+                onOpenChange={setIsEditing}
+                onSubmit={handleEdit}
+                user={user}
+            />
         </>
     );
 }

@@ -76,17 +76,25 @@ export async function PATCH(
       return NextResponse.json({ message: 'No update data provided' }, { status: 400 });
     }
 
+    // Remove id field from updates if present
+    const { id: _, ...safeUpdates } = updates;
+
     const col = await getTransactionCollection();
     const result = await col.findOneAndUpdate(
       { _id: txId, userId: new ObjectId(session.user.id) },
-      { $set: updates },
+      { 
+        $set: {
+          ...safeUpdates,
+          timestamp: new Date(safeUpdates.timestamp),
+          updatedAt: new Date() // Set updatedAt to current time
+        }
+      },
       { returnDocument: 'after' }
     );
 
     if (!result) {
       return NextResponse.json({ message: 'Transaction not found or update failed' }, { status: 404 });
     }
-    // console.log('Updated transaction:', result);
 
     const updated = result as ITransaction;
     const dto: Transaction = {
@@ -101,8 +109,8 @@ export async function PATCH(
       tags: updated.tags,
       emoji: updated.emoji,
       location: updated.location,
-      createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,
+      createdAt: updated.createdAt,
     };
 
     return NextResponse.json({ message: 'Transaction updated', transaction: dto });
