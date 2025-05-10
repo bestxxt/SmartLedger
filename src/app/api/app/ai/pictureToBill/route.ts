@@ -31,6 +31,10 @@ export async function POST(req: NextRequest) {
         const userTags = JSON.parse(formData.get('userTags')?.toString() || '[]');
         const userLocations = JSON.parse(formData.get('userLocations')?.toString() || '[]');
 
+        // Extract tag and location names
+        const tagNames = userTags.map((tag: any) => tag.name).join(', ');
+        const locationNames = userLocations.map((loc: any) => loc.name).join(', ');
+
         const imageFile = formData.get('file') as File;
         const arrayBuffer = await imageFile.arrayBuffer();
         const base64 = Buffer.from(arrayBuffer).toString('base64');
@@ -53,7 +57,7 @@ export async function POST(req: NextRequest) {
                     timestamp: string,             // ISO 8601 date-time (default to current time if not provided)
                     note: string,                 // extra details, use objective, factual description instead.
                     currency: string,             //  default to "${userCurrency}"
-                    location?: string,             // optional, location of transaction in text's language
+                    location?: string,             // optional, relevant location from user's location list
                     emoji: string,                 //  emoji representing the transaction
                     tags?: string[]               // optional, relevant tags from user's tag list
                 }
@@ -63,8 +67,8 @@ export async function POST(req: NextRequest) {
                 User preferences:
                 - Default currency: ${userCurrency}
                 - Language: ${userLanguage}
-                - Common tags: ${userTags.join(', ')}
-                - Common locations: ${userLocations.join(', ')}
+                - Common tags: ${tagNames}
+                - Common locations: ${locationNames}
 
                 Categories:
                 - Income categories: ${main_income_categories.join(', ')}
@@ -80,6 +84,7 @@ export async function POST(req: NextRequest) {
                     transaction: null
                 }
             `;
+        // console.log('Prompt:', prompt);
 
         const contents = [
             {

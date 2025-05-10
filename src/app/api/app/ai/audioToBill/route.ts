@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
                     transaction: null
                 }
             `;
-            console.log('Prompt:', prompt);
+            // console.log('Prompt:', prompt);
 
             // Generate content
             const response = await genAI.models.generateContent({

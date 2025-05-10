@@ -53,7 +53,7 @@ export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps)
 
     return (
         <>
-        <Card className="w-[350px] hover:shadow-md transition-shadow">
+        <Card className="w-[350px] hover:shadow-md transition-shadow relative">
                 <CardHeader>
                 <div className="flex justify-between items-center">
                     <CardTitle className="flex items-center gap-2">
@@ -81,35 +81,35 @@ export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps)
                     )}
                 </div>
             </CardContent>
-                <CardFooter className="pt-0 text-xs text-gray-500 flex justify-between items-center">
+                <CardFooter className="pt-0 text-xs text-gray-500">
                 <p>{transaction.location || "No location"}</p>
-                    <div className="flex gap-4">
-                        <button
-                            onClick={onEdit}
-                            className="p-2 hover:bg-blue-100 bg-blue-50 rounded-full transition-colors text-blue-500"
-                            aria-label="Edit transaction"
-                        >
-                            <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            className={cn(
-                                "p-2 rounded-full transition-colors",
-                                isDeleting 
-                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
-                                    : "hover:bg-red-100 bg-red-50 text-red-500"
-                            )}
-                            aria-label="Delete transaction"
-                        >
-                            {isDeleting ? (
-                                <Loader className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <Trash2 className="w-4 h-4" />
-                            )}
-                        </button>
-                    </div>
             </CardFooter>
+            <div className="absolute bottom-4 right-4 flex gap-4">
+                <button
+                    onClick={onEdit}
+                    className="p-3 hover:bg-blue-100 bg-blue-50 rounded-full transition-colors text-blue-500 shadow-sm"
+                    aria-label="Edit transaction"
+                >
+                    <Pencil className="w-5 h-5" />
+                </button>
+                <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className={cn(
+                        "p-3 rounded-full transition-colors shadow-sm",
+                        isDeleting 
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
+                            : "hover:bg-red-100 bg-red-50 text-red-500"
+                    )}
+                    aria-label="Delete transaction"
+                >
+                    {isDeleting ? (
+                        <Loader className="w-5 h-5 animate-spin" />
+                    ) : (
+                        <Trash2 className="w-5 h-5" />
+                    )}
+                </button>
+            </div>
         </Card>
         <PopupEdit
                 transaction={transaction}
@@ -205,14 +205,18 @@ export function ConfirmBillCard({ transaction, onConfirm, onSuccess, onCancel }:
                     >
                         <X className="w-6 h-6" />
                     </button>
-                <button
-                    onClick={handleConfirm}
-                    disabled={loading}
+                    <button
+                        onClick={handleConfirm}
+                        disabled={loading}
                         className={`flex items-center justify-center w-12 h-12 bg-amber-200 text-green-600 rounded-full hover:bg-green-200 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    aria-label="Confirm transaction"
-                >
-                    <Check className="w-6 h-6" />
-                </button>
+                        aria-label="Confirm transaction"
+                    >
+                        {loading ? (
+                            <Loader className="w-6 h-6 animate-spin" />
+                        ) : (
+                            <Check className="w-6 h-6" />
+                        )}
+                    </button>
                 </div>
             </CardFooter>
         </Card>
