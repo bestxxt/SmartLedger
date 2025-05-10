@@ -297,7 +297,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                         <div>
                             <SheetTitle>Settings</SheetTitle>
                             <SheetDescription>
-                                Customize your profile and preferences
+                                Customize your profile
                             </SheetDescription>
                         </div>
                         <Button
