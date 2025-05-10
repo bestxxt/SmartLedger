@@ -657,7 +657,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                     <SheetFooter>
                         <div className="flex justify-evenly space-x-2 mb-6">
                             <SheetClose asChild>
-                                <Button variant="outline" className="w-[45%] h-11">Cancel</Button>
+                                <Button variant="outline" className="w-[45%] h-11">Close</Button>
                             </SheetClose>
                             <Button className="w-[45%] h-11" onClick={handleSave}>Save Changes</Button>
                         </div>
