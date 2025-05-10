@@ -643,7 +643,7 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                             Location
                         </label>
                         <LocationSelector
-                            locations={user?.settings.locations || []}
+                            locations={user?.locations || []}
                             selectedLocation={form.location}
                             onLocationChange={(value) => setForm(prev => ({ ...prev, location: value }))}
                         />
@@ -652,7 +652,7 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                             Tags
                         </label>
                         <TagSelector
-                            tags={user?.settings.tags || []}
+                            tags={user?.tags || []}
                             selectedTags={form.tags || []}
                             onTagsChange={(tags) => setForm(prev => ({ ...prev, tags }))}
                         />

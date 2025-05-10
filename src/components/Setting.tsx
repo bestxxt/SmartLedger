@@ -62,11 +62,6 @@ const CURRENCIES = [
     { code: 'GBP', symbol: '£', name: 'British Pound' },
     { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
     { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' },
-    { code: 'HKD', symbol: 'HK$', name: 'Hong Kong Dollar' },
-    { code: 'TWD', symbol: 'NT$', name: 'Taiwan Dollar' },
-    { code: 'KRW', symbol: '₩', name: 'Korean Won' },
-    { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar' },
-    { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
     { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
 ]
 
@@ -138,13 +133,11 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
     const [state, setState] = useState<EditableUser>({
         name: user.name,
         email: user.email,
-        settings: {
-            avatar: user.settings.avatar,
-            language: user.settings.language,
-            currency: user.settings.currency,
-            locations: user.settings.locations,
-            tags: user.settings.tags,
-        },
+        avatar: user.avatar,
+        language: user.language,
+        currency: user.currency,
+        locations: user.locations,
+        tags: user.tags,
     })
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [openTagId, setOpenTagId] = useState<string | null>(null);
@@ -175,10 +168,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
 
                 setState(prev => ({
                     ...prev,
-                    settings: {
-                        ...prev.settings,
-                        avatar: base64
-                    }
+                    avatar: base64
                 }));
 
                 toast.success('Avatar updated successfully');
@@ -194,34 +184,28 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
     }
 
     const handleTagEdit = (tagId: string, newName: string, newColor?: string) => {
-        const updatedTags = state.settings.tags.map(t =>
+        const updatedTags = state.tags.map(t =>
             t.id === tagId
                 ? { ...t, name: newName, color: newColor || t.color }
                 : t
         );
         setState(prev => ({
             ...prev,
-            settings: {
-                ...prev.settings,
-                tags: updatedTags,
-            },
+            tags: updatedTags,
         }));
     };
 
     const addTag = () => {
         const value = newTagName.trim()
-        if (value && !state.settings.tags.some(tag => tag.name === value)) {
+        if (value && !state.tags.some(tag => tag.name === value)) {
             setState(prev => ({
                 ...prev,
-                settings: {
-                    ...prev.settings,
-                    tags: [...prev.settings.tags, {
-                        id: `tag_${crypto.randomUUID()}`,
-                        name: value,
-                        color: selectedColor || TAG_COLORS[0].value,
-                        createdAt: new Date().toISOString()
-                    }]
-                }
+                tags: [...prev.tags, {
+                    id: `tag_${crypto.randomUUID()}`,
+                    name: value,
+                    color: selectedColor || TAG_COLORS[0].value,
+                    createdAt: new Date().toISOString()
+                }]
             }))
             setNewTagName('')
             setSelectedColor(null)
@@ -232,29 +216,8 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
     const removeTag = (id: string) => {
         setState(prev => ({
             ...prev,
-            settings: {
-                ...prev.settings,
-                tags: prev.settings.tags.filter(tag => tag.id !== id)
-            }
+            tags: prev.tags.filter(tag => tag.id !== id)
         }))
-    }
-
-    const addCategory = () => {
-        // const value = catInput.trim()
-        // if (value && !state.categories.some(cat => cat.name === value)) {
-        //     setState(prev => ({
-        //         ...prev,
-        //         categories: [...prev.categories, { id: crypto.randomUUID(), name: value }]
-        //     }))
-        //     setCatInput('')
-        // }
-    }
-
-    const removeCategory = (id: string) => {
-        // setState(prev => ({
-        //     ...prev,
-        //     categories: prev.categories.filter(cat => cat.id !== id)
-        // }))
     }
 
     const handleSave = async () => {
@@ -278,13 +241,11 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
             setState({
                 name: updatedUser.name,
                 email: updatedUser.email,
-                settings: {
-                    avatar: updatedUser.settings.avatar,
-                    language: updatedUser.settings.language,
-                    currency: updatedUser.settings.currency,
-                    locations: updatedUser.settings.locations,
-                    tags: updatedUser.settings.tags,
-                },
+                avatar: updatedUser.avatar,
+                language: updatedUser.language,
+                currency: updatedUser.currency,
+                locations: updatedUser.locations,
+                tags: updatedUser.tags,
             });
 
             // Show success message
@@ -296,17 +257,14 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
 
     const addLocation = () => {
         const value = newLocationName.trim()
-        if (value && !state.settings.locations.some(loc => loc.name === value)) {
+        if (value && !state.locations.some(loc => loc.name === value)) {
             setState(prev => ({
                 ...prev,
-                settings: {
-                    ...prev.settings,
-                    locations: [...prev.settings.locations, {
-                        id: `loc_${crypto.randomUUID()}`,
-                        name: value,
-                        createdAt: new Date().toISOString()
-                    }]
-                }
+                locations: [...prev.locations, {
+                    id: `loc_${crypto.randomUUID()}`,
+                    name: value,
+                    createdAt: new Date().toISOString()
+                }]
             }))
             setNewLocationName('')
             setOpenLocationId(null)
@@ -316,23 +274,17 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
     const removeLocation = (id: string) => {
         setState(prev => ({
             ...prev,
-            settings: {
-                ...prev.settings,
-                locations: prev.settings.locations.filter(loc => loc.id !== id)
-            }
+            locations: prev.locations.filter(loc => loc.id !== id)
         }))
     }
 
     const handleLocationEdit = (id: string, newName: string) => {
-        if (newName.trim() && !state.settings.locations.some(loc => loc.name === newName)) {
+        if (newName.trim() && !state.locations.some(loc => loc.name === newName)) {
             setState(prev => ({
                 ...prev,
-                settings: {
-                    ...prev.settings,
-                    locations: prev.settings.locations.map(loc =>
-                        loc.id === id ? { ...loc, name: newName } : loc
-                    )
-                }
+                locations: prev.locations.map(loc =>
+                    loc.id === id ? { ...loc, name: newName } : loc
+                )
             }))
         }
     }
@@ -369,9 +321,9 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                                     className="relative w-20 h-20 rounded-full overflow-hidden cursor-pointer group"
                                     onClick={handleAvatarClick}
                                 >
-                                    {state.settings.avatar ? (
+                                    {state.avatar ? (
                                         <img
-                                            src={state.settings.avatar}
+                                            src={state.avatar}
                                             alt="Profile"
                                             className="w-full h-full object-cover"
                                         />
@@ -402,25 +354,22 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                         <div className="space-y-2">
                             <Label>Language</Label>
                             <Select
-                                value={state.settings.language}
+                                value={state.language}
                                 onValueChange={(value) => {
                                     setState(prev => ({
                                         ...prev,
-                                        settings: {
-                                            ...prev.settings,
-                                            language: value as Language
-                                        }
+                                        language: value as Language
                                     }));
                                 }}
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select language">
-                                        {state.settings.language && (
+                                        {state.language && (
                                             <div className="flex items-center gap-2">
                                                 <Globe className="h-4 w-4" />
                                                 <span>
-                                                    {LANGUAGES.find(lang => lang.code === state.settings.language)?.nativeName ||
-                                                        LANGUAGES.find(lang => lang.code === state.settings.language)?.name}
+                                                    {LANGUAGES.find(lang => lang.code === state.language)?.nativeName ||
+                                                        LANGUAGES.find(lang => lang.code === state.language)?.name}
                                                 </span>
                                             </div>
                                         )}
@@ -444,14 +393,11 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                         <div className="space-y-2">
                             <Label>Default Currency</Label>
                             <Select
-                                value={state.settings.currency}
+                                value={state.currency}
                                 onValueChange={(value) => {
                                     setState(prev => ({
                                         ...prev,
-                                        settings: {
-                                            ...prev.settings,
-                                            currency: value
-                                        }
+                                        currency: value
                                     }));
                                 }}
                             >
@@ -477,7 +423,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                         <div className="space-y-2">
                             <Label>Tags</Label>
                             <div className="flex flex-wrap gap-2">
-                                {state.settings.tags.map(tag => (
+                                {state.tags.map(tag => (
                                     <React.Fragment key={tag.id}>
                                         <Button
                                             variant="outline"
@@ -621,7 +567,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                         <div className="space-y-2">
                             <Label>Locations</Label>
                             <div className="flex flex-wrap gap-2">
-                                {state.settings.locations.map(location => (
+                                {state.locations.map(location => (
                                     <React.Fragment key={location.id}>
                                         <Button
                                             variant="outline"

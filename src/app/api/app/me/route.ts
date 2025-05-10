@@ -27,10 +27,14 @@ export async function GET(req: Request) {
                 id: user._id.toString(),
                 email: user.email,
                 name: user.name,
+                role: user.role,
                 avatar: user.avatar,
-                settings: user.settings,
-                createdAt: user.createdAt,
-                updatedAt: user.updatedAt,
+                language: user.language,
+                currency: user.currency,
+                locations: user.locations,
+                tags: user.tags,
+                createdAt: user.createdAt.toISOString(),
+                updatedAt: user.updatedAt.toISOString()
             }
         });
     } catch (error) {
@@ -46,30 +50,31 @@ export async function PATCH(req: Request) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const { name, settings } = await req.json();
+        const { name, avatar, language, currency, locations, tags } = await req.json();
         const users = await getUserCollection();
 
         // Filter out fields that cannot be updated
         const updateData: Partial<User> = {};
         if (name) updateData.name = name;
-        if (settings) {
-            updateData.settings = {
-                ...settings,
-                locations: settings.locations?.map((location: any) => ({
-                    id: location.id,
-                    name: location.name,
-                    color: location.color,
-                    description: location.description,
-                    createdAt: location.createdAt,
-                })),
-                tags: settings.tags?.map((tag: any) => ({
-                    id: tag.id,
-                    name: tag.name,
-                    color: tag.color,
-                    description: tag.description,
-                    createdAt: tag.createdAt,
-                })),
-            };
+        if (avatar) updateData.avatar = avatar;
+        if (language) updateData.language = language;
+        if (currency) updateData.currency = currency;
+        if (locations) {
+            updateData.locations = locations.map((location: any) => ({
+                id: location.id,
+                name: location.name,
+                color: location.color,
+                description: location.description,
+                createdAt: location.createdAt,
+            }));
+        }
+        if (tags) {
+            updateData.tags = tags.map((tag: any) => ({
+                id: tag.id,
+                name: tag.name,
+                color: tag.color,
+                createdAt: tag.createdAt,
+            }));
         }
 
         const result = await users.findOneAndUpdate(
@@ -92,7 +97,11 @@ export async function PATCH(req: Request) {
                 email: safeUser.email,
                 name: safeUser.name,
                 role: safeUser.role,
-                settings: safeUser.settings,
+                avatar: safeUser.avatar,
+                language: safeUser.language,
+                currency: safeUser.currency,
+                locations: safeUser.locations,
+                tags: safeUser.tags,
                 createdAt: safeUser.createdAt.toISOString(),
                 updatedAt: safeUser.updatedAt.toISOString()
             }

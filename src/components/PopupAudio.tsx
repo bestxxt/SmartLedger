@@ -14,12 +14,14 @@ import { cn } from "@/lib/utils"
 
 import { Transaction, EditableTransaction } from '@/types/transaction';
 import { ConfirmBillCard } from './BillCard';
+import { User } from '@/types/user';
 
 export interface PopupAudioProps {
     /** called to add a transaction to parent state */
     onSubmit?: (tx: EditableTransaction) => Promise<void>;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    user?: User;
 }
 
 
@@ -46,7 +48,7 @@ export type TransactionResponse = {
     };
 };
 
-export default function PopupAudio({ onSubmit, open, onOpenChange }: PopupAudioProps) {
+export default function PopupAudio({ onSubmit, open, onOpenChange, user }: PopupAudioProps) {
     const [recordState, setRecordState] = useState<'idle' | 'recording' | 'recorded' | 'uploading' | 'finished'>('idle');
     const [response, setResponse] = useState<any>("null");
     const [volume, setVolume] = useState<number>(0);
@@ -152,6 +154,10 @@ export default function PopupAudio({ onSubmit, open, onOpenChange }: PopupAudioP
                 const form = new FormData();
                 form.append('file', file);
                 form.append('localTime', new Date().toISOString());
+                form.append('userCurrency', user?.currency || 'USD');
+                form.append('userLanguage', user?.language || 'en');
+                form.append('userTags', JSON.stringify(user?.tags || []));
+                form.append('userLocations', JSON.stringify(user?.locations || []));
                 try {
                     const res = await fetch('/api/app/ai/audioToBill', {
                         method: 'POST',

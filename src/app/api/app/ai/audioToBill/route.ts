@@ -35,6 +35,15 @@ export async function POST(req: NextRequest) {
 
         // Get local time from form data or use current time as fallback
         const localTime = formData.get('localTime')?.toString() || new Date().toISOString();
+        // Get user preferences
+        const userCurrency = formData.get('userCurrency')?.toString() || 'USD';
+        const userLanguage = formData.get('userLanguage')?.toString() || 'en';
+        const userTags = JSON.parse(formData.get('userTags')?.toString() || '[]');
+        const userLocations = JSON.parse(formData.get('userLocations')?.toString() || '[]');
+
+        // Extract tag and location names
+        const tagNames = userTags.map((tag: any) => tag.name).join(', ');
+        const locationNames = userLocations.map((loc: any) => loc.name).join(', ');
 
         // Step 2: Transcribe the audio
         let transcriptionText;
@@ -101,16 +110,24 @@ export async function POST(req: NextRequest) {
                     subcategory?: string,           // You must choose from the subcategory I give to you
                     timestamp: string,             // ISO 8601 date-time (default to current time if not provided)
                     note: string,                 // extra details, use objective, factual description instead.
-                    currency: string,             //  default to "USD"
+                    currency: string,             //  default to "${userCurrency}"
                     location?: string,             // optional, location of transaction in text's language
-                    emoji: string                  //  emoji representing the transaction
+                    emoji: string,                 //  emoji representing the transaction
+                    tags?: string[]               // optional, relevant tags from user's tag list
                 }
 
                 Information you can rely on:
                 Current time: ${localTime}
-                income category: ${main_income_categories.join(', ')};
-                expense category: ${main_expense_categories.join(', ')};
-                expense subcategory: ${sub_expense_categories.join(', ')}.
+                User preferences:
+                - Default currency: ${userCurrency}
+                - Language: ${userLanguage}
+                - Common tags: ${tagNames}
+                - Common locations: ${locationNames}
+
+                Categories:
+                - Income categories: ${main_income_categories.join(', ')}
+                - Expense categories: ${main_expense_categories.join(', ')}
+                - Expense subcategories: ${sub_expense_categories.join(', ')}
 
                 Transaction details:
                 Text: ${transcriptionText}
@@ -124,7 +141,7 @@ export async function POST(req: NextRequest) {
                     transaction: null
                 }
             `;
-            // console.log('Prompt:', prompt);
+            console.log('Prompt:', prompt);
 
             // Generate content
             const response = await genAI.models.generateContent({

@@ -23,13 +23,51 @@ export interface IUserSettings {
 }
 
 /**
+ * Frontend data type for User
+ */
+export type Language = 'en' | 'zh' | 'ja' | 'ko' | 'es' | 'fr' | 'de' | 'it' | 'pt' | 'ru';
+
+export type Location = {
+  id: string;
+  name: string;
+  color?: string;
+  description?: string;
+  createdAt: string;
+};
+
+export type Tag = {
+  id: string;
+  name: string;
+  color?: string;
+  createdAt: string;
+};
+
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'user';
+  avatar: string;
+  language: Language;
+  currency: string;
+  locations: Location[];
+  tags: Tag[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+/**
  * Mongoose Document interface for User
  */
 export interface IUser extends Document {
   email: string;
   name: string;
   role: 'admin' | 'user';
-  settings: IUserSettings;
+  avatar: string;
+  language: Language;
+  currency: string;
+  locations: IUserTag[];
+  tags: IUserTag[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -70,7 +108,11 @@ const UserSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true, index: true },
     name: { type: String, required: true },
     role: { type: String, enum: ['admin', 'user'], default: 'user' },
-    settings: { type: SettingsSchema, default: () => ({}) },
+    avatar: { type: String, default: '' },
+    language: { type: String, enum: ['en', 'zh', 'ja', 'ko', 'es', 'fr', 'de', 'it', 'pt', 'ru'], default: 'en' },
+    currency: { type: String, default: 'USD' },
+    locations: { type: [TagSchema], default: [] },
+    tags: { type: [TagSchema], default: [] },
   },
   { timestamps: true }
 );
@@ -79,27 +121,6 @@ const UserSchema = new Schema<IUser>(
  * Mongoose model for User
  */
 export const UserModel = model<IUser>('User', UserSchema);
-
-/**
- * Frontend data type for User
- */
-export type Language = 'en' | 'zh' | 'ja' | 'ko' | 'es' | 'fr' | 'de' | 'it' | 'pt' | 'ru';
-
-export type User = {
-  id: string;
-  email: string;
-  name: string;
-  role: 'admin' | 'user';
-  settings: {
-    avatar: string;
-    language: Language;
-    currency: string;
-    locations: Location[];
-    tags: Tag[];
-  };
-  createdAt: string;
-  updatedAt: string;
-};
 
 /**
  * Editable user type for frontend use
@@ -133,19 +154,4 @@ export type UserTagUpdate = {
  * Type for user settings update
  */
 export type UserSettingsUpdate = DeepPartial<IUserSettings>;
-
-export type Location = {
-  id: string;
-  name: string;
-  color?: string;
-  description?: string;
-  createdAt: string;
-};
-
-export type Tag = {
-  id: string;
-  name: string;
-  color?: string;
-  createdAt: string;
-};
 

@@ -6,11 +6,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ConfirmBillCard } from './BillCard';
 import { EditableTransaction } from '@/types/transaction';
 import { cn } from '@/lib/utils';
+import { User } from '@/types/user';
 
 export interface PopupPictureProps {
+    /** called to add a transaction to parent state */
     onSubmit?: (tx: EditableTransaction) => Promise<void>;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    user?: User;
 }
 
 /**
@@ -37,7 +40,7 @@ export type TransactionResponse = {
 };
 
 
-export default function PopupPicture({ onSubmit, open, onOpenChange }: PopupPictureProps) {
+export default function PopupPicture({ onSubmit, open, onOpenChange, user }: PopupPictureProps) {
     const [photo, setPhoto] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [state, setState] = useState<'idle' | 'selected' | 'uploading' | 'finished'>('idle');
@@ -90,6 +93,10 @@ export default function PopupPicture({ onSubmit, open, onOpenChange }: PopupPict
         const form = new FormData();
         form.append('file', photo);
         form.append('localTime', new Date().toISOString());
+        form.append('userCurrency', user?.currency || 'USD');
+        form.append('userLanguage', user?.language || 'en');
+        form.append('userTags', JSON.stringify(user?.tags || []));
+        form.append('userLocations', JSON.stringify(user?.locations || []));
         try {
             const res = await fetch('/api/app/ai/pictureToBill', { method: 'POST', body: form });
             if (!res.ok) throw new Error(res.statusText);

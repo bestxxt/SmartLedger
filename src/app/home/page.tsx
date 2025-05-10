@@ -269,11 +269,13 @@ export default function Home() {
                 open={isAudioOpen}
                 onOpenChange={setIsAudioOpen}
                 onSubmit={handleAdd}
+                user={user || undefined}
             />
             <PopupPicture
                 open={isPictureOpen}
                 onOpenChange={setIsPictureOpen}
                 onSubmit={handleAdd}
+                user={user || undefined}
             />
             <Setting 
                 open={isSettingOpen}

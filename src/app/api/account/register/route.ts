@@ -38,15 +38,6 @@ export async function POST(request: NextRequest) {
         // 加密密码
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 创建默认用户设置
-        const defaultSettings: IUserSettings = {
-            avatar: avatar || '',
-            language: 'en',
-            currency: 'USD',
-            locations: [],
-            tags: []
-        };
-
         // 创建新用户
         const result = await users.insertOne({
             _id: new ObjectId(),
@@ -54,7 +45,11 @@ export async function POST(request: NextRequest) {
             name,
             password: hashedPassword,
             role: 'user',
-            settings: defaultSettings,
+            avatar: avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${(name)}`,
+            language: 'en',
+            currency: 'USD',
+            locations: [],
+            tags: [],
             createdAt: new Date(),
             updatedAt: new Date()
         });
@@ -67,7 +62,11 @@ export async function POST(request: NextRequest) {
                     email,
                     name,
                     role: 'user',
-                    settings: defaultSettings,
+                    avatar: avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${(name)}`,
+                    language: 'en',
+                    currency: 'USD',
+                    locations: [],
+                    tags: [],
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 }

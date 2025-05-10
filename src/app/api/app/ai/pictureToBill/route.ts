@@ -25,6 +25,11 @@ export async function POST(req: NextRequest) {
 
         // Get local time from form data or use current time as fallback
         const localTime = formData.get('localTime')?.toString() || new Date().toISOString();
+        // Get user preferences
+        const userCurrency = formData.get('userCurrency')?.toString() || 'USD';
+        const userLanguage = formData.get('userLanguage')?.toString() || 'en';
+        const userTags = JSON.parse(formData.get('userTags')?.toString() || '[]');
+        const userLocations = JSON.parse(formData.get('userLocations')?.toString() || '[]');
 
         const imageFile = formData.get('file') as File;
         const arrayBuffer = await imageFile.arrayBuffer();
@@ -42,27 +47,35 @@ export async function POST(req: NextRequest) {
 
                 Transaction[] = {
                     amount: number,                // numeric amount of the transaction, default to 0
-                    type: "income" | "expense",    // type of transaction
-                    category: string,               // You must choose from the categories I give to you
-                    subcategory?: string,          // optional, You must choose from the subcategory I give to you
-                    timestamp: string,             // ISO 8601 date-time (default to current date if not in picture)
+                    type: "income" | "expense", 
+                    category: string,              // You must choose from the categories I give to you
+                    subcategory?: string,           // You must choose from the subcategory I give to you
+                    timestamp: string,             // ISO 8601 date-time (default to current time if not provided)
                     note: string,                 // extra details, use objective, factual description instead.
-                    currency: string,             // guess based on location, default to "USD"
-                    location: string,             // location of transaction in text's language
-                    emoji: string                  //  emoji representing the transaction
+                    currency: string,             //  default to "${userCurrency}"
+                    location?: string,             // optional, location of transaction in text's language
+                    emoji: string,                 //  emoji representing the transaction
+                    tags?: string[]               // optional, relevant tags from user's tag list
                 }
 
                 Information you can rely on:
-                Current time:  ${localTime}
-                income category: ${main_income_categories.join(', ')};
-                expense category: ${main_expense_categories.join(', ')};
-                expense subcategory: ${sub_expense_categories.join(', ')}.
+                Current time: ${localTime}
+                User preferences:
+                - Default currency: ${userCurrency}
+                - Language: ${userLanguage}
+                - Common tags: ${userTags.join(', ')}
+                - Common locations: ${userLocations.join(', ')}
 
+                Categories:
+                - Income categories: ${main_income_categories.join(', ')}
+                - Expense categories: ${main_expense_categories.join(', ')}
+                - Expense subcategories: ${sub_expense_categories.join(', ')}
+                
                 If found return: {
                     found: true,
                     transaction: Transaction[]
                 }
-                If no transaction information is found in the input text, return: {
+                If no transaction information is found in the image, return: {
                     found: false,
                     transaction: null
                 }
