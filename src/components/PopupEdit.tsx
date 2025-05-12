@@ -85,9 +85,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { EditableTransaction, Transaction } from "@/types/transaction"
+import { EditableTransaction, Transaction } from "@/models/transaction"
+import { User } from "@/models/user"
 import { Input } from "@/components/ui/input"
-import { User } from "@/types/user"
 import { main_income_categories, main_expense_categories, sub_expense_categories } from "@/lib/constants"
 
 // 定义分类图标映射

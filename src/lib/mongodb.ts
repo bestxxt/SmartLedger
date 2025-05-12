@@ -7,7 +7,7 @@ let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
 if (!process.env.MONGODB_URI) {
-  throw new Error('请设置 MONGODB_URI 环境变量');
+  throw new Error('Please set the MONGODB_URI environment variable.');
 }
 
 declare global {

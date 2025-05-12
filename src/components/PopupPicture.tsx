@@ -4,9 +4,9 @@ import { Camera, ArrowUpFromLine, X, Loader, RefreshCcw } from 'lucide-react';
 import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerFooter } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ConfirmBillCard } from './BillCard';
-import { EditableTransaction } from '@/types/transaction';
+import { EditableTransaction } from '@/models/transaction';
 import { cn } from '@/lib/utils';
-import { User } from '@/types/user';
+import { User } from '@/models/user';
 
 export interface PopupPictureProps {
     /** called to add a transaction to parent state */

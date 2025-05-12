@@ -1,32 +1,122 @@
-import mongoose from 'mongoose';
+import { Schema, model, Document, models } from 'mongoose';
 
-const TagSchema = new mongoose.Schema({
-    id: { type: String, required: true },
+export type Language = 'en' | 'zh';
+
+/**
+ * Base tag interface for both locations and tags
+ */
+export interface IUserTag {
+  _id: Schema.Types.ObjectId; // Changed from id: string. Mongoose will provide _id.
+  name: string;
+  color?: string;
+  description?: string;
+}
+
+/**
+ * Frontend data type for User
+ */
+
+export type Location = {
+  id: string; // This will be the string representation of _id from the backend
+  name: string;
+  color?: string;
+  description?: string;
+};
+
+export type Tag = {
+  id: string; // This will be the string representation of _id from the backend
+  name: string;
+  color?: string;
+  description?: string; // Added
+};
+
+/**
+ * User data type for backend use
+ */
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'user';
+  avatar: string;
+  language: Language;
+  currency: string;
+  locations: Location[];
+  tags: Tag[];
+  stats: {
+    totalIncome: number;
+    totalExpense: number;
+    balance: number;
+    totalTransactions: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+};
+
+/**
+ * Mongoose Document interface for User
+ */
+export interface IUser extends Document {
+  email: string;
+  name: string;
+  role: 'admin' | 'user';
+  password: string; // Added for password storage
+  avatar: string;
+  language: Language;
+  currency: string;
+  locations: IUserTag[]; // IUserTag definition updated
+  tags: IUserTag[]; // IUserTag definition updated
+  stats: {
+    totalIncome: number;
+    totalExpense: number;
+    balance: number;
+    totalTransactions: number;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Reusable schema for tags and locations
+ */
+const TagSchema = new Schema<IUserTag>(
+  {
     name: { type: String, required: true },
-    color: { type: String },
-    description: { type: String },
-    createdAt: { type: Date, default: Date.now }
-});
+    color: String,
+    description: String, // Field was already present, optional
+  },
+);
 
-const UserSettingsSchema = new mongoose.Schema({
+/**
+ * Mongoose schema definition for User
+ */
+const UserSchema = new Schema<IUser>(
+  {
+    role: { type: String, enum: ['admin', 'user'], default: 'user' },
+    email: { type: String, required: true, unique: true, index: true },
+    password: { type: String, required: true }, // Added for password storage
+    name: { type: String, required: true },
     avatar: { type: String, default: '' },
-    language: { 
-        type: String, 
-        enum: ['en', 'zh', 'ja', 'ko', 'es', 'fr', 'de', 'it', 'pt', 'ru'], 
-        default: 'en' 
-    },
+    language: { type: String, enum: ['en', 'zh'], default: 'en' },
     currency: { type: String, default: 'USD' },
     locations: { type: [TagSchema], default: [] },
-    tags: { type: [TagSchema], default: [] }
-});
+    tags: { type: [TagSchema], default: [] },
+    stats: {
+      totalIncome: { type: Number, default: 0 },
+      totalExpense: { type: Number, default: 0 },
+      balance: { type: Number, default: 0 },
+      totalTransactions: { type: Number, default: 0 },
+    },
+  },
+  { timestamps: true }
+);
 
-const UserSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    settings: { type: UserSettingsSchema, default: () => ({}) },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
-});
+/**
+ * Mongoose model for User
+ */
+export const UserModel = models.User || model<IUser>('User', UserSchema);
 
-export const User = mongoose.models.User || mongoose.model('User', UserSchema); 
+/**
+ * Editable user type for frontend use
+ */
+export type EditableUser = Omit<User, 'id' | 'role' | 'createdAt' | 'updatedAt'>;

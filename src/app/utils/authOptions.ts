@@ -1,7 +1,8 @@
 import { DefaultSession, Session, AuthOptions } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { getUserCollection } from "@/lib/db";
+import { UserModel } from "@/models/user";
+import { connectMongoose } from "@/lib/db";
 import bcrypt from "bcryptjs";
 
 declare module "next-auth" {
@@ -31,8 +32,8 @@ export const authOptions: AuthOptions = {
                     return null;
                 }
 
-                const users = await getUserCollection();
-                const user = await users.findOne({ email: credentials.email });
+                await connectMongoose();
+                const user = await UserModel.findOne({ email: credentials.email });
 
                 if (!user) {
                     return null;

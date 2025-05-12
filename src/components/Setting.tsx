@@ -21,10 +21,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
 import { Label } from "@/components/ui/label"
-import { Settings, Upload, Globe, LogOut } from "lucide-react"
+import { Settings, Upload, Globe, LogOut, Loader } from "lucide-react"
 import React, { useState, ChangeEvent, KeyboardEvent, useRef } from 'react'
-import { useEffect } from 'react'
-import { User, EditableUser, Language } from "@/types/user"
+import { User, EditableUser, Language } from "@/models/user"
 import { toast } from "sonner"
 import { Plus } from "lucide-react"
 import {
@@ -69,14 +68,6 @@ const CURRENCIES = [
 const LANGUAGES = [
     { code: 'en', name: 'English', nativeName: 'English' },
     { code: 'zh', name: 'Chinese', nativeName: '中文' },
-    { code: 'ja', name: 'Japanese', nativeName: '日本語' },
-    { code: 'ko', name: 'Korean', nativeName: '한국어' },
-    { code: 'es', name: 'Spanish', nativeName: 'Español' },
-    { code: 'fr', name: 'French', nativeName: 'Français' },
-    { code: 'de', name: 'German', nativeName: 'Deutsch' },
-    { code: 'it', name: 'Italian', nativeName: 'Italiano' },
-    { code: 'pt', name: 'Portuguese', nativeName: 'Português' },
-    { code: 'ru', name: 'Russian', nativeName: 'Русский' },
 ]
 
 // 图片压缩函数
@@ -128,8 +119,9 @@ async function compressImage(file: File, maxSizeKB: number = 128): Promise<strin
 }
 
 export default function Setting({ user, open, onOpenChange }: UserProps) {
-    // State
-    if (!user) return null
+    if (!user) return null;
+
+    const [loading, setLoading] = useState(false);
     const [state, setState] = useState<EditableUser>({
         name: user.name,
         email: user.email,
@@ -138,7 +130,9 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
         currency: user.currency,
         locations: user.locations,
         tags: user.tags,
-    })
+        stats: user.stats
+    });
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [openTagId, setOpenTagId] = useState<string | null>(null);
     const [newTagName, setNewTagName] = useState('');
@@ -146,36 +140,30 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
     const [newLocationName, setNewLocationName] = useState('');
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
-    // Handlers
     const handleAvatarChange = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            try {
-                // 检查文件类型
-                if (!file.type.startsWith('image/')) {
-                    toast.error('Please select an image file');
-                    return;
-                }
+        if (!file) return;
 
-                // 检查文件大小
-                if (file.size > 5 * 1024 * 1024) { // 5MB
-                    toast.error('Image size should be less than 5MB');
-                    return;
-                }
-
-                // 压缩图片并转换为 base64
-                const base64 = await compressImage(file);
-
-                setState(prev => ({
-                    ...prev,
-                    avatar: base64
-                }));
-
-                toast.success('Avatar updated successfully');
-            } catch (error) {
-                console.error('Error processing image:', error);
-                toast.error('Failed to process image');
+        try {
+            if (!file.type.startsWith('image/')) {
+                toast.error('Please select an image file');
+                return;
             }
+
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Image size should be less than 5MB');
+                return;
+            }
+
+            setLoading(true);
+            const base64 = await compressImage(file);
+            setState(prev => ({ ...prev, avatar: base64 }));
+            toast.success('Avatar updated successfully');
+        } catch (error) {
+            console.error('Error processing image:', error);
+            toast.error('Failed to process image');
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -222,36 +210,26 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
 
     const handleSave = async () => {
         try {
+            setLoading(true);
             const response = await fetch('/api/app/me', {
                 method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(state),
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to save settings');
-            }
+            if (!response.ok) throw new Error('Failed to save settings');
 
             const res = await response.json();
-            const updatedUser = res.data;
-            toast.success('Settings saved successfully');
-            // Update user with the returned value
             setState({
-                name: updatedUser.name,
-                email: updatedUser.email,
-                avatar: updatedUser.avatar,
-                language: updatedUser.language,
-                currency: updatedUser.currency,
-                locations: updatedUser.locations,
-                tags: updatedUser.tags,
+                ...res.data,
+                stats: user.stats
             });
-
-            // Show success message
+            toast.success('Settings saved successfully');
         } catch (error) {
             console.error('Failed to save settings:', error);
-            // Show error message
+            toast.error('Failed to save settings');
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -307,21 +285,25 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                             onClick={() => signOut({ callbackUrl: '/login' })}
                         >
                             Logout
-                            <LogOut/>
+                            <LogOut className="ml-2" />
                         </Button>
                     </div>
                 </SheetHeader>
                 <ScrollArea className="h-[85%]">
-                    <div className="space-y-6 p-6 ">
+                    <div className="space-y-6 p-6">
                         {/* Avatar Section */}
-                        <div className="space-y-2 ">
+                        <div className="space-y-2">
                             <Label>Profile Picture</Label>
                             <div className="flex flex-col items-center gap-4">
                                 <div
                                     className="relative w-20 h-20 rounded-full overflow-hidden cursor-pointer group"
                                     onClick={handleAvatarClick}
                                 >
-                                    {state.avatar ? (
+                                    {loading ? (
+                                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                            <Loader className="w-8 h-8 text-gray-400 animate-spin" />
+                                        </div>
+                                    ) : state.avatar ? (
                                         <img
                                             src={state.avatar}
                                             alt="Profile"
@@ -656,10 +638,27 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
 
                     <SheetFooter>
                         <div className="flex justify-evenly space-x-2 mb-6">
-                            <SheetClose asChild>
-                                <Button variant="outline" className="w-[45%] h-11">Close</Button>
-                            </SheetClose>
-                            <Button className="w-[45%] h-11" onClick={handleSave}>Save Changes</Button>
+                            <Button 
+                                variant="outline" 
+                                className="w-[45%] h-11"
+                                onClick={() => onOpenChange?.(false)}
+                            >
+                                Close
+                            </Button>
+                            <Button 
+                                className="w-[45%] h-11" 
+                                onClick={handleSave}
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader className="mr-2 h-4 w-4 animate-spin" />
+                                        Saving...
+                                    </>
+                                ) : (
+                                    'Save Changes'
+                                )}
+                            </Button>
                         </div>
                     </SheetFooter>
                 </ScrollArea>

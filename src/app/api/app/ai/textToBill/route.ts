@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from "@google/genai";
-import { Transaction } from '@/types/transaction';
+import { Transaction } from '@/models/transaction';
 import { checkAuth } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {

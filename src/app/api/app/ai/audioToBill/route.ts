@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from "@google/genai";
-import { Transaction } from '@/types/transaction';
+import { Transaction } from '@/models/transaction';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/utils/authOptions";
 import { main_income_categories, main_expense_categories, sub_expense_categories } from '@/lib/constants';

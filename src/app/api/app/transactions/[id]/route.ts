@@ -1,8 +1,7 @@
 import { getServerSession } from "next-auth/next";
-import { getTransactionCollection } from '@/lib/db';
-import { ObjectId } from 'mongodb';
+import { connectMongoose } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
-import { ITransaction, Transaction } from '@/types/transaction';
+import { TransactionModel, Transaction } from '@/models/transaction';
 import { authOptions } from '@/app/utils/authOptions';
 
 // GET /api/app/transactions/:id
@@ -11,28 +10,24 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  let txId: ObjectId;
-  try {
-    txId = new ObjectId(id);
-  } catch {
-    return NextResponse.json({ message: 'Invalid transaction ID' }, { status: 400 });
-  }
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const col = await getTransactionCollection();
-    const record = await col.findOne(
-      { _id: txId, userId: new ObjectId(session.user.id) }
-    ) as ITransaction | null;
+    await connectMongoose();
+    const record = await TransactionModel.findOne({
+      _id: id,
+      userId: session.user.id
+    });
+
     if (!record) {
       return NextResponse.json({ message: 'Transaction not found' }, { status: 404 });
     }
-    // 转成前端要用的 DTO
+
     const dto: Transaction = {
-      id: record._id.toString(),
+      id: String(record._id),
       amount: record.amount,
       type: record.type,
       category: record.category,
@@ -42,13 +37,14 @@ export async function GET(
       currency: record.currency,
       tags: record.tags,
       location: record.location,
-      createdAt: record.createdAt,
-      updatedAt: record.updatedAt,
+      emoji: record.emoji,
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
     };
     return NextResponse.json({ message: 'ok', transaction: dto });
   } catch (error) {
     console.error('Error fetching transaction:', error);
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -58,13 +54,6 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  let txId: ObjectId;
-  try {
-    txId = new ObjectId(id);
-  } catch {
-    return NextResponse.json({ message: 'Invalid transaction ID' }, { status: 400 });
-  }
-
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -79,26 +68,24 @@ export async function PATCH(
     // Remove id field from updates if present
     const { id: _, ...safeUpdates } = updates;
 
-    const col = await getTransactionCollection();
-    const result = await col.findOneAndUpdate(
-      { _id: txId, userId: new ObjectId(session.user.id) },
+    await connectMongoose();
+    const updated = await TransactionModel.findOneAndUpdate(
+      { _id: id, userId: session.user.id },
       { 
         $set: {
           ...safeUpdates,
           timestamp: new Date(safeUpdates.timestamp),
-          updatedAt: new Date() // Set updatedAt to current time
         }
       },
-      { returnDocument: 'after' }
+      { new: true }
     );
 
-    if (!result) {
+    if (!updated) {
       return NextResponse.json({ message: 'Transaction not found or update failed' }, { status: 404 });
     }
 
-    const updated = result as ITransaction;
     const dto: Transaction = {
-      id: updated._id.toString(),
+      id: String(updated._id),
       amount: updated.amount,
       type: updated.type,
       category: updated.category,
@@ -109,8 +96,8 @@ export async function PATCH(
       tags: updated.tags,
       emoji: updated.emoji,
       location: updated.location,
-      updatedAt: updated.updatedAt,
-      createdAt: updated.createdAt,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
     };
 
     return NextResponse.json({ message: 'Transaction updated', transaction: dto });
@@ -126,22 +113,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  let txId: ObjectId;
-  try {
-    txId = new ObjectId(id);
-  } catch {
-    return NextResponse.json({ message: 'Invalid transaction ID' }, { status: 400 });
-  }
-
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const col = await getTransactionCollection();
-    const result = await col.deleteOne({ _id: txId, userId: new ObjectId(session.user.id) });
-    if (result.deletedCount === 0) {
+    await connectMongoose();
+    const result = await TransactionModel.findOneAndDelete({
+      _id: id,
+      userId: session.user.id
+    });
+
+    if (!result) {
       return NextResponse.json({ message: 'Transaction not found' }, { status: 404 });
     }
     return NextResponse.json({ message: 'Transaction deleted' });

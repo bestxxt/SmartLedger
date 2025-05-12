@@ -3,7 +3,7 @@ import { GoogleGenAI } from '@google/genai';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/utils/authOptions";
 import { main_income_categories, main_expense_categories, sub_expense_categories } from '@/lib/constants';
-import type { Transaction } from '@/types/transaction';
+import type { Transaction } from '@/models/transaction';
 
 export async function POST(req: NextRequest) {
     try {
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
                     type: "income" | "expense", 
                     category: string,              // You must choose from the categories I give to you
                     subcategory?: string,           // You must choose from the subcategory I give to you
-                    timestamp: string,             // ISO 8601 date-time (default to current time if not provided)
+                    timestamp: string,             // date-time showing in image (default to current time if not found)
                     note: string,                 // extra details, use objective, factual description instead.
                     currency: string,             //  default to "${userCurrency}"
                     location?: string,             // optional, relevant location from user's location list

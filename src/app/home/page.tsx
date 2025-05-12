@@ -1,22 +1,20 @@
 'use client';
 
-import { useEffect, useState, FormEvent, useCallback, useRef } from "react";
-import { Transaction } from '@/types/transaction';
-import { User } from '@/types/user';
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Transaction, EditableTransaction } from '@/models/transaction';
 import { Loader } from "lucide-react"
 import PopupEdit from '@/components/PopupEdit';
 import PopupAudio from "@/components/PopupAudio";
 import PopupPicture from "@/components/PopupPicture";
-import { EditableTransaction } from "@/types/transaction";
 import CurrentBalance from '@/components/CurrentBalance';
 import FinancialSummary from '@/components/FinancialSummary';
 import TransactionList from '@/components/TransactionList';
 import Setting from '@/components/Setting';
 import { toast } from "sonner";
 import { Plus, Mic, Camera, Settings } from "lucide-react";
+import { User } from '@/models/user';
 
 export default function Home() {
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -29,31 +27,20 @@ export default function Home() {
     const [isPictureOpen, setIsPictureOpen] = useState(false);
     const [isSettingOpen, setIsSettingOpen] = useState(false);
 
-    // stats API state
-    const [stats, setStats] = useState({ totalIncome: 0, totalExpense: 0, balance: 0, totalCount: 0 });
-    const { totalIncome, totalExpense, balance } = stats;    // fetch user data
     const [user, setUser] = useState<User | null>(null);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+
     const fetchUser = useCallback(async () => {
         try {
+            setLoading(true)
             const res = await fetch('/api/app/me');
             if (!res.ok) throw new Error('Failed to fetch user data');
             const json = await res.json();
             setUser(json.data);
-        } catch (err) {
-            console.error('Error fetching user data:', err);
-        }
-    }, []);
-    // fetch aggregated stats
-    const fetchStats = useCallback(async () => {
-        try {
-            setLoading(true);
-            const res = await fetch('/api/app/transactions/stats');
-            if (!res.ok) throw new Error('Failed to fetch stats');
-            const json = await res.json();
-            setStats(json.data);
             setLoading(false);
         } catch (err) {
-            console.error('Error fetching stats:', err);
+            console.error('Error fetching user data:', err);
+            toast.error('Failed to fetch user data');
         }
     }, []);
 
@@ -73,8 +60,8 @@ export default function Home() {
             const items: Transaction[] = json.data.map((item: Transaction) => ({
                 ...item,
                 timestamp: new Date(item.timestamp),
-                createdAt: item.createdAt ? new Date(item.createdAt) : undefined,
-                updatedAt: item.updatedAt ? new Date(item.updatedAt) : undefined,
+                createdAt: item.createdAt,
+                updatedAt: item.updatedAt,
             }));
             // console.log('Fetched transactions:', items);
 
@@ -113,7 +100,7 @@ export default function Home() {
             if (json.transaction) {
                 // Instead of manually adding to the list, refresh the data
                 await fetchData(1); // Reset to first page and fetch fresh data
-                fetchStats();
+                fetchUser();
                 toast.success('Transaction added successfully');
             }
         } catch (err) {
@@ -128,7 +115,7 @@ export default function Home() {
             const res = await fetch(`/api/app/transactions/${id}`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Delete failed');
             setTransactions(prev => prev.filter(tx => tx.id !== id));
-            fetchStats();
+            fetchUser();
             toast.success('Transaction deleted successfully');
         } catch (err) {
             console.error('Error deleting transaction:', err);
@@ -156,7 +143,7 @@ export default function Home() {
                     tx.id === updatedTx.id ? updatedTx : tx
                 ));
                 // 更新统计数据
-                fetchStats();
+                fetchUser();
                 toast.success('Transaction updated successfully');
             }
         } catch (err) {
@@ -166,10 +153,9 @@ export default function Home() {
     };
 
     useEffect(() => {
-        fetchStats();
         fetchUser();
         fetchData(1);
-    }, [fetchStats, fetchData]);
+    }, [fetchUser, fetchData]);
 
     // Infinite scroll: load next page when reaching bottom and more is available
     // Use IntersectionObserver for infinite scroll
@@ -198,9 +184,9 @@ export default function Home() {
         <main className="relative flex items-start justify-center min-h-screen bg-white py-10">
             <div className="w-full max-w-md ">
                 {/* Balance fetched from stats API */}
-                <CurrentBalance loading={loading} balance={balance} user={user} />
+                <CurrentBalance loading={loading} user={user} />
                 {/* Stats fetched from API */}
-                <FinancialSummary loading={loading} totalIncome={totalIncome} totalExpense={totalExpense} balance={balance} />
+                <FinancialSummary loading={loading} user={user} />
 
                 {/* Transaction List */}
                 <div className="relative my-6">
@@ -263,23 +249,26 @@ export default function Home() {
                 open={isEditOpen}
                 onOpenChange={setIsEditOpen}
                 onSubmit={handleAdd}
-                user={user}
+                user={user!}
             />
             <PopupAudio
                 open={isAudioOpen}
                 onOpenChange={setIsAudioOpen}
                 onSubmit={handleAdd}
-                user={user || undefined}
+                user={user!}
             />
             <PopupPicture
                 open={isPictureOpen}
                 onOpenChange={setIsPictureOpen}
                 onSubmit={handleAdd}
-                user={user || undefined}
+                user={user!}
             />
             <Setting 
                 open={isSettingOpen}
-                onOpenChange={setIsSettingOpen}
+                onOpenChange={(open) => {
+                    setIsSettingOpen(open);
+                    if (!open) fetchUser();
+                }}
                 user={user} 
             />
         </main>

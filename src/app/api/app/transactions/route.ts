@@ -1,9 +1,8 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from '@/app/utils/authOptions';
-import { getTransactionCollection } from '@/lib/db';
-import { ObjectId, Filter, Collection } from 'mongodb';
+import { connectMongoose } from '@/lib/db';
 import { NextResponse } from 'next/server';
-import type { ITransaction, Transaction as TransactionDTO } from '@/types/transaction';
+import { TransactionModel, ITransaction, Transaction } from '@/models/transaction';
 
 type Pagination = {
   total: number;
@@ -25,10 +24,10 @@ export async function GET(req: Request): Promise<NextResponse> {
     const limit = parseInt(url.searchParams.get('limit') || '10', 10);
     const search = url.searchParams.get('search') || '';
 
-    const filter: Filter<ITransaction> = { userId: new ObjectId(session.user.id) as any };
+    const filter: any = { userId: session.user.id };
     
     if (search) {
-      filter.category = { $regex: search, $options: 'i' } as any;
+      filter.category = { $regex: search, $options: 'i' };
     }
     url.searchParams.forEach((value, key) => {
       if (!['page', 'limit', 'search'].includes(key)) {
@@ -36,20 +35,18 @@ export async function GET(req: Request): Promise<NextResponse> {
       }
     });
 
-    const col = (await getTransactionCollection()) as Collection<ITransaction>;
-    const total = await col.countDocuments(filter);
+    await connectMongoose();
+    const total = await TransactionModel.countDocuments(filter);
     
-    const docs = await col
+    const docs = await TransactionModel
       .find(filter)
-      .sort({ 
-        timestamp: -1,
-      })
+      .sort({ timestamp: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
-      .toArray();
+      .exec();
 
-    const data: TransactionDTO[] = docs.map(doc => ({
-      id: doc._id.toString(),
+    const data: Transaction[] = docs.map(doc => ({
+      id: String(doc._id),
       amount: doc.amount,
       type: doc.type,
       category: doc.category,
@@ -60,8 +57,8 @@ export async function GET(req: Request): Promise<NextResponse> {
       tags: doc.tags,
       emoji: doc.emoji,
       location: doc.location,
-      createdAt: doc.createdAt,
-      updatedAt: doc.updatedAt,
+      createdAt: doc.createdAt.toISOString(),
+      updatedAt: doc.updatedAt.toISOString(),
     }));
 
     const pagination: Pagination = { total, page, limit };
@@ -69,6 +66,7 @@ export async function GET(req: Request): Promise<NextResponse> {
     
     return NextResponse.json({ message: 'ok', data, pagination, isEnd });
   } catch (error) {
+    console.error('Error fetching transactions:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -82,7 +80,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = (await req.json()) as Partial<TransactionDTO>;
+    const body = await req.json();
 
     const { amount, type, category, timestamp } = body;
     if (amount == null || !type || !category || !timestamp) {
@@ -92,9 +90,9 @@ export async function POST(req: Request): Promise<NextResponse> {
       );
     }
 
-    const now = new Date();
-    const toInsert: Partial<ITransaction> & { userId: ObjectId; createdAt: Date; updatedAt: Date } = {
-      userId: new ObjectId(session.user.id),
+    await connectMongoose();
+    const transaction = new TransactionModel({
+      userId: session.user.id,
       amount,
       type,
       category,
@@ -105,37 +103,29 @@ export async function POST(req: Request): Promise<NextResponse> {
       tags: body.tags,
       location: body.location,
       emoji: body.emoji,
-      createdAt: now,
-      updatedAt: now,
-    };
-    
-    const col = (await getTransactionCollection()) as Collection<ITransaction>;
-    const res = await col.insertOne(toInsert as ITransaction);
-    
-    const doc = await col.findOne({ _id: res.insertedId });
+    });
 
-    if (!doc) {
-      return NextResponse.json({ message: 'Insert failed' }, { status: 500 });
-    }
+    const savedTransaction = await transaction.save();
 
-    const transaction: TransactionDTO = {
-      id: doc._id.toString(),
-      amount: doc.amount,
-      type: doc.type,
-      category: doc.category,
-      subcategory: doc.subcategory,
-      timestamp: doc.timestamp,
-      note: doc.note,
-      currency: doc.currency,
-      emoji: doc.emoji,
-      tags: doc.tags,
-      location: doc.location,
-      createdAt: doc.createdAt,
-      updatedAt: doc.updatedAt,
+    const transactionDTO: Transaction = {
+      id: String(savedTransaction._id),
+      amount: savedTransaction.amount,
+      type: savedTransaction.type,
+      category: savedTransaction.category,
+      subcategory: savedTransaction.subcategory,
+      timestamp: savedTransaction.timestamp,
+      note: savedTransaction.note,
+      currency: savedTransaction.currency,
+      emoji: savedTransaction.emoji,
+      tags: savedTransaction.tags,
+      location: savedTransaction.location,
+      createdAt: savedTransaction.createdAt.toISOString(),
+      updatedAt: savedTransaction.updatedAt.toISOString(),
     };
 
-    return NextResponse.json({ message: 'Transaction created', transaction });
+    return NextResponse.json({ message: 'Transaction created', transaction: transactionDTO });
   } catch (error) {
+    console.error('Error creating transaction:', error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

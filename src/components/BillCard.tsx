@@ -7,7 +7,7 @@ import {
     CardTitle,
 } from "@/components/ui/card"
 
-import { Transaction, EditableTransaction } from "@/types/transaction"
+import { Transaction, EditableTransaction } from "@/models/transaction"
 import { Check, X, Pencil, Trash2, CalendarIcon, Loader } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';

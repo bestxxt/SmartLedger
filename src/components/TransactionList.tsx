@@ -1,13 +1,11 @@
-import { Transaction, EditableTransaction } from '@/types/transaction';
+import { Transaction, EditableTransaction } from '@/models/transaction';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { BillCard } from './BillCard';
 import { format, isSameDay } from 'date-fns';
-import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { User } from '@/types/user';
+import { User, Tag } from '@/models/user';
 import { useState } from 'react';
 import PopupEdit from './PopupEdit';
-import { toast } from 'sonner';
 import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 
 type TransactionListProps = {
@@ -15,13 +13,6 @@ type TransactionListProps = {
   deleteTransaction: (id: string) => Promise<void>;
   user: User | null;
   onEdit: (editedTx: EditableTransaction, id: string) => Promise<void>;
-};
-
-type BillCardProps = {
-  transaction: Transaction;
-  onDelete: (id: string) => Promise<void>;
-  user: User | null;
-  onEdit: () => void;
 };
 
 export default function TransactionList({ transactions, deleteTransaction, user, onEdit }: TransactionListProps) {
@@ -156,18 +147,26 @@ export default function TransactionList({ transactions, deleteTransaction, user,
                                       viewport={{ once: true }}
                                       transition={{ delay: 0.1 }}
                                     >
-                                      {tx.tags.map((tag, index) => (
-                                        <motion.span
-                                          key={index}
-                                          initial={{ scale: 0.8, opacity: 0 }}
-                                          whileInView={{ scale: 1, opacity: 1 }}
-                                          viewport={{ once: true }}
-                                          transition={{ delay: 0.3 + index * 0.1 }}
-                                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
-                                        >
-                                          {tag}
-                                        </motion.span>
-                                      ))}
+                                      {tx.tags.map((tagName, index) => {
+                                        const userTag = user?.tags.find(t => t.name === tagName);
+                                        return (
+                                          <motion.span
+                                            key={index}
+                                            initial={{ scale: 0.8, opacity: 0 }}
+                                            whileInView={{ scale: 1, opacity: 1 }}
+                                            viewport={{ once: true }}
+                                            transition={{ delay: 0.3 + index * 0.1 }}
+                                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                                            style={{
+                                              backgroundColor: userTag?.color ? `${userTag.color}20` : '#f3f4f6',
+                                              color: userTag?.color || '#374151',
+                                              border: userTag?.color ? `1px solid ${userTag.color}40` : 'none'
+                                            }}
+                                          >
+                                            {tagName}
+                                          </motion.span>
+                                        );
+                                      })}
                                     </motion.div>
                                   )}
                                 </div>

@@ -12,9 +12,9 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from "@/lib/utils"
 
-import { Transaction, EditableTransaction } from '@/types/transaction';
+import { Transaction, EditableTransaction } from '@/models/transaction';
 import { ConfirmBillCard } from './BillCard';
-import { User } from '@/types/user';
+import { User } from '@/models/user';
 
 export interface PopupAudioProps {
     /** called to add a transaction to parent state */
