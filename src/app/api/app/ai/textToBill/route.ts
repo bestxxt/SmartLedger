@@ -1,47 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from "@google/genai";
-import { Transaction } from '@/models/transaction';
-import { checkAuth } from '@/lib/auth';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/utils/authOptions";
+import { main_income_categories, main_expense_categories, sub_expense_categories } from '@/lib/constants';
+import type { Transaction } from '@/models/transaction';
 
 export async function POST(req: NextRequest) {
     try {
-        // Check authentication
-        const user = await checkAuth();
-        if (!user) {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Parse request body
-        let body;
-        try {
-            body = await req.json();
-        } catch {
-            return NextResponse.json(
-                { error: 'Invalid JSON in request body' },
-                { status: 400 }
-            );
-        }
-        const { text } = body;
+        const { text, timezone = 'UTC' } = await req.json();
 
-        if (!text || typeof text !== 'string') {
-            return NextResponse.json(
-                { error: 'Missing or invalid text parameter' },
-                { status: 400 }
-            );
+        if (!text) {
+            return NextResponse.json({ error: 'Text is required' }, { status: 400 });
         }
 
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            return NextResponse.json(
-                { error: 'Gemini API key not configured' },
-                { status: 500 }
-            );
+            return NextResponse.json({ error: 'Gemini API key not configured' }, { status: 500 });
         }
 
-        // Initialize Google GenAI with API key
         const genAI = new GoogleGenAI({ apiKey });
-
-        // Get the gemini-pro model
         const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 
         // Prepare the prompt
@@ -53,7 +35,7 @@ export async function POST(req: NextRequest) {
             type: "income" | "expense",    // type of transaction
             category: string,              // general category of the transaction
             subcategory?: string,          // optional, more specific category
-            timestamp: string,             // ISO 8601 date-time (default to current date if not provided)
+            timestamp: string,             // date-time in UTC format (ISO 8601), convert any local time found in text to UTC
             note: string,                 // extra details in text's language
             currency?: string,             // optional, default to "USD"
             tags?: string[],               // optional, list of related tags in text's language
@@ -62,7 +44,12 @@ export async function POST(req: NextRequest) {
         }
 
         Information you can rely on:
-        Current time: ${new Date().toISOString()}
+        User timezone: ${timezone}
+
+        Important timezone rules:
+        1. If you find a time in the text, convert it to UTC using the user's timezone (${timezone})
+        2. If no time is found in the text, use the current UTC time
+        3. Always return the timestamp in UTC format (ISO 8601)
 
         Transaction details:
         Text: ${text}

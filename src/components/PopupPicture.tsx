@@ -92,7 +92,7 @@ export default function PopupPicture({ onSubmit, open, onOpenChange, user }: Pop
         setState('uploading');
         const form = new FormData();
         form.append('file', photo);
-        form.append('localTime', new Date().toISOString());
+        form.append('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
         form.append('userCurrency', user?.currency || 'USD');
         form.append('userLanguage', user?.language || 'en');
         form.append('userTags', JSON.stringify(user?.tags || []));

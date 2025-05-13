@@ -287,7 +287,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                         </Button>
                     </div>
                 </SheetHeader>
-                <ScrollArea className="h-[85%]">
+                <div className="w-full h-full overflow-y-scroll">
                     <div className="space-y-6 p-6">
                         {/* Avatar Section */}
                         <div className="space-y-2">
@@ -634,32 +634,32 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                         <hr />
                     </div>
 
-                    <SheetFooter>
-                        <div className="flex justify-evenly space-x-2 mb-6">
-                            <Button 
-                                variant="outline" 
-                                className="w-[45%] h-11"
-                                onClick={() => onOpenChange?.(false)}
-                            >
-                                Close
-                            </Button>
-                            <Button 
-                                className="w-[45%] h-11" 
-                                onClick={handleSave}
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                        Saving...
-                                    </>
-                                ) : (
-                                    'Save Changes'
-                                )}
-                            </Button>
-                        </div>
-                    </SheetFooter>
-                </ScrollArea>
+                </div>
+                <SheetFooter className="p-0">
+                    <div className="flex justify-evenly space-x-2 mb-6">
+                        <Button
+                            variant="outline"
+                            className="w-[45%] h-11"
+                            onClick={() => onOpenChange?.(false)}
+                        >
+                            Close
+                        </Button>
+                        <Button
+                            className="w-[45%] h-11"
+                            onClick={handleSave}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                'Save Changes'
+                            )}
+                        </Button>
+                    </div>
+                </SheetFooter>
             </SheetContent>
         </Sheet>
     )

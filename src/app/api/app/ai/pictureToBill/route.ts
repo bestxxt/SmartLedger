@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/utils/authOptions";
 import { main_income_categories, main_expense_categories, sub_expense_categories } from '@/lib/constants';
 import type { Transaction } from '@/models/transaction';
+import { DateTime } from 'luxon';  
 
 export async function POST(req: NextRequest) {
     try {
@@ -23,8 +24,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing image file' }, { status: 400 });
         }
 
-        // Get local time from form data or use current time as fallback
-        const localTime = formData.get('localTime')?.toString() || new Date().toISOString();
+        // Get timezone from form data or use UTC as fallback
+        const timezone = formData.get('timezone')?.toString() || 'UTC';
         // Get user preferences
         const userCurrency = formData.get('userCurrency')?.toString() || 'USD';
         const userLanguage = formData.get('userLanguage')?.toString() || 'en';
@@ -53,16 +54,17 @@ export async function POST(req: NextRequest) {
                     amount: number,                // numeric amount of the transaction, default to 0
                     type: "income" | "expense", 
                     category: string,              // You must choose from the categories I give to you
-                    timestamp: string,             // date-time showing in image (default to current time if not found)
+                    timestamp: string,             // date-time in UTC format (ISO 8601)
                     note: string,                 // extra details, use objective, factual description instead, in user's language
                     currency: string,             //  default to "${userCurrency}"
                     location?: string,             // optional, relevant location from user's location list
-                    emoji: string,                 //  emoji representing the transaction
+                    emoji: string,                 // one emoji representing the transaction
                     tags: string[]               // optional, relevant tags from user's tag list
                 }
 
                 Information you can rely on:
-                Current time: ${localTime}
+                current time: ${new Date().toISOString()}
+                User's time offset: ${DateTime.local().setZone(timezone)}
                 User preferences:
                 - Default currency: ${userCurrency}
                 - Language: ${userLanguage}
@@ -73,6 +75,7 @@ export async function POST(req: NextRequest) {
                 - Income categories: ${main_income_categories.join(', ')}
                 - Expense categories: ${main_expense_categories.join(', ')}
                 
+                
                 If found return: {
                     found: true,
                     transaction: Transaction
@@ -82,8 +85,12 @@ export async function POST(req: NextRequest) {
                     transaction: null
                 }
             `;
-        // console.log('Prompt:', prompt);
-
+            // Important timezone rules:
+            // 1. If you find a time in the image, convert it to UTC using the user's timezone (${timezone})
+            // 2. If no time is found in the image, use the current UTC time
+            // 3. Always return the timestamp in UTC format (ISO 8601)
+            // User timezone: ${timezone}
+        // console.log('Prompt:', prompt); 
         const contents = [
             {
                 inlineData: {
@@ -105,7 +112,7 @@ export async function POST(req: NextRequest) {
         } catch (err) {
             return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
         }
-
+        // console.log('Parsed response:', parsed);
         return NextResponse.json({ success: true, result: parsed });
     } catch (error) {
         console.error('Error in pictureToBill API:', error);

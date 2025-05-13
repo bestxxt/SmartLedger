@@ -109,9 +109,9 @@ export async function POST(req: NextRequest) {
                     category: string,              // You must choose from the categories I give to you
                     timestamp: string,             // ISO 8601 date-time (default to current time if not provided)
                     note: string,                 // extra details, use objective, factual description instead, in user's language
-                    currency: string,             //  default to "${userCurrency}"
+                    currency: string,             //  currency mentions in text, default to "${userCurrency}"
                     location?: string,             // optional, location of transaction
-                    emoji: string,                 //  emoji representing the transaction
+                    emoji: string,                 // one emoji representing the transaction
                     tags: string[]               // relevant tags from user's tag list
                 }
 

@@ -56,7 +56,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { EditableTransaction, Transaction } from "@/models/transaction"
-import { User, Tag} from "@/models/user"
+import { User, Tag } from "@/models/user"
 import { Input } from "@/components/ui/input"
 import { main_income_categories, main_expense_categories, sub_expense_categories } from "@/lib/constants"
 
@@ -251,12 +251,12 @@ function TagSelector({ tags, selectedTags, onTagsChange }: {
 }) {
     // 创建一个包含所有标签的集合，包括用户当前标签和交易中已选择的标签
     const allTags = new Map<string, { id: string, name: string, color?: string }>();
-    
+
     // 添加用户当前标签
     tags.forEach(tag => {
         allTags.set(tag.name, tag);
     });
-    
+
     // 添加交易中已选择但不在用户当前标签中的标签
     selectedTags.forEach(tagName => {
         if (!allTags.has(tagName)) {
@@ -337,7 +337,7 @@ export interface PopupEditProps {
     source?: 'home' | 'transaction';
 }
 
-export default function PopupEdit({ onSubmit, user, transaction, open, onOpenChange}: PopupEditProps) {
+export default function PopupEdit({ onSubmit, user, transaction, open, onOpenChange }: PopupEditProps) {
     if (!user) {
         return null;
     }
@@ -398,13 +398,13 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
             <DrawerContent className="p-6 w-full h-full">
-                <DrawerHeader>
+                <DrawerHeader className="pt-0">
                     <DrawerTitle className="flex justify-center gap-2">
                         <CircleDollarSign />
                         {isEditMode ? 'Edit Transaction' : 'Add Transaction'}
                     </DrawerTitle>
                 </DrawerHeader>
-                <ScrollArea className="h-[90%]">
+                <div className="flex flex-col gap-4 w-full h-full overflow-y-scroll">
                     <div className="space-y-6">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Date & Time & Income / Expense
@@ -438,7 +438,7 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                             Amount & Currency
                         </label>
                         <div className="flex flex-col gap-4">
-                                                 
+
                             <div className="flex-1">
                                 <NumericKeypad
                                     initialValue={form.amount.toString()}
@@ -538,23 +538,23 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                                 <span className="text-sm text-gray-500">Input custom emoji</span>
                             </div>
                         </div>
-                        <DrawerFooter className="pt-4 ">
-                            <div className='flex justify-between'>
-                                <DrawerClose asChild>
-                                    <Button variant="outline" className="w-[49%] h-12">Cancel</Button>
-                                </DrawerClose>
-                                <DrawerClose asChild>
-                                    <Button
-                                        className="w-[49%] h-12"
-                                        onClick={handleSubmit}
-                                    >
-                                        {isEditMode ? 'Save Changes' : 'Add'}
-                                    </Button>
-                                </DrawerClose>
-                            </div>
-                        </DrawerFooter>
                     </div>
-                </ScrollArea>
+                </div>
+                <DrawerFooter>
+                    <div className='flex justify-between'>
+                        <DrawerClose asChild>
+                            <Button variant="outline" className="w-[49%] h-12">Cancel</Button>
+                        </DrawerClose>
+                        <DrawerClose asChild>
+                            <Button
+                                className="w-[49%] h-12"
+                                onClick={handleSubmit}
+                            >
+                                {isEditMode ? 'Save Changes' : 'Add'}
+                            </Button>
+                        </DrawerClose>
+                    </div>
+                </DrawerFooter>
             </DrawerContent>
         </Drawer>
     );
