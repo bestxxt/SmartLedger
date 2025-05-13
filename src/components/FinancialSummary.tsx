@@ -1,5 +1,7 @@
 import { Loader, ArrowUp, ArrowDown } from 'lucide-react';
 import { User } from '@/models/user';
+import { cn } from '@/lib/utils';
+import FormattedNumber from '@/components/FormattedNumber';
 
 type FinancialSummaryProps = {
   loading: boolean;
@@ -46,6 +48,10 @@ export default function FinancialSummary({ loading, user}: FinancialSummaryProps
     );
   }
 
+  const currencySymbol = user.currency === 'CNY' ? '¥' : 
+                        user.currency === 'EUR' ? '€' : 
+                        user.currency === 'GBP' ? '£' : '$';
+
   const incomeWidth = user.stats.balance !== 0 ? `${((user.stats.totalIncome / (user.stats.totalIncome + user.stats.totalExpense)) * 100).toFixed(2)}%` : '50%';
   const expensesWidth = user.stats.balance !== 0 ? `${((user.stats.totalExpense / (user.stats.totalIncome + user.stats.totalExpense)) * 100).toFixed(2)}%` : '50%';
 
@@ -74,7 +80,12 @@ export default function FinancialSummary({ loading, user}: FinancialSummaryProps
               </span>
             </div>
             <p className="text-lg font-bold text-gray-800 mt-1">
-              ${user.stats.totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <span className={cn(
+                user.currency === 'CNY' && "text-base"
+              )}>
+                {currencySymbol}
+              </span>
+              <FormattedNumber value={user.stats.totalIncome.toFixed(2)} />
             </p>
           </div>
           <div className="bg-red-50 rounded-lg p-3 border-l-4 border-red-400">
@@ -85,7 +96,12 @@ export default function FinancialSummary({ loading, user}: FinancialSummaryProps
               </span>
             </div>
             <p className="text-lg font-bold text-gray-800 mt-1">
-              ${user.stats.totalExpense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <span className={cn(
+                user.currency === 'CNY' && "text-base"
+              )}>
+                {currencySymbol}
+              </span>
+              <FormattedNumber value={user.stats.totalExpense.toFixed(2)} />
             </p>
           </div>
         </div>

@@ -1,8 +1,8 @@
 import { FormEvent, useState, useEffect } from 'react';
-import { 
-    CircleDollarSign, 
-    CirclePlus, 
-    CircleMinus, 
+import {
+    CircleDollarSign,
+    CirclePlus,
+    CircleMinus,
     Wallet,
     Home,
     Utensils,
@@ -25,37 +25,7 @@ import {
     Handshake,
     HeartHandshake,
     Package,
-    Store,
     HelpCircle,
-    BedDouble,
-    Wrench,
-    Sparkles,
-    Coffee,
-    Sandwich,
-    Beer,
-    ShoppingCart,
-    Bus,
-    Train,
-    Plane,
-    School,
-    BookOpen,
-    FileText,
-    Stethoscope,
-    Pill,
-    Dumbbell,
-    Gamepad2,
-    Wine,
-    Theater,
-    Shirt,
-    Smartphone,
-    Laptop,
-    Watch,
-    Baby,
-    PawPrint,
-    BriefcaseBusiness,
-    GiftIcon,
-    AlertCircle,
-    MoreHorizontal
 } from 'lucide-react';
 import {
     Drawer,
@@ -86,7 +56,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { EditableTransaction, Transaction } from "@/models/transaction"
-import { User } from "@/models/user"
+import { User, Tag} from "@/models/user"
 import { Input } from "@/components/ui/input"
 import { main_income_categories, main_expense_categories, sub_expense_categories } from "@/lib/constants"
 
@@ -102,7 +72,6 @@ const categoryIcons: Record<string, any> = {
     'Part-time': Clock,
     'Dividends': Trophy,
     'Gifts': Gift,
-    'Gift Money': Gift,
     'Reimbursement': Receipt,
     'Subsidy': Receipt,
     'Lottery': PartyPopper,
@@ -121,81 +90,6 @@ const categoryIcons: Record<string, any> = {
     'Shopping': ShoppingBag,
     'Social': Users,
     'Other': HelpCircle,
-};
-
-// 定义子分类图标映射
-const subcategoryIcons: Record<string, any> = {
-    // 住房相关
-    'Rent/Mortgage': Home,
-    'Utilities': Wrench,
-    'Property Management': Building2,
-    'Cleaning': Sparkles,
-    'Home Supplies': Store,
-    'Home Improvement': BedDouble,
-
-    // 食品相关
-    'General Meals': Utensils,
-    'Breakfast': Coffee,
-    'Lunch': Sandwich,
-    'Dinner': Utensils,
-    'Snacks': Beer,
-    'Beverages': Beer,
-    'Groceries': ShoppingCart,
-    'Dining Out': Utensils,
-
-    // 交通相关
-    'Taxi': Car,
-    'Public Transit': Bus,
-    'Parking': Car,
-    'Fuel': Car,
-    'Car Maintenance': Wrench,
-    'Train': Train,
-    'Flight': Plane,
-
-    // 教育相关
-    'Tuition': School,
-    'Training': GraduationCap,
-    'Books': BookOpen,
-    'Exams': FileText,
-
-    // 医疗相关
-    'Hospital': Stethoscope,
-    'Medicine': Pill,
-    'Health Supplements': Heart,
-
-    // 娱乐相关
-    'Travel': Plane,
-    'Movies & Music': Theater,
-    'Sports': Dumbbell,
-    'Massage': Heart,
-    'Games': Gamepad2,
-    'Bars': Wine,
-    'Shows': Theater,
-
-    // 购物相关
-    'Personal Care': Sparkles,
-    'Electronics': Smartphone,
-    'Virtual Services': Laptop,
-    'Appliances': Laptop,
-    'Accessories': Watch,
-    'Baby Products': Baby,
-    'Clothing': Shirt,
-    'Pet Supplies': PawPrint,
-    'Office Supplies': BriefcaseBusiness,
-
-    // 社交相关
-    'Gifts': Gift,
-    'Red Packets': GiftIcon,
-    'Family Support': HeartHandshake,
-    'Lending': Handshake,
-    'Tips': Handshake,
-
-    // 其他
-    'Fines': AlertCircle,
-    'Investment Expenses': PiggyBank,
-    'Charity': Heart,
-    'Miscellaneous': MoreHorizontal,
-    'Other': HelpCircle
 };
 
 // 日期时间选择器组件
@@ -303,27 +197,20 @@ function DateTimePicker({ timestamp, onTimestampChange }: { timestamp: Date, onT
 }
 
 // 分类选择组件
-function CategorySelector({ 
-    type, 
-    category, 
-    subcategory, 
-    onCategoryChange, 
-    onSubcategoryChange 
-}: { 
+function CategorySelector({
+    type,
+    category,
+    onCategoryChange
+}: {
     type: 'income' | 'expense',
     category: string | undefined,
-    subcategory: string | undefined,
-    onCategoryChange: (value: string) => void,
-    onSubcategoryChange: (value: string) => void
+    onCategoryChange: (value: string) => void
 }) {
     return (
         <div className="flex flex-col gap-4">
             <Select
                 value={category || ''}
-                onValueChange={(value) => {
-                    onCategoryChange(value);
-                    onSubcategoryChange('');
-                }}
+                onValueChange={onCategoryChange}
             >
                 <SelectTrigger className="w-full">
                     <SelectValue placeholder={`Select ${type === 'income' ? 'Income' : 'Expense'} Category`}>
@@ -352,75 +239,34 @@ function CategorySelector({
                     })}
                 </SelectContent>
             </Select>
-            {category && (
-                <Select
-                    value={subcategory || ''}
-                    onValueChange={onSubcategoryChange}
-                >
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Subcategory">
-                            {subcategory && (
-                                <div className="flex items-center gap-2">
-                                    {(() => {
-                                        const Icon = subcategoryIcons[subcategory] || HelpCircle;
-                                        return <Icon className="h-4 w-4" />;
-                                    })()}
-                                    <span>{subcategory}</span>
-                                </div>
-                            )}
-                        </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                        {sub_expense_categories
-                            .filter(sub => {
-                                switch (category) {
-                                    case 'Housing':
-                                        return ['Rent/Mortgage', 'Utilities', 'Property Management', 'Cleaning', 'Home Supplies', 'Home Improvement'].includes(sub);
-                                    case 'Food':
-                                        return ['General Meals', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Beverages', 'Groceries', 'Dining Out'].includes(sub);
-                                    case 'Transportation':
-                                        return ['Taxi', 'Public Transit', 'Parking', 'Fuel', 'Car Maintenance', 'Train', 'Flight'].includes(sub);
-                                    case 'Education':
-                                        return ['Tuition', 'Training', 'Books', 'Exams'].includes(sub);
-                                    case 'Healthcare':
-                                        return ['Hospital', 'Medicine', 'Health Supplements'].includes(sub);
-                                    case 'Entertainment':
-                                        return ['Travel', 'Movies & Music', 'Sports', 'Massage', 'Games', 'Bars', 'Shows'].includes(sub);
-                                    case 'Shopping':
-                                        return ['Personal Care', 'Electronics', 'Virtual Services', 'Appliances', 'Accessories', 'Baby Products', 'Clothing', 'Pet Supplies', 'Office Supplies'].includes(sub);
-                                    case 'Social':
-                                        return ['Gifts', 'Red Packets', 'Family Support', 'Lending', 'Tips'].includes(sub);
-                                    default:
-                                        return ['Fines', 'Investment Expenses', 'Charity', 'Miscellaneous', 'Other'].includes(sub);
-                                }
-                            })
-                            .map((sub) => {
-                                const Icon = subcategoryIcons[sub] || HelpCircle;
-                                return (
-                                    <SelectItem key={sub} value={sub}>
-                                        <div className="flex items-center gap-2">
-                                            <Icon className="h-4 w-4" />
-                                            <span>{sub}</span>
-                                        </div>
-                                    </SelectItem>
-                                );
-                            })}
-                    </SelectContent>
-                </Select>
-            )}
         </div>
     );
 }
 
 // 标签选择组件
-function TagSelector({ tags, selectedTags, onTagsChange }: { 
+function TagSelector({ tags, selectedTags, onTagsChange }: {
     tags: Array<{ id: string, name: string, color?: string }>,
     selectedTags: string[],
     onTagsChange: (tags: string[]) => void
 }) {
+    // 创建一个包含所有标签的集合，包括用户当前标签和交易中已选择的标签
+    const allTags = new Map<string, { id: string, name: string, color?: string }>();
+    
+    // 添加用户当前标签
+    tags.forEach(tag => {
+        allTags.set(tag.name, tag);
+    });
+    
+    // 添加交易中已选择但不在用户当前标签中的标签
+    selectedTags.forEach(tagName => {
+        if (!allTags.has(tagName)) {
+            allTags.set(tagName, { id: tagName, name: tagName });
+        }
+    });
+
     return (
         <div className="flex flex-wrap gap-2">
-            {tags.map(tag => {
+            {Array.from(allTags.values()).map(tag => {
                 const isSelected = selectedTags?.includes(tag.name);
                 return (
                     <Button
@@ -433,10 +279,10 @@ function TagSelector({ tags, selectedTags, onTagsChange }: {
                             isSelected && "bg-primary text-primary-foreground"
                         )}
                         style={{
-                            backgroundColor: isSelected 
+                            backgroundColor: isSelected
                                 ? (tag.color ? `${tag.color}20` : undefined)
                                 : undefined,
-                            color: isSelected 
+                            color: isSelected
                                 ? (tag.color || undefined)
                                 : undefined
                         }}
@@ -491,15 +337,17 @@ export interface PopupEditProps {
     source?: 'home' | 'transaction';
 }
 
-export default function PopupEdit({ onSubmit, user, transaction, open, onOpenChange, source = 'home' }: PopupEditProps) {
+export default function PopupEdit({ onSubmit, user, transaction, open, onOpenChange}: PopupEditProps) {
+    if (!user) {
+        return null;
+    }
     const [form, setForm] = useState<EditableTransaction>({
         amount: transaction?.amount || 0,
         type: transaction?.type || 'expense',
         category: transaction?.category || 'Other',
-        subcategory: transaction?.subcategory || 'Other',
         timestamp: transaction?.timestamp || new Date(),
         note: transaction?.note || '',
-        currency: transaction?.currency || 'USD',
+        currency: transaction?.currency || user.currency || 'USD',
         tags: transaction?.tags || [],
         location: transaction?.location || '',
         emoji: transaction?.emoji || '💰',
@@ -513,10 +361,9 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                 amount: transaction.amount,
                 type: transaction.type,
                 category: transaction.category,
-                subcategory: transaction.subcategory,
                 timestamp: transaction.timestamp,
                 note: transaction.note || '',
-                currency: transaction.currency || 'USD',
+                currency: transaction.currency || user?.currency || 'USD',
                 tags: transaction.tags || [],
                 location: transaction.location || '',
                 emoji: transaction.emoji || '💰',
@@ -529,16 +376,15 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
             if (onSubmit) {
                 await onSubmit(form);
             }
-            
+
             if (!isEditMode) {
                 setForm({
                     amount: 0,
                     type: 'expense',
                     category: 'Other',
-                    subcategory: 'Other',
                     timestamp: new Date(),
                     note: '',
-                    currency: 'USD',
+                    currency: user?.currency || 'USD',
                     tags: [],
                     location: '',
                     emoji: '💰',
@@ -564,7 +410,7 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                             Date & Time & Income / Expense
                         </label>
                         <div className='flex justify-between items-center'>
-                            <DateTimePicker 
+                            <DateTimePicker
                                 timestamp={form.timestamp}
                                 onTimestampChange={(date) => setForm(prev => ({ ...prev, timestamp: date }))}
                             />
@@ -589,15 +435,39 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                         </div>
                         <hr />
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Amount
+                            Amount & Currency
                         </label>
-                        <div>
-                            <NumericKeypad
-                                initialValue={form.amount.toString()}
-                                onChange={(newVal) => {
-                                    setForm((prev) => ({ ...prev, amount: parseFloat(newVal), }));
-                                }}
-                            />
+                        <div className="flex flex-col gap-4">
+                                                 
+                            <div className="flex-1">
+                                <NumericKeypad
+                                    initialValue={form.amount.toString()}
+                                    currencySymbols={form.currency === 'CNY' ? '¥' : form.currency === 'EUR' ? '€' : '$'}
+                                    onChange={(newVal) => {
+                                        setForm((prev) => ({ ...prev, amount: parseFloat(newVal), }));
+                                    }}
+                                />
+                            </div>
+                            <div className="flex gap-2 justify-center">
+                                {[
+                                    { value: 'USD', symbol: '$', label: 'USD' },
+                                    { value: 'CAD', symbol: '$', label: 'CAD' },
+                                    { value: 'CNY', symbol: '¥', label: 'CNY' },
+                                    { value: 'EUR', symbol: '€', label: 'EUR' },
+                                ].map((currency) => (
+                                    <Button
+                                        key={currency.value}
+                                        variant="outline"
+                                        className={cn(
+                                            "w-15 justify-center",
+                                            form.currency === currency.value && "bg-primary text-primary-foreground"
+                                        )}
+                                        onClick={() => setForm((prev) => ({ ...prev, currency: currency.value }))}
+                                    >
+                                        {currency.value}
+                                    </Button>
+                                ))}
+                            </div>
                         </div>
                         <hr />
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -606,9 +476,7 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                         <CategorySelector
                             type={form.type}
                             category={form.category}
-                            subcategory={form.subcategory}
                             onCategoryChange={(value) => setForm(prev => ({ ...prev, category: value }))}
-                            onSubcategoryChange={(value) => setForm(prev => ({ ...prev, subcategory: value }))}
                         />
                         <hr />
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -620,25 +488,7 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                             placeholder="Add a note to your transaction"
                         />
                         <hr />
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Currency
-                        </label>
-                        <Select
-                            value={form.currency}
-                            onValueChange={(value) => setForm((prev) => ({ ...prev, currency: value }))}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select currency" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="USD">USD ($)</SelectItem>
-                                <SelectItem value="CAD">CAD ($)</SelectItem>
-                                <SelectItem value="CNY">CNY (¥)</SelectItem>
-                                <SelectItem value="EUR">EUR (€)</SelectItem>
-                                <SelectItem value="GBP">GBP (£)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <hr />
+
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Location
                         </label>
@@ -694,7 +544,7 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                                     <Button variant="outline" className="w-[49%] h-12">Cancel</Button>
                                 </DrawerClose>
                                 <DrawerClose asChild>
-                                    <Button 
+                                    <Button
                                         className="w-[49%] h-12"
                                         onClick={handleSubmit}
                                     >

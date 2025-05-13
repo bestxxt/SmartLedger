@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Key } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -34,6 +35,8 @@ export default function LoginPage() {
                 setError('Invalid email or password');
                 return;
             }
+            // Optionally, you can use toast notifications for success
+            toast.success('Login successful!');
             // router.push('/home');
             // Force immediate redirect
             window.location.href = '/home';

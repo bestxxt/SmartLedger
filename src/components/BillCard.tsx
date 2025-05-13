@@ -53,65 +53,80 @@ export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps)
 
     return (
         <>
-        <Card className="w-[350px] hover:shadow-md transition-shadow relative">
+            <Card className="w-[350px] hover:shadow-md transition-shadow relative">
                 <CardHeader>
-                <div className="flex justify-between items-center">
-                    <CardTitle className="flex items-center gap-2">
-                        <span>{transaction.emoji || '💰'}</span>
-                        <span>{transaction.category}</span>
-                    </CardTitle>
-                    <span className={`font-bold ${transaction.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
-                        {transaction.type === 'income' ? '+' : '-'}{transaction.amount} {transaction.currency || "USD"}
-                    </span>
-                </div>
-                {transaction.subcategory && (
-                    <CardDescription className="text-sm">{transaction.subcategory}</CardDescription>
-                )}
-            </CardHeader>
+                    <div className="flex justify-between items-center">
+                        <CardTitle className="flex items-center gap-2">
+                            <span>{transaction.emoji || '💰'}</span>
+                            <span>{transaction.category}</span>
+                        </CardTitle>
+                        <span className={`font-bold ${transaction.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
+                            {transaction.originalAmount && transaction.originalCurrency && transaction.originalCurrency !== transaction.currency ? (
+                                <div className="flex flex-col items-end">
+                                    <span>
+                                        {transaction.type === 'income' ? '+' : '-'}
+                                        {transaction.amount} {transaction.currency || "USD"}
+                                    </span>
+                                    <span className="text-sm text-gray-500">
+                                        {transaction.originalAmount} {transaction.originalCurrency}
+                                    </span>
+                                </div>
+                            ) : (
+                                <>
+                                    {transaction.type === 'income' ? '+' : '-'}
+                                    {transaction.amount} {transaction.currency || "USD"}
+                                </>
+                            )}
+                        </span>
+                    </div>
+                    {/* {transaction.category && (
+                    <CardDescription className="text-sm">{transaction.category}</CardDescription>
+                )} */}
+                </CardHeader>
                 <CardContent>
-                <div className="text-sm space-y-1">
-                    <p className="text-gray-600">{transaction.note || "No description available"}</p>
-                    <p className="text-gray-500">{transaction.timestamp.toLocaleString()}</p>
-                    {transaction.tags && transaction.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                            {transaction.tags.map(tag => (
-                                <span key={tag} className="bg-gray-100 text-xs px-2 py-1 rounded-full">{tag}</span>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </CardContent>
+                    <div className="text-sm space-y-1">
+                        <p className="text-gray-600">{transaction.note || "No description available"}</p>
+                        <p className="text-gray-500">{transaction.timestamp.toLocaleString()}</p>
+                        {transaction.tags && transaction.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                                {transaction.tags.map(tag => (
+                                    <span key={tag} className="bg-gray-100 text-xs px-2 py-1 rounded-full">{tag}</span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
                 <CardFooter className="pt-0 text-xs text-gray-500">
-                <p>{transaction.location || "No location"}</p>
-            </CardFooter>
-            <div className="absolute bottom-4 right-4 flex gap-4">
-                <button
-                    onClick={onEdit}
-                    className="p-3 hover:bg-blue-100 bg-blue-50 rounded-full transition-colors text-blue-500 shadow-sm"
-                    aria-label="Edit transaction"
-                >
-                    <Pencil className="w-5 h-5" />
-                </button>
-                <button
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                    className={cn(
-                        "p-3 rounded-full transition-colors shadow-sm",
-                        isDeleting 
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
-                            : "hover:bg-red-100 bg-red-50 text-red-500"
-                    )}
-                    aria-label="Delete transaction"
-                >
-                    {isDeleting ? (
-                        <Loader className="w-5 h-5 animate-spin" />
-                    ) : (
-                        <Trash2 className="w-5 h-5" />
-                    )}
-                </button>
-            </div>
-        </Card>
-        <PopupEdit
+                    <p>{transaction.location || "No location"}</p>
+                </CardFooter>
+                <div className="absolute bottom-4 right-4 flex gap-4">
+                    <button
+                        onClick={onEdit}
+                        className="p-3 hover:bg-blue-100 bg-blue-50 rounded-full transition-colors text-blue-500 shadow-sm"
+                        aria-label="Edit transaction"
+                    >
+                        <Pencil className="w-5 h-5" />
+                    </button>
+                    <button
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        className={cn(
+                            "p-3 rounded-full transition-colors shadow-sm",
+                            isDeleting
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                : "hover:bg-red-100 bg-red-50 text-red-500"
+                        )}
+                        aria-label="Delete transaction"
+                    >
+                        {isDeleting ? (
+                            <Loader className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <Trash2 className="w-5 h-5" />
+                        )}
+                    </button>
+                </div>
+            </Card>
+            <PopupEdit
                 transaction={transaction}
                 open={isEditing}
                 onOpenChange={setIsEditing}
@@ -174,11 +189,25 @@ export function ConfirmBillCard({ transaction, onConfirm, onSuccess, onCancel }:
                         <span>{transaction.category}</span>
                     </CardTitle>
                     <span className={`font-bold ${transaction.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
-                        {transaction.type === 'income' ? '+' : '-'}{transaction.amount} {transaction.currency || "USD"}
+                        {transaction.type === 'income' ? '+' : '-'}
+                        {transaction.originalAmount && transaction.originalCurrency && transaction.originalCurrency !== transaction.currency ? (
+                            <div className="flex flex-col items-end">
+                                <span className="text-sm text-gray-500">
+                                    {transaction.originalAmount} {transaction.originalCurrency}
+                                </span>
+                                <span>
+                                    {transaction.amount} {transaction.currency || "USD"}
+                                </span>
+                            </div>
+                        ) : (
+                            <>
+                                {transaction.amount} {transaction.currency || "USD"}
+                            </>
+                        )}
                     </span>
                 </div>
-                {transaction.subcategory && (
-                    <CardDescription className="text-sm">{transaction.subcategory}</CardDescription>
+                {transaction.category && (
+                    <CardDescription className="text-sm">{transaction.category}</CardDescription>
                 )}
             </CardHeader>
             <CardContent className="">

@@ -8,7 +8,7 @@ export interface NumericKeypadProps {
   /** 初始值，作为字符串 */
   initialValue?: string
   /** 可选货币符号数组，默认 ["$"] */
-  currencySymbols?: string[]
+  currencySymbols?: string
   /** 占位符，value 为空时显示 */
   placeholder?: string
   /** 值变化时回调，传递当前字符串 */
@@ -17,7 +17,7 @@ export interface NumericKeypadProps {
 
 export default function NumericKeypad({
   initialValue = "",
-  currencySymbols = ["$"],
+  currencySymbols = "$",
   placeholder = "0.00",
   onChange,
 }: NumericKeypadProps) {

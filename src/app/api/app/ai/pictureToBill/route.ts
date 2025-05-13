@@ -49,17 +49,16 @@ export async function POST(req: NextRequest) {
         const prompt = `
                 Extract financial transaction information from the image and return it in this JSON schema:
 
-                Transaction[] = {
+                Transaction = {
                     amount: number,                // numeric amount of the transaction, default to 0
                     type: "income" | "expense", 
                     category: string,              // You must choose from the categories I give to you
-                    subcategory?: string,           // You must choose from the subcategory I give to you
                     timestamp: string,             // date-time showing in image (default to current time if not found)
-                    note: string,                 // extra details, use objective, factual description instead.
+                    note: string,                 // extra details, use objective, factual description instead, in user's language
                     currency: string,             //  default to "${userCurrency}"
                     location?: string,             // optional, relevant location from user's location list
                     emoji: string,                 //  emoji representing the transaction
-                    tags?: string[]               // optional, relevant tags from user's tag list
+                    tags: string[]               // optional, relevant tags from user's tag list
                 }
 
                 Information you can rely on:
@@ -67,17 +66,16 @@ export async function POST(req: NextRequest) {
                 User preferences:
                 - Default currency: ${userCurrency}
                 - Language: ${userLanguage}
-                - Common tags: ${tagNames}
-                - Common locations: ${locationNames}
+                - tags: ${tagNames}
+                - locations: ${locationNames}
 
                 Categories:
                 - Income categories: ${main_income_categories.join(', ')}
                 - Expense categories: ${main_expense_categories.join(', ')}
-                - Expense subcategories: ${sub_expense_categories.join(', ')}
                 
                 If found return: {
                     found: true,
-                    transaction: Transaction[]
+                    transaction: Transaction
                 }
                 If no transaction information is found in the image, return: {
                     found: false,

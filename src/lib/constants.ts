@@ -9,7 +9,6 @@ export const main_income_categories = [
     'Part-time', // 兼职外快
     'Dividends', // 分红
     'Gifts', // 礼物
-    'Gift Money', // 礼金人情
     'Reimbursement', // 报销
     'Subsidy', // 补贴
     'Lottery', // 中奖

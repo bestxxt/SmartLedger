@@ -31,7 +31,7 @@ export default function TransactionList({ transactions, deleteTransaction, user,
   };
 
   // Group by month and calculate monthly statistics
-  const groups: Record<string, { 
+  const groups: Record<string, {
     transactions: Transaction[],
     income: number,
     expense: number
@@ -63,7 +63,7 @@ export default function TransactionList({ transactions, deleteTransaction, user,
         const [year, month] = monthKey.split('-');
         const date = new Date(+year, +month - 1, 1);
         const title = format(date, 'MMMM yyyy');
-        
+
         return (
           <motion.div
             key={monthKey}
@@ -96,17 +96,18 @@ export default function TransactionList({ transactions, deleteTransaction, user,
               <AnimatePresence>
                 {items.map((tx, index) => {
                   const showDateSeparator = index === 0 || !isSameDay(tx.timestamp, items[index - 1].timestamp);
-                  
+
                   return (
                     <motion.li
                       key={tx.id}
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-50px" }}
+                      viewport={{ once: true}}
                       exit={{ opacity: 0, y: -20 }}
-                      transition={{ 
-                        duration: 0.3,
-                        delay: 0.1
+                      // whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.03 }}
+                      transition={{
+                        duration: 0.2,
                       }}
                     >
                       {showDateSeparator && (
@@ -120,39 +121,37 @@ export default function TransactionList({ transactions, deleteTransaction, user,
                             <div className={`flex items-center justify-between cursor-pointer rounded-md p-3 hover:bg-orange-100 border-l-4 ${tx.type === 'income' ? 'border-green-500' : 'border-red-500'}`}
                             >
                               <div className="flex items-center gap-3 flex-1 min-w-0">
-                                <motion.div 
+                                <div
                                   className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${tx.type === 'income' ? 'bg-green-200' : 'bg-red-200'}`}
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.95 }}
-                                > 
+                                >
                                   <span className="text-xl">{tx.emoji}</span>
-                                </motion.div>
+                                </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-1">
+                                  <div className="flex items-center">
                                     <p className="font-medium text-gray-800 truncate">
                                       {tx.category}
-                                      {tx.subcategory && (
-                                        <span className="text-sm text-gray-500 ml-1">• {tx.subcategory}</span>
-                                      )}
                                     </p>
                                   </div>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <p className="text-sm text-gray-500">{format(tx.timestamp, 'h:mm a')}</p>
-                                  </div>
+
+                                  {tx.note && (
+                                    <p className="text-xs text-gray-500  max-w-[250px] truncate">
+                                      {tx.note}
+                                    </p>
+                                  )}
                                   {tx.tags && tx.tags.length > 0 && (
-                                    <motion.div 
+                                    <div
                                       className="flex flex-wrap gap-1 mt-1"
-                                      initial={{ opacity: 0 }}
-                                      whileInView={{ opacity: 1 }}
-                                      viewport={{ once: true }}
-                                      transition={{ delay: 0.1 }}
+                                      // initial={{ opacity: 0 }}
+                                      // whileInView={{ opacity: 1 }}
+                                      // viewport={{ once: true }}
+                                      // transition={{ delay: 0.1 }}
                                     >
                                       {tx.tags.map((tagName, index) => {
                                         const userTag = user?.tags.find(t => t.name === tagName);
                                         return (
                                           <motion.span
                                             key={index}
-                                            initial={{ scale: 0.8, opacity: 0 }}
+                                            initial={{ scale: 0, opacity: 0 }}
                                             whileInView={{ scale: 1, opacity: 1 }}
                                             viewport={{ once: true }}
                                             transition={{ delay: 0.3 + index * 0.1 }}
@@ -167,25 +166,39 @@ export default function TransactionList({ transactions, deleteTransaction, user,
                                           </motion.span>
                                         );
                                       })}
-                                    </motion.div>
+                                    </div>
                                   )}
                                 </div>
                               </div>
                               <div className="flex flex-col items-end ml-4 flex-shrink-0">
-                                <p className={`font-semibold ${tx.type === 'income' ? 'text-green-600' : 'text-red-500'}`}> 
-                                  {tx.type === 'income' ? `${tx.amount} ${tx.currency || '$'}` : `-${Math.abs(tx.amount)} ${tx.currency || '$'}`}
+                                {/* <div className="flex items-center gap-2 mt-1">
+                                    <p className="text-sm text-gray-500">{format(tx.timestamp, 'h:mm a')}</p>
+                                  </div> */}
+                                <p className={`font-semibold ${tx.type === 'income' ? 'text-green-600' : 'text-red-500'}`}>
+
+                                  {tx.originalAmount && tx.originalCurrency && tx.originalCurrency !== tx.currency ? (
+                                    <div className="flex flex-col items-end">
+                                      <span>
+                                        {tx.type === 'income' ? '+' : '-'}
+                                        {tx.amount} {tx.currency || "USD"}
+                                      </span>
+                                      <span className="text-sm text-gray-500">
+                                        {tx.originalAmount} {tx.originalCurrency}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      {tx.type === 'income' ? '+' : '-'}
+                                      {tx.amount} {tx.currency || "USD"}
+                                    </>
+                                  )}
                                 </p>
-                                {tx.note && (
-                                  <p className="text-xs text-gray-500 mt-1 max-w-[150px] truncate">
-                                    {tx.note}
-                                  </p>
-                                )}
                               </div>
                             </div>
                           </PopoverTrigger>
                           <PopoverContent className="w-full bg-transparent border-none shadow-none">
-                            <BillCard 
-                              transaction={tx} 
+                            <BillCard
+                              transaction={tx}
                               onDelete={deleteTransaction}
                               user={user}
                               onEdit={() => {

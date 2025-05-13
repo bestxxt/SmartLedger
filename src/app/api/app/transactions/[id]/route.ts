@@ -2,6 +2,8 @@ import { getServerSession } from "next-auth/next";
 import { connectMongoose } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import { TransactionModel, Transaction } from '@/models/transaction';
+import { UserModel } from '@/models/user';
+import { exchangeRateService } from '@/services/exchangeRate';
 import { authOptions } from '@/app/utils/authOptions';
 
 // GET /api/app/transactions/:id
@@ -29,12 +31,13 @@ export async function GET(
     const dto: Transaction = {
       id: String(record._id),
       amount: record.amount,
+      originalAmount: record.originalAmount,
       type: record.type,
       category: record.category,
-      subcategory: record.subcategory,
       timestamp: record.timestamp,
       note: record.note,
       currency: record.currency,
+      originalCurrency: record.originalCurrency,
       tags: record.tags,
       location: record.location,
       emoji: record.emoji,
@@ -69,6 +72,53 @@ export async function PATCH(
     const { id: _, ...safeUpdates } = updates;
 
     await connectMongoose();
+
+    // Get user's default currency
+    const user = await UserModel.findById(session.user.id);
+    if (!user) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
+
+    const userDefaultCurrency = user.currency || 'USD';
+    const transactionCurrency = safeUpdates.currency || userDefaultCurrency;
+
+    // If amount or currency is being updated, handle currency conversion
+    if (safeUpdates.amount !== undefined || safeUpdates.currency !== undefined) {
+      const currentTransaction = await TransactionModel.findOne({
+        _id: id,
+        userId: session.user.id
+      });
+
+      if (!currentTransaction) {
+        return NextResponse.json({ message: 'Transaction not found' }, { status: 404 });
+      }
+
+      const amount = safeUpdates.amount ?? currentTransaction.amount;
+      const originalAmount = amount;
+      let convertedAmount = amount;
+
+      if (transactionCurrency !== userDefaultCurrency) {
+        try {
+          convertedAmount = await exchangeRateService.convertCurrency(
+            amount,
+            transactionCurrency,
+            userDefaultCurrency
+          );
+        } catch (error) {
+          console.error('Error converting currency:', error);
+          return NextResponse.json(
+            { message: 'Failed to convert currency' },
+            { status: 500 }
+          );
+        }
+      }
+
+      safeUpdates.amount = convertedAmount;
+      safeUpdates.originalAmount = originalAmount;
+      safeUpdates.currency = userDefaultCurrency;
+      safeUpdates.originalCurrency = transactionCurrency;
+    }
+
     const updated = await TransactionModel.findOneAndUpdate(
       { _id: id, userId: session.user.id },
       { 
@@ -87,12 +137,13 @@ export async function PATCH(
     const dto: Transaction = {
       id: String(updated._id),
       amount: updated.amount,
+      originalAmount: updated.originalAmount,
       type: updated.type,
       category: updated.category,
-      subcategory: updated.subcategory,
       timestamp: updated.timestamp,
       note: updated.note,
       currency: updated.currency,
+      originalCurrency: updated.originalCurrency,
       tags: updated.tags,
       emoji: updated.emoji,
       location: updated.location,

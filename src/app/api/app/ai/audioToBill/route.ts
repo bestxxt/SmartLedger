@@ -107,13 +107,12 @@ export async function POST(req: NextRequest) {
                     amount: number,                // numeric amount of the transaction, default to 0
                     type: "income" | "expense", 
                     category: string,              // You must choose from the categories I give to you
-                    subcategory?: string,           // You must choose from the subcategory I give to you
                     timestamp: string,             // ISO 8601 date-time (default to current time if not provided)
-                    note: string,                 // extra details, use objective, factual description instead.
+                    note: string,                 // extra details, use objective, factual description instead, in user's language
                     currency: string,             //  default to "${userCurrency}"
-                    location?: string,             // optional, location of transaction in text's language
+                    location?: string,             // optional, location of transaction
                     emoji: string,                 //  emoji representing the transaction
-                    tags?: string[]               // optional, relevant tags from user's tag list
+                    tags: string[]               // relevant tags from user's tag list
                 }
 
                 Information you can rely on:
@@ -121,14 +120,13 @@ export async function POST(req: NextRequest) {
                 User preferences:
                 - Default currency: ${userCurrency}
                 - Language: ${userLanguage}
-                - Common tags: ${tagNames}
-                - Common locations: ${locationNames}
+                - tags: ${tagNames}
+                - locations: ${locationNames}
 
                 Categories:
                 - Income categories: ${main_income_categories.join(', ')}
                 - Expense categories: ${main_expense_categories.join(', ')}
-                - Expense subcategories: ${sub_expense_categories.join(', ')}
-
+                
                 Transaction details:
                 Text: ${transcriptionText}
                 

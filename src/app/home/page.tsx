@@ -82,7 +82,6 @@ export default function Home() {
                 amount: txData.amount,
                 type: txData.type,
                 category: txData.category,
-                subcategory: txData.subcategory,
                 timestamp: txData.timestamp,
                 note: txData.note,
                 currency: txData.currency,

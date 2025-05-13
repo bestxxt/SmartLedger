@@ -3,6 +3,8 @@ import { authOptions } from '@/app/utils/authOptions';
 import { connectMongoose } from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { TransactionModel, ITransaction, Transaction } from '@/models/transaction';
+import { UserModel } from '@/models/user';
+import { exchangeRateService } from '@/services/exchangeRate';
 
 type Pagination = {
   total: number;
@@ -48,12 +50,14 @@ export async function GET(req: Request): Promise<NextResponse> {
     const data: Transaction[] = docs.map(doc => ({
       id: String(doc._id),
       amount: doc.amount,
+      originalAmount: doc.originalAmount,
       type: doc.type,
       category: doc.category,
       subcategory: doc.subcategory,
       timestamp: doc.timestamp,
       note: doc.note,
       currency: doc.currency,
+      originalCurrency: doc.originalCurrency,
       tags: doc.tags,
       emoji: doc.emoji,
       location: doc.location,
@@ -82,7 +86,7 @@ export async function POST(req: Request): Promise<NextResponse> {
 
     const body = await req.json();
 
-    const { amount, type, category, timestamp } = body;
+    const { amount, type, category, timestamp, currency } = body;
     if (amount == null || !type || !category || !timestamp) {
       return NextResponse.json(
         { message: 'Missing required fields: amount, type, category or timestamp' },
@@ -91,15 +95,48 @@ export async function POST(req: Request): Promise<NextResponse> {
     }
 
     await connectMongoose();
+    
+    // Get user's default currency
+    const user = await UserModel.findById(session.user.id);
+    if (!user) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
+
+    const userDefaultCurrency = user.currency || 'USD';
+    const transactionCurrency = currency || userDefaultCurrency;
+
+    // If transaction currency is different from user's default currency, convert the amount
+    let convertedAmount = amount;
+    let originalAmount = amount;
+    let originalCurrency = transactionCurrency;
+
+    if (transactionCurrency !== userDefaultCurrency) {
+      try {
+        convertedAmount = await exchangeRateService.convertCurrency(
+          amount,
+          transactionCurrency,
+          userDefaultCurrency
+        );
+      } catch (error) {
+        console.error('Error converting currency:', error);
+        return NextResponse.json(
+          { message: 'Failed to convert currency' },
+          { status: 500 }
+        );
+      }
+    }
+
     const transaction = new TransactionModel({
       userId: session.user.id,
-      amount,
+      amount: convertedAmount,
+      originalAmount: originalAmount,
       type,
       category,
       subcategory: body.subcategory,
       timestamp: new Date(timestamp),
       note: body.note,
-      currency: body.currency,
+      currency: userDefaultCurrency,
+      originalCurrency: originalCurrency,
       tags: body.tags,
       location: body.location,
       emoji: body.emoji,
@@ -110,12 +147,13 @@ export async function POST(req: Request): Promise<NextResponse> {
     const transactionDTO: Transaction = {
       id: String(savedTransaction._id),
       amount: savedTransaction.amount,
+      originalAmount: savedTransaction.originalAmount,
       type: savedTransaction.type,
       category: savedTransaction.category,
-      subcategory: savedTransaction.subcategory,
       timestamp: savedTransaction.timestamp,
       note: savedTransaction.note,
       currency: savedTransaction.currency,
+      originalCurrency: savedTransaction.originalCurrency,
       emoji: savedTransaction.emoji,
       tags: savedTransaction.tags,
       location: savedTransaction.location,

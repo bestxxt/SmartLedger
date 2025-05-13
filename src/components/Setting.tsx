@@ -57,11 +57,9 @@ const TAG_COLORS = [
 // 添加常用货币列表
 const CURRENCIES = [
     { code: 'USD', symbol: '$', name: 'US Dollar' },
-    { code: 'EUR', symbol: '€', name: 'Euro' },
-    { code: 'GBP', symbol: '£', name: 'British Pound' },
-    { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
-    { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' },
     { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
+    { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' },
+    { code: 'EUR', symbol: '€', name: 'Euro' },
 ]
 
 // 添加语言列表

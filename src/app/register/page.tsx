@@ -124,6 +124,7 @@ export default function RegisterPage() {
             }
 
             // 注册成功后跳转到登录页
+            toast.success('Registration successful! Please log in.');
             router.push('/login?registered=true');
         } catch (err) {
             console.error('Error during registration:', err);
