@@ -2,6 +2,8 @@ import { Loader, ArrowUp, ArrowDown } from 'lucide-react';
 import { User } from '@/models/user';
 import { cn } from '@/lib/utils';
 import FormattedNumber from '@/components/FormattedNumber';
+import { Skeleton } from "@/components/ui/skeleton"
+
 
 type FinancialSummaryProps = {
   loading: boolean;
@@ -13,12 +15,7 @@ export default function FinancialSummary({ loading, user}: FinancialSummaryProps
     return (
       <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="flex flex-col p-4">
-          <h3 className="text-gray-700 font-medium mb-3">Financial Summary</h3>
-          <div className="w-full h-8 bg-gray-100 rounded-full mb-4 overflow-hidden flex">
-            <div className="w-full flex items-center justify-center">
-              <Loader className="h-5 w-5 animate-spin text-blue-500" />
-            </div>
-          </div>
+          <Skeleton className="h-8 w-full from-green-300 to-red-300 bg-gradient-to-r rounded-full mb-4 overflow-hidden flex" />
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-green-50 rounded-lg p-3 border-l-4 border-green-400">
               <div className="flex items-center justify-between">
@@ -28,7 +25,7 @@ export default function FinancialSummary({ loading, user}: FinancialSummaryProps
                 </span>
               </div>
               <div className="mt-2 flex items-center">
-                <Loader className="h-4 w-4 animate-spin text-green-600 mr-2" />
+                <Skeleton className="h-6 w-full bg-green-300" />
               </div>
             </div>
             <div className="bg-red-50 rounded-lg p-3 border-l-4 border-red-400">
@@ -39,7 +36,7 @@ export default function FinancialSummary({ loading, user}: FinancialSummaryProps
                 </span>
               </div>
               <div className="mt-2 flex items-center">
-                <Loader className="h-4 w-4 animate-spin text-red-600 mr-2" />
+                <Skeleton className="h-6 w-full bg-red-300 " />
               </div>
             </div>
           </div>
@@ -58,8 +55,6 @@ export default function FinancialSummary({ loading, user}: FinancialSummaryProps
   return (
     <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
       <div className="flex flex-col p-4">
-        <h3 className="text-gray-700 font-medium mb-3">Financial Summary</h3>
-
         {/* Comparison Bar */}
         <div className="w-full h-8 bg-gray-100 rounded-full mb-4 overflow-hidden flex">
           <div className="h-full bg-green-400 flex items-center justify-center text-xs font-medium text-white" style={{ width: incomeWidth }}>

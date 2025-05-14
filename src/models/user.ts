@@ -48,6 +48,7 @@ export type User = {
     totalExpense: number;
     balance: number;
     totalTransactions: number;
+    monthlyBalances?: { month: string; balance: number }[];
   };
   createdAt: string;
   updatedAt: string;
@@ -71,6 +72,7 @@ export interface IUser extends Document {
     totalExpense: number;
     balance: number;
     totalTransactions: number;
+    monthlyBalances?: { month: string; balance: number }[];
   };
   createdAt: Date;
   updatedAt: Date;
@@ -106,6 +108,15 @@ const UserSchema = new Schema<IUser>(
       totalExpense: { type: Number, default: 0 },
       balance: { type: Number, default: 0 },
       totalTransactions: { type: Number, default: 0 },
+      monthlyBalances: {
+        type: [
+          {
+            month: { type: String, required: true },
+            balance: { type: Number, required: true }
+          }
+        ],
+        default: []
+      }
     },
   },
   { timestamps: true }

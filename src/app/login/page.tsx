@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Key } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
@@ -74,7 +74,8 @@ export default function LoginPage() {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
-                        <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
@@ -88,13 +89,7 @@ export default function LoginPage() {
                         </button>
                     </div>
 
-                    <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-2">
-                            <Checkbox id="remember-me" name="remember-me" />
-                            <Label htmlFor="remember-me" className="text-gray-600">
-                                Remember me
-                            </Label>
-                        </div>
+                    <div className="flex justify-end text-sm ">    
                         <Link href="/forgot-password" className="text-blue-600 hover:underline">
                             Forgot password?
                         </Link>
@@ -102,7 +97,7 @@ export default function LoginPage() {
 
                     {error && <p className="text-red-500 text-sm">{error}</p>}
 
-                    <Button type="submit" className="w-full" disabled={loading}>
+                    <Button type="submit" className="w-full h-11" disabled={loading}>
                         {loading ? 'Signing in...' : 'Sign in'}
                     </Button>
                 </form>

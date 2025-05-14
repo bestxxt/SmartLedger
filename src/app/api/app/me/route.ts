@@ -43,6 +43,48 @@ export async function GET(req: Request) {
         const totalExpense = expenseAgg[0]?.total || 0;
         const balance = totalIncome - totalExpense;
 
+        // 计算最近8个月的每月余额
+        const now = new Date();
+        const months: string[] = [];
+        for (let i = 7; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+        }
+        // 查询每月的收入和支出
+        const monthlyAgg = await TransactionModel.aggregate([
+            { $match: { userId: userId } },
+            {
+                $addFields: {
+                    yearMonth: {
+                        $dateToString: { format: "%Y-%m", date: "$timestamp" }
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { yearMonth: "$yearMonth", type: "$type" },
+                    total: { $sum: "$amount" }
+                }
+            }
+        ]);
+        // 整理成 { '2024-06': { income: 100, expense: 50 } }
+        const monthMap: Record<string, { income: number; expense: number }> = {};
+        for (const m of months) {
+            monthMap[m] = { income: 0, expense: 0 };
+        }
+        for (const row of monthlyAgg) {
+            const ym = row._id.yearMonth;
+            if (!monthMap[ym]) continue;
+            if (row._id.type === 'income') monthMap[ym].income = row.total;
+            if (row._id.type === 'expense') monthMap[ym].expense = row.total;
+        }
+        // 计算每月余额（累加）
+        let runningBalance = 0;
+        const monthlyBalances = months.map(m => {
+            runningBalance += (monthMap[m].income - monthMap[m].expense);
+            return { month: m, balance: runningBalance };
+        });
+
         return NextResponse.json({
             message: 'ok',
             data: {
@@ -69,7 +111,8 @@ export async function GET(req: Request) {
                     totalIncome,
                     totalExpense,
                     balance,
-                    totalCount
+                    totalCount,
+                    monthlyBalances
                 },
                 createdAt: user.createdAt.toISOString(),
                 updatedAt: user.updatedAt.toISOString()

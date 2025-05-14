@@ -283,7 +283,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                             onClick={() => signOut({ callbackUrl: '/login' })}
                         >
                             Logout
-                            <LogOut className="ml-2" />
+                            <LogOut/>
                         </Button>
                     </div>
                 </SheetHeader>

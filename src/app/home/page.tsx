@@ -3,6 +3,9 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Transaction, EditableTransaction } from '@/models/transaction';
 import { Loader } from "lucide-react"
+import { toast } from "sonner";
+import { Plus, Mic, Camera, Settings } from "lucide-react";
+import { User } from '@/models/user';
 import PopupEdit from '@/components/PopupEdit';
 import PopupAudio from "@/components/PopupAudio";
 import PopupPicture from "@/components/PopupPicture";
@@ -10,10 +13,8 @@ import CurrentBalance from '@/components/CurrentBalance';
 import FinancialSummary from '@/components/FinancialSummary';
 import TransactionList from '@/components/TransactionList';
 import Setting from '@/components/Setting';
-import { toast } from "sonner";
-import { Plus, Mic, Camera, Settings } from "lucide-react";
-import { User } from '@/models/user';
-
+import Head from "@/components/Head"; 
+import Bottom from "@/components/Bottom";
 export default function Home() {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
@@ -180,20 +181,29 @@ export default function Home() {
     }, [hasMore, loadingMore, page, fetchData]);
 
     return (
-        <main className="relative flex items-start justify-center min-h-screen bg-white py-10">
+        <main className="relative flex items-start justify-center min-h-screen bg-[#F8F8F7]" >
             <div className="w-full max-w-md ">
+                <Head loading={loading} user={user} onMenuClick={() => setIsSettingOpen(true)}></Head>
                 {/* Balance fetched from stats API */}
                 <CurrentBalance loading={loading} user={user} />
                 {/* Stats fetched from API */}
-                <FinancialSummary loading={loading} user={user} />
-
-                {/* Transaction List */}
-                <div className="relative my-6">
+                {/* <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center">
                         <div className="w-full border-t border-dashed border-gray-200"></div>
                     </div>
                     <div className="relative flex justify-center">
-                        <h3 className="text-lg font-semibold bg-white px-4 text-gray-800">Transactions</h3>
+                        <h3 className="text-lg font-semibold bg-white rounded-full px-4 text-gray-800">Finance Summary</h3>
+                    </div>
+                </div>
+                <FinancialSummary loading={loading} user={user} /> */}
+
+                {/* Transaction List */}
+                <div className="relative my-2">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-dashed border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                        <h3 className="text-lg font-semibold bg-[#F8F8F7] rounded-full px-4 text-gray-800">Transactions</h3>
                     </div>
                 </div>
                 <TransactionList 
@@ -212,7 +222,7 @@ export default function Home() {
             </div>
 
             {/* Floating action buttons */}
-            <div className="fixed bottom-6 right-6 flex flex-col gap-4">
+            {/* <div className="fixed bottom-6 right-6 flex flex-col gap-4">
                 <button
                     onClick={() => setIsEditOpen(true)}
                     className="bg-teal-500 hover:bg-teal-600 text-white rounded-full p-4 shadow-lg"
@@ -241,7 +251,7 @@ export default function Home() {
                 >
                     <Settings />
                 </button>
-            </div>
+            </div> */}
 
             {/* Drawer components */}
             <PopupEdit
@@ -269,6 +279,13 @@ export default function Home() {
                     if (!open) fetchUser();
                 }}
                 user={user} 
+            />
+            <Bottom 
+                loading={loading}
+                user={user}
+                onPicture={() => setIsPictureOpen(true)}
+                onAdd={() => setIsEditOpen(true)}
+                onAudio={() => setIsAudioOpen(true)}
             />
         </main>
     );
