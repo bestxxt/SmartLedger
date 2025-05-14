@@ -20,7 +20,7 @@ export default function Bottom({ loading, user, onPicture, onAdd, onAudio }: Bot
     }
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 w-full bg-white border-t shadow z-50 flex items-center justify-evenly h-20">
+        <div className="fixed bottom-0 left-0 right-0 w-full bg-white border-t shadow z-50 flex items-start justify-evenly h-20">
             <button
                 className="flex flex-col items-center justify-center p-3 text-gray-700 hover:bg-gray-100 rounded-full transition "
                 onClick={onPicture}
