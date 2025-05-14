@@ -226,6 +226,8 @@ export default function TransactionList({ transactions, deleteTransaction, user,
         user={user}
         source="transaction"
       />
+      <div className='h-20' />
     </>
+    
   );
 }
