@@ -41,6 +41,7 @@ export default function AdminPage() {
   const [tagAddInput, setTagAddInput] = useState('');
   const [locationAddOpen, setLocationAddOpen] = useState(false);
   const [locationAddInput, setLocationAddInput] = useState('');
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const router = useRouter();
 
   // 获取所有用户
@@ -48,10 +49,11 @@ export default function AdminPage() {
     setLoading(true);
     const res = await fetch("/api/admin/users");
     if (res.ok) {
+      setIsAdmin(true)
       const data = await res.json();
       setUsers(data.users || []);
     } else {
-    router.replace('/404');
+      router.replace('/404');
       return;
     }
     setLoading(false);
@@ -156,6 +158,9 @@ export default function AdminPage() {
     setLocationAddInput('');
     setLocationAddOpen(false);
   };
+
+  if (isAdmin === false) return null;
+  if (isAdmin === null) return null; // or a loading spinner
 
   return (
     <div className="max-w-3xl mx-auto py-10">
