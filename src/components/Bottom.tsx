@@ -7,18 +7,12 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useCallback } from 'react';
 
 type BottomProps = {
-    loading: boolean;
-    user: User | null;
     onPicture?: () => void;
     onAdd?: () => void;
     onAudio?: () => void;
 };
 
-export default function Bottom({ loading, user, onPicture, onAdd, onAudio }: BottomProps) {
-    if (loading || !user) {
-        return null;
-    }
-
+export default function Bottom({ onPicture, onAdd, onAudio }: BottomProps) {
     return (
         <div className="fixed bottom-0 left-0 right-0 w-full bg-white border-t shadow z-50 flex items-start justify-evenly h-20">
             <button

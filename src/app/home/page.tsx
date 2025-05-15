@@ -281,8 +281,6 @@ export default function Home() {
                 user={user} 
             />
             <Bottom 
-                loading={loading}
-                user={user}
                 onPicture={() => setIsPictureOpen(true)}
                 onAdd={() => setIsEditOpen(true)}
                 onAudio={() => setIsAudioOpen(true)}
