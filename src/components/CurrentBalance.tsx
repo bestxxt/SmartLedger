@@ -20,7 +20,7 @@ export default function CurrentBalance({ loading, user }: CurrentBalanceProps) {
           <Skeleton className="h-10 w-40 mb-1 rounded bg-gray-200" />
           <Skeleton className="h-4 w-24 rounded bg-gray-100" />
         </div>
-        <div className="mt-6 h-20 w-full">
+        <div className="mt-6 h-23 w-full">
           <Skeleton className="h-full w-full rounded bg-gray-100" />
         </div>
       </div>
