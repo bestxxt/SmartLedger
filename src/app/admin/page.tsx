@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Plus, Upload, Loader } from "lucide-react";
-import { notFound } from "next/navigation";
 
 const TAG_COLORS = [
   { name: 'Red', value: '#ef4444' },
