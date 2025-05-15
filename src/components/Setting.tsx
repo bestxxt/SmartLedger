@@ -330,6 +330,20 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                         </div>
                         <hr />
 
+                        {/* Name Section */}
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Name</Label>
+                            <Input
+                                id="name"
+                                value={state.name}
+                                onChange={(e) => setState(prev => ({
+                                    ...prev,
+                                    name: e.target.value
+                                }))}
+                                placeholder="Enter your name"
+                            />
+                        </div>
+
                         {/* Language Section */}
                         <div className="space-y-2">
                             <Label>Language</Label>
