@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
 import {
   Table,
   TableHeader,
@@ -14,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Plus, Upload, Loader } from "lucide-react";
+import { notFound } from "next/navigation";
 
 const TAG_COLORS = [
   { name: 'Red', value: '#ef4444' },
@@ -34,12 +37,11 @@ export default function AdminPage() {
   const [showDialog, setShowDialog] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [tagInput, setTagInput] = useState('');
-  const [locationInput, setLocationInput] = useState('');
   const [tagAddOpen, setTagAddOpen] = useState(false);
   const [tagAddInput, setTagAddInput] = useState('');
   const [locationAddOpen, setLocationAddOpen] = useState(false);
   const [locationAddInput, setLocationAddInput] = useState('');
+  const router = useRouter();
 
   // 获取所有用户
   const fetchUsers = async () => {
@@ -49,7 +51,8 @@ export default function AdminPage() {
       const data = await res.json();
       setUsers(data.users || []);
     } else {
-      toast.error("Failed to fetch users");
+    router.replace('/404');
+      return;
     }
     setLoading(false);
   };
