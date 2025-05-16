@@ -12,15 +12,23 @@ Record spoken expense entries. Powered by **Whisper**  for speech recognition an
 Snap photos of receipts or bills. Smart Ledger uses **multi-LLM models** to automatically extract key financial details like amount, date, and category — no manual typing required.
 
 - 💻 **Beautiful User Interface** 
-Enjoy a modern, mobile-friendly UI built with **Next.js**. Designed for simplicity and speed.
+Enjoy a modern, mobile-friendly UI built with **Next.js**. Designed for simplicity and speed. Can be added to your home screen and run in fullscreen like a native app on iOS/macOS — no need to go through the App Store. Just open in Safari and "Add to Home Screen."
 
 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-  <img src="imgs/HomePage.png" alt="HomePage.png" height="200">
-  <img src="imgs/Setting.png" alt="Setting.png" height="200">
-  <img src="imgs/Voice.png" alt="Voice.png" height="200">
-  <img src="imgs/Picture.png" alt="Picture.png" height="200">
-  <img src="imgs/Picture.png" alt="Picture.png" height="200">
+  <img src="imgs/HomePage.png" alt="HomePage.png" height="400">
+  <img src="imgs/Setting.png" alt="Setting.png" height="400">
+  <img src="imgs/Card.png" alt="Card.png" height="400">
 </div>
+<div style="display: flex; gap: 12px; flex-wrap: wrap;">
+  <img src="imgs/EditPage.png" alt="EditPage.png" height="400">
+  <img src="imgs/Voice.png" alt="Voice.png" height="400">
+  <img src="imgs/Picture.png" alt="Picture.png" height="400">
+</div>
+
+
+- 💱 **Multi-Currency Support** 
+Automatically detects and converts multiple currencies from input (voice, image, or text) — perfect for international usage or travel expense tracking.
+ 
 
 - 🏷️ **Tagging & Categorization** 
 Add your own custom tags or let the AI suggest and infer tags based on transaction content. Smart Ledger helps keep your records organized effortlessly.
