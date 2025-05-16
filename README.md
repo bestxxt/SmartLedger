@@ -13,11 +13,14 @@ Snap photos of receipts or bills. Smart Ledger uses **multi-LLM models** to auto
 
 - 💻 **Beautiful User Interface** 
 Enjoy a modern, mobile-friendly UI built with **Next.js**. Designed for simplicity and speed.
-![HomePage](imgs/HomePage.png){height=200}
-![alt text](imgs/Setting.png){height=200}
-![alt text](imgs/Voice.png){height=200}
-![alt text](imgs/Picture.png){height=200}
-![alt text](imgs/Picture.png){height=200}
+
+<div style="display: flex; gap: 12px; flex-wrap: wrap;">
+  <img src="imgs/HomePage.png" alt="HomePage.png" height="200">
+  <img src="imgs/Setting.png" alt="Setting.png" height="200">
+  <img src="imgs/Voice.png" alt="Voice.png" height="200">
+  <img src="imgs/Picture.png" alt="Picture.png" height="200">
+  <img src="imgs/Picture.png" alt="Picture.png" height="200">
+</div>
 
 - 🏷️ **Tagging & Categorization** 
 Add your own custom tags or let the AI suggest and infer tags based on transaction content. Smart Ledger helps keep your records organized effortlessly.
