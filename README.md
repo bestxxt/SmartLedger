@@ -1,5 +1,4 @@
 # Smart Ledger 👋
----
 Smart Ledger is a **self-hosted, LLM-powered, multi-input personal expense tracking system**  designed for privacy-conscious users who want intelligent automation without sacrificing data ownership.
 
 ## Key Features
@@ -14,6 +13,7 @@ Snap photos of receipts or bills. Smart Ledger uses **multi-LLM models** to auto
 
 - 💻 **Beautiful User Interface** 
 Enjoy a modern, mobile-friendly UI built with **Next.js**. Designed for simplicity and speed.
+![HomePage](imgs/HomePage.png)
 
 - 🏷️ **Tagging & Categorization** 
 Add your own custom tags or let the AI suggest and infer tags based on transaction content. Smart Ledger helps keep your records organized effortlessly.
@@ -22,6 +22,8 @@ Add your own custom tags or let the AI suggest and infer tags based on transacti
 All components are **open-source and self-manageable** . No vendor lock-in, no hidden data sharing — just transparent software that puts you in charge.
 
 
+
+## How to Install 🚀
 
 ## 主要功能
 
