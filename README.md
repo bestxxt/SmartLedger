@@ -1,5 +1,5 @@
 # Smart Ledger 👋
-Smart Ledger is a **self-hosted, LLM-powered, multi-input personal expense tracking system**  designed for privacy-conscious users who want intelligent automation without sacrificing data ownership.
+Smart Ledger is a **self-hosted, LLM-powered, multi-input personal expense tracking system** designed for privacy-conscious users who want intelligent automation without sacrificing data ownership.
 
 ## Key Features
 - 🛡️ **Self-hosted** 
@@ -12,7 +12,7 @@ Record spoken expense entries. Powered by **Whisper**  for speech recognition an
 Snap photos of receipts or bills. Smart Ledger uses **multi-LLM models** to automatically extract key financial details like amount, date, and category — no manual typing required.
 
 - 💻 **Beautiful User Interface** 
-Enjoy a modern, mobile-friendly UI built with **Next.js**. Designed for simplicity and speed. Can be added to your home screen and run in fullscreen like a native app on iOS/macOS — no need to go through the App Store. Just open in Safari and "Add to Home Screen."
+Enjoy a modern, mobile-friendly UI built with **Next.js**. Designed for simplicity and speed. 
 
 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
   <img src="imgs/HomePage.png" alt="HomePage.png" height="400">
@@ -25,6 +25,8 @@ Enjoy a modern, mobile-friendly UI built with **Next.js**. Designed for simplici
   <img src="imgs/Picture.png" alt="Picture.png" height="400">
 </div>
 
+- 🖥️ **Installable Fullscreen App** 
+Can be added to your home screen and run in **fullscreen like a native app**  on iOS/macOS — no need to go through the App Store. Just open in Safari and "Add to Home Screen."
 
 - 💱 **Multi-Currency Support** 
 Automatically detects and converts multiple currencies from input (voice, image, or text) — perfect for international usage or travel expense tracking.
@@ -36,80 +38,79 @@ Add your own custom tags or let the AI suggest and infer tags based on transacti
 - 🔒 **Full Privacy & Control** 
 All components are **open-source and self-manageable** . No vendor lock-in, no hidden data sharing — just transparent software that puts you in charge.
 
-
-
 ## How to Install 🚀
 
-## 主要功能
 
-### 已完成功能
-- [x] 用户认证系统
-  - 用户注册
-  - 用户登录
-  - 用户注销
-  - 管理员账户管理
-- [x] 基础 UI 组件
-  - 响应式布局
-  - 导航菜单
-  - 用户界面组件
-- [x] 数据库集成
-  - MongoDB 连接
-  - 用户数据模型
-  - 数据持久化
-- [x] 基础设置界面
-  - [x] 用户头像设置
-  - [x] 语言选择
-  - [x] 货币设置
-  - [x] 标签管理
-    - [x] 添加标签
-    - [x] 编辑标签
-    - [x] 删除标签
-    - [x] 标签颜色选择
-  - [x] 地点管理
-    - [x] 添加地点
-    - [x] 编辑地点
-    - [x] 删除地点
-- [x] 交易记录功能
-  - [x] 图片识别交易
-    - [x] 图片上传
-    - [x] 图片预览
-    - [x] 交易信息识别
-    - [x] 交易确认界面
-  - [x] 语音识别交易
-    - [x] 语音录制
-    - [x] 音量可视化
-    - [x] 交易信息识别
-    - [x] 交易确认界面
-  - [x] 交易列表展示
-    - [x] 按月份分组
-    - [x] 交易详情展示
-    - [x] 交易编辑功能
-    - [x] 交易删除功能
+## 🚧 Development Progress 
 
-### 进行中功能
-- [ ] 数据统计与分析
-  - [ ] 支出分类统计
-  - [ ] 收入分类统计
-  - [ ] 时间趋势分析
-  - [ ] 预算管理
-- [ ] 多语言支持
-  - [ ] 中文界面
-  - [ ] 英文界面
-  - [ ] 语言切换功能
 
-### 计划功能
-- [ ] 数据导出功能
-  - [ ] Excel导出
-  - [ ] PDF报表
-  - [ ] 数据备份
-- [ ] 智能提醒
-  - [ ] 定期账单提醒
-  - [ ] 预算超支提醒
-  - [ ] 异常消费提醒
-- [ ] 社交功能
-  - [ ] 家庭共享账本
-  - [ ] 消费建议分享
-  - [ ] 理财经验交流
+> Current Version: `v0.1.0` (Alpha)
+
+### ✅ Core Features
+- [x] User login
+- [x] User logout
+- [x] User authentication and multi-device sync (JWT + MongoDB)
+- [x] Admin account management
+- [x] User registration
+- [ ] iPhone shortcut support
+- [ ] Google login
+- [ ] WeChat login
+- [ ] Multi-user account support
+- [ ] Offline mode (local caching)
+- [ ] Export to Excel / CSV
+- [ ] Calendar and reminder integration
+
+
+### 🎨 User Interface 
+- [x] Homepage with expense list
+- [x] Voice / Camera / Text input modes
+- [x] Transaction edit & delete cards
+- [x] Settings page (language, currency, tag management...)
+- [x] Spending trend visualization
+- [x] Installable fullscreen Web App (PWA-style experience)
+- [ ] Transaction search and filters (in progress)
+
+### 🧠 AI Features
+- [x] Voice input via Whisper
+- [x] Receipt image recognition (LLM-based parsing)
+- [x] Auto-categorization and tag suggestions via LLM
+- [x] Multi-currency detection and handling
+
+### Deploy
+- [ ] Docker support
+
+
+
+
+## 📄 License 
+
+Smart Ledger is open-source and released under the [MIT License]() .
+
+
+```text
+MIT License
+
+Copyright (c) 2025 [Terry Xie]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights  
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+copies of the Software, and to permit persons to whom the Software is  
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all  
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE  
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE  
+SOFTWARE.
+```
+
 
 ## 技术栈
 
