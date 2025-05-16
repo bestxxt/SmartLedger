@@ -16,8 +16,8 @@ Enjoy a modern, mobile-friendly UI built with **Next.js**. Designed for simplici
 
 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
   <img src="imgs/HomePage.png" alt="HomePage.png" height="400">
-  <img src="imgs/Setting.png" alt="Setting.png" height="400">
   <img src="imgs/Card.png" alt="Card.png" height="400">
+  <img src="imgs/Setting.png" alt="Setting.png" height="400">
 </div>
 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
   <img src="imgs/EditPage.png" alt="EditPage.png" height="400">
