@@ -1,23 +1,27 @@
-# AI Finance - 智能记账助手
+# Smart Ledger 👋
+---
+Smart Ledger is a **self-hosted, LLM-powered, multi-input personal expense tracking system**  designed for privacy-conscious users who want intelligent automation without sacrificing data ownership.
 
-AI Finance 是一个基于 Next.js 的智能记账软件，通过语音和图片输入方式，结合 Google Gemini AI 模型，为用户提供智能化的记账服务。用户可以通过语音描述或上传图片的方式记录消费，系统会自动识别并生成标准化的账单信息。
+## Key Features
+- 🛡️ **Self-hosted** 
+Deploy Smart Ledger on your own server or machine. Your financial data remains **fully under your control**  — no third-party storage, no data tracking. Seamlessly **sync across devices**  to keep your records accessible and consistent.
 
-## 项目结构
+- 🎙️ **Voice Input** 
+Record spoken expense entries. Powered by **Whisper**  for speech recognition and integrated with an **LLM**  for context understanding, Smart Ledger can convert your voice into clean, structured financial transactions with ease.
 
-```
-├── src/
-│   ├── app/                 # Next.js 应用主目录
-│   │   ├── api/            # API 路由
-│   │   ├── (auth)/         # 认证相关页面
-│   │   ├── (dashboard)/    # 仪表板相关页面
-│   │   └── (marketing)/    # 营销相关页面
-│   ├── components/         # React 组件
-│   ├── lib/               # 工具函数和配置
-│   └── types/             # TypeScript 类型定义
-├── public/                # 静态资源
-├── audio/                # 音频文件
-└── test/                # 测试文件
-```
+- 📷 **Picture Input** 
+Snap photos of receipts or bills. Smart Ledger uses **multi-LLM models** to automatically extract key financial details like amount, date, and category — no manual typing required.
+
+- 💻 **Beautiful User Interface** 
+Enjoy a modern, mobile-friendly UI built with **Next.js**. Designed for simplicity and speed.
+
+- 🏷️ **Tagging & Categorization** 
+Add your own custom tags or let the AI suggest and infer tags based on transaction content. Smart Ledger helps keep your records organized effortlessly.
+
+- 🔒 **Full Privacy & Control** 
+All components are **open-source and self-manageable** . No vendor lock-in, no hidden data sharing — just transparent software that puts you in charge.
+
+
 
 ## 主要功能
 
