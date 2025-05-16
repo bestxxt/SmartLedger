@@ -1,3 +1,4 @@
+'use client';
 // components/FormattedNumber.tsx
 import React from 'react';
 

@@ -1,3 +1,5 @@
+'use client';
+
 import { FormEvent, useEffect, useState, useRef } from 'react';
 import { Mic, Loader, Check, X, ArrowUpFromLine, RefreshCcw } from 'lucide-react';
 import {

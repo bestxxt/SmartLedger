@@ -4,19 +4,17 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { Transaction, EditableTransaction } from '@/models/transaction';
 import { Loader } from "lucide-react"
 import { toast } from "sonner";
-import { Plus, Mic, Camera, Settings } from "lucide-react";
 import { User } from '@/models/user';
 import PopupEdit from '@/components/PopupEdit';
 import PopupAudio from "@/components/PopupAudio";
 import PopupPicture from "@/components/PopupPicture";
 import CurrentBalance from '@/components/CurrentBalance';
-import FinancialSummary from '@/components/FinancialSummary';
 import TransactionList from '@/components/TransactionList';
 import Setting from '@/components/Setting';
 import Head from "@/components/Head"; 
 import Bottom from "@/components/Bottom";
 export default function Home() {
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const limit = 10;
@@ -154,26 +152,33 @@ export default function Home() {
 
     useEffect(() => {
         fetchUser();
-        fetchData(1);
+        // fetchData(1);
     }, [fetchUser, fetchData]);
 
     // Infinite scroll: load next page when reaching bottom and more is available
     // Use IntersectionObserver for infinite scroll
     const loaderRef = useRef<HTMLDivElement | null>(null);
+
     useEffect(() => {
         if (!hasMore || loadingMore) return;
-        const observer = new IntersectionObserver(
-            entries => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        fetchData(page + 1, true);
-                    }
-                });
-            },
-            { root: null, rootMargin: '0px', threshold: 1.0 }
-        );
+
+        const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    fetchData(page + 1, true);
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(handleIntersection, {
+            root: null,
+            rootMargin: '0px',
+            threshold: 1.0,
+        });
+
         const loader = loaderRef.current;
         if (loader) observer.observe(loader);
+
         return () => {
             if (loader) observer.unobserve(loader);
             observer.disconnect();
@@ -186,16 +191,6 @@ export default function Home() {
                 <Head loading={loading} user={user} onMenuClick={() => setIsSettingOpen(true)}></Head>
                 {/* Balance fetched from stats API */}
                 <CurrentBalance loading={loading} user={user} />
-                {/* Stats fetched from API */}
-                {/* <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-dashed border-gray-200"></div>
-                    </div>
-                    <div className="relative flex justify-center">
-                        <h3 className="text-lg font-semibold bg-white rounded-full px-4 text-gray-800">Finance Summary</h3>
-                    </div>
-                </div>
-                <FinancialSummary loading={loading} user={user} /> */}
 
                 {/* Transaction List */}
                 <div className="relative my-2">
@@ -213,7 +208,7 @@ export default function Home() {
                     onEdit={handleEdit}
                 />
 
-                {hasMore && (
+                {(hasMore && !user) && (
                     <div className="text-center py-4 flex justify-center">
                         <Loader className="animate-spin" />
                         <div ref={loaderRef} className="h-4"></div>
@@ -221,65 +216,39 @@ export default function Home() {
                 )}
             </div>
 
-            {/* Floating action buttons */}
-            {/* <div className="fixed bottom-6 right-6 flex flex-col gap-4">
-                <button
-                    onClick={() => setIsEditOpen(true)}
-                    className="bg-teal-500 hover:bg-teal-600 text-white rounded-full p-4 shadow-lg"
-                    aria-label="Add transaction"
-                >
-                    <Plus />
-                </button>
-                <button
-                    onClick={() => setIsAudioOpen(true)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-4 shadow-lg"
-                    aria-label="Record audio"
-                >
-                    <Mic />
-                </button>
-                <button
-                    onClick={() => setIsPictureOpen(true)}
-                    className="bg-purple-500 hover:bg-purple-600 text-white rounded-full p-4 shadow-lg"
-                    aria-label="Take picture"
-                >
-                    <Camera />
-                </button>
-                <button
-                    onClick={() => setIsSettingOpen(true)}
-                    className="bg-gray-500 hover:bg-gray-600 text-white rounded-full p-4 shadow-lg"
-                    aria-label="Settings"
-                >
-                    <Settings />
-                </button>
-            </div> */}
 
             {/* Drawer components */}
-            <PopupEdit
-                open={isEditOpen}
-                onOpenChange={setIsEditOpen}
-                onSubmit={handleAdd}
-                user={user!}
-            />
-            <PopupAudio
-                open={isAudioOpen}
-                onOpenChange={setIsAudioOpen}
-                onSubmit={handleAdd}
-                user={user!}
-            />
-            <PopupPicture
-                open={isPictureOpen}
-                onOpenChange={setIsPictureOpen}
-                onSubmit={handleAdd}
-                user={user!}
-            />
-            <Setting 
-                open={isSettingOpen}
-                onOpenChange={(open) => {
-                    setIsSettingOpen(open);
-                    if (!open) fetchUser();
-                }}
-                user={user} 
-            />
+            {user && (
+                <>
+                    <PopupEdit
+                        open={isEditOpen}
+                        onOpenChange={setIsEditOpen}
+                        onSubmit={handleAdd}
+                        user={user}
+                    />
+                    <PopupAudio
+                        open={isAudioOpen}
+                        onOpenChange={setIsAudioOpen}
+                        onSubmit={handleAdd}
+                        user={user}
+                    />
+                    <PopupPicture
+                        open={isPictureOpen}
+                        onOpenChange={setIsPictureOpen}
+                        onSubmit={handleAdd}
+                        user={user}
+                    />
+                    <Setting 
+                        open={isSettingOpen}
+                        onOpenChange={(open) => {
+                            setIsSettingOpen(open);
+                            if (!open) fetchUser();
+                        }}
+                        user={user} 
+                    />
+                </>
+            )}
+            
             <Bottom 
                 onPicture={() => setIsPictureOpen(true)}
                 onAdd={() => setIsEditOpen(true)}

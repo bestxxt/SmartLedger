@@ -1,3 +1,5 @@
+'use client';
+
 import { Loader, ArrowUp, ArrowDown } from 'lucide-react';
 import { User } from '@/models/user';
 import { cn } from '@/lib/utils';

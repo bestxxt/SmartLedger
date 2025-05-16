@@ -1,21 +1,24 @@
+'use client';
+
 import { Transaction, EditableTransaction } from '@/models/transaction';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { BillCard } from './BillCard';
 import { format, isSameDay } from 'date-fns';
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Tag } from '@/models/user';
+import { User } from '@/models/user';
 import { useState } from 'react';
 import PopupEdit from './PopupEdit';
 import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 
 type TransactionListProps = {
   transactions: Transaction[];
-  deleteTransaction: (id: string) => Promise<void>;
   user: User | null;
+  deleteTransaction: (id: string) => Promise<void>;
   onEdit: (editedTx: EditableTransaction, id: string) => Promise<void>;
 };
 
 export default function TransactionList({ transactions, deleteTransaction, user, onEdit }: TransactionListProps) {
+  if (!user || !transactions) return null;
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
@@ -102,7 +105,7 @@ export default function TransactionList({ transactions, deleteTransaction, user,
                       key={tx.id}
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true}}
+                      viewport={{ once: true }}
                       exit={{ opacity: 0, y: -20 }}
                       // whileTap={{ scale: 0.95 }}
                       whileHover={{ scale: 1.03 }}
@@ -141,10 +144,10 @@ export default function TransactionList({ transactions, deleteTransaction, user,
                                   {tx.tags && tx.tags.length > 0 && (
                                     <div
                                       className="flex flex-wrap gap-1 mt-1"
-                                      // initial={{ opacity: 0 }}
-                                      // whileInView={{ opacity: 1 }}
-                                      // viewport={{ once: true }}
-                                      // transition={{ delay: 0.1 }}
+                                    // initial={{ opacity: 0 }}
+                                    // whileInView={{ opacity: 1 }}
+                                    // viewport={{ once: true }}
+                                    // transition={{ delay: 0.1 }}
                                     >
                                       {tx.tags.map((tagName, index) => {
                                         const userTag = user?.tags.find(t => t.name === tagName);
@@ -174,25 +177,27 @@ export default function TransactionList({ transactions, deleteTransaction, user,
                                 {/* <div className="flex items-center gap-2 mt-1">
                                     <p className="text-sm text-gray-500">{format(tx.timestamp, 'h:mm a')}</p>
                                   </div> */}
-                                <p className={`font-semibold ${tx.type === 'income' ? 'text-green-600' : 'text-red-500'}`}>
+                                <div className={`font-semibold ${tx.type === 'income' ? 'text-green-600' : 'text-red-500'}`}>
 
                                   {tx.originalAmount && tx.originalCurrency && tx.originalCurrency !== tx.currency ? (
-                                    <div className="flex flex-col items-end">
-                                      <span>
-                                        {tx.type === 'income' ? '+' : '-'}
-                                        {tx.amount} {tx.currency || "USD"}
-                                      </span>
-                                      <span className="text-sm text-gray-500">
-                                        {tx.originalAmount} {tx.originalCurrency}
-                                      </span>
-                                    </div>
+                                    <>
+                                      <div className="flex flex-col items-end">
+                                        <span>
+                                          {tx.type === 'income' ? '+' : '-'}
+                                          {tx.amount} {tx.currency || "USD"}
+                                        </span>
+                                        <span className="text-sm text-gray-500">
+                                          {tx.originalAmount} {tx.originalCurrency}
+                                        </span>
+                                      </div>
+                                    </>
                                   ) : (
                                     <>
                                       {tx.type === 'income' ? '+' : '-'}
                                       {tx.amount} {tx.currency || "USD"}
                                     </>
                                   )}
-                                </p>
+                                </div>
                               </div>
                             </div>
                           </PopoverTrigger>
@@ -228,6 +233,6 @@ export default function TransactionList({ transactions, deleteTransaction, user,
       />
       <div className='h-18' />
     </>
-    
+
   );
 }

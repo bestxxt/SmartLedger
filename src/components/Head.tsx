@@ -1,10 +1,8 @@
-import { format } from 'date-fns';
-import FormattedNumber from '@/components/FormattedNumber';
+'use client';
+
 import { User } from '@/models/user';
-import { cn } from '@/lib/utils';
-import { ChevronDown, MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton"
-import { useCallback } from 'react';
 
 type HeadProps = {
     loading: boolean;

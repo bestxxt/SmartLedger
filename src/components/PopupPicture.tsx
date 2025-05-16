@@ -1,7 +1,8 @@
+'use client';
 // Create PopupPicture component similar to PopupAudio for selecting, previewing, uploading image
 import React, { useState, useRef, useEffect, FormEvent } from 'react';
 import { Camera, ArrowUpFromLine, X, Loader, RefreshCcw } from 'lucide-react';
-import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerFooter } from '@/components/ui/drawer';
+import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ConfirmBillCard } from './BillCard';
 import { EditableTransaction } from '@/models/transaction';
@@ -150,7 +151,11 @@ export default function PopupPicture({ onSubmit, open, onOpenChange, user }: Pop
                 onChange={handleFileChange}
             />
             <Drawer open={open} onOpenChange={onOpenChange}>
+
                 <DrawerContent className="p-6 w-full h-full">
+                    <DrawerTitle className="flex justify-center gap-2 text-gray-500">
+                        <span></span>
+                    </DrawerTitle>
                     <div className="flex-1 flex flex-col items-center">
                         {state === 'idle' && (
                             <div className="flex flex-col items-center justify-center h-[70%] text-center px-4">
@@ -159,7 +164,7 @@ export default function PopupPicture({ onSubmit, open, onOpenChange, user }: Pop
                                     Take a Photo of Your Receipt
                                 </h3>
                                 <p className="text-gray-500">
-                                    Click the upload button below to take a photo of your receipt or bill.
+                                    Click the upload button below to upload a photo of your receipt, bill or screenshot.
                                     We'll automatically extract the transaction details for you.
                                 </p>
                             </div>
@@ -205,10 +210,10 @@ export default function PopupPicture({ onSubmit, open, onOpenChange, user }: Pop
                             onClick={handleUpload}
                             className={cn(
                                 "w-24 h-24 md:w-32 md:h-32 rounded-full text-white flex items-center justify-center transition-all duration-300 ease-in-out",
-                                state === 'idle' ? 'bg-black' : 
-                                state === 'selected' ? 'bg-black' :
-                                state === 'uploading' ? 'bg-gray-400' :
-                                'bg-black'
+                                state === 'idle' ? 'bg-black' :
+                                    state === 'selected' ? 'bg-black' :
+                                        state === 'uploading' ? 'bg-gray-400' :
+                                            'bg-black'
                             )}
                         >
                             {state === 'idle' && <Camera size={32} />}

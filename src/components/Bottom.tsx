@@ -1,7 +1,5 @@
-import { format } from 'date-fns';
-import FormattedNumber from '@/components/FormattedNumber';
-import { User } from '@/models/user';
-import { cn } from '@/lib/utils';
+'use client';
+
 import { ChevronDown, MoreHorizontal, Camera, Plus, Mic } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCallback } from 'react';
