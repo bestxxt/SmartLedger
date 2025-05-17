@@ -38,19 +38,18 @@ export async function GET(req: Request) {
         // console.log('Expense Aggregation:', expenseAgg);
 
         const totalCount = await TransactionModel.countDocuments({ userId: session.user.id });
-
         const totalIncome = incomeAgg[0]?.total || 0;
         const totalExpense = expenseAgg[0]?.total || 0;
         const balance = totalIncome - totalExpense;
 
-        // 计算最近8个月的每月余额
+
         const now = new Date();
         const months: string[] = [];
         for (let i = 7; i >= 0; i--) {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
         }
-        // 查询每月的收入和支出
+
         const monthlyAgg = await TransactionModel.aggregate([
             { $match: { userId: userId } },
             {
@@ -92,6 +91,7 @@ export async function GET(req: Request) {
                 email: user.email,
                 name: user.name,
                 role: user.role,
+                apiToken: user.apiToken,
                 avatar: user.avatar,
                 language: user.language,
                 currency: user.currency,

@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/utils/authOptions";
-import { main_income_categories, main_expense_categories } from '@/lib/constants';
-import type { Transaction } from '@/models/transaction';
-import { DateTime } from 'luxon';  
+import { AIService } from '@/lib/services/ai';
 
 export async function POST(req: NextRequest) {
     try {
@@ -32,88 +29,36 @@ export async function POST(req: NextRequest) {
         const userTags = JSON.parse(formData.get('userTags')?.toString() || '[]');
         const userLocations = JSON.parse(formData.get('userLocations')?.toString() || '[]');
 
-        // Extract tag and location names
-        const tagNames = userTags.map((tag: any) => tag.name).join(', ');
-        const locationNames = userLocations.map((loc: any) => loc.name).join(', ');
-
         const imageFile = formData.get('file') as File;
         const arrayBuffer = await imageFile.arrayBuffer();
         const base64 = Buffer.from(arrayBuffer).toString('base64');
-        const mimeType = imageFile.type;
 
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            return NextResponse.json({ error: 'Gemini API key not configured' }, { status: 500 });
+        // Initialize AI service
+        const aiService = new AIService();
+
+        // Prepare context for AI
+        const context = {
+            timezone,
+            userCurrency,
+            userLanguage,
+            userTags,
+            userLocations
+        };
+
+        // Recognize bill from image
+        const transaction = await aiService.recognizeBill(base64, imageFile.type, context);
+
+        if (!transaction) {
+            return NextResponse.json({ 
+                success: false,
+                error: 'No transaction information found in the image' 
+            });
         }
-        const genAI = new GoogleGenAI({ apiKey });
-        const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
-        const prompt = `
-                Extract financial transaction information from the image and return it in this JSON schema:
 
-                Transaction = {
-                    amount: number,                // numeric amount of the transaction, default to 0
-                    type: "income" | "expense", 
-                    category: string,              // You must choose from the categories I give to you
-                    timestamp: string,             // date-time in UTC format (ISO 8601)
-                    note: string,                 // extra details, use objective, factual description instead, in user's language
-                    currency: string,             //  default to "${userCurrency}"
-                    location?: string,             // optional, relevant location from user's location list
-                    emoji: string,                 // one emoji representing the transaction
-                    tags: string[]               // optional, relevant tags from user's tag list
-                }
-
-                Information you can rely on:
-                current time: ${new Date().toISOString()}
-                User's time offset: ${DateTime.local().setZone(timezone)}
-                User preferences:
-                - Default currency: ${userCurrency}
-                - Language: ${userLanguage}
-                - tags: ${tagNames}
-                - locations: ${locationNames}
-
-                Categories:
-                - Income categories: ${main_income_categories.join(', ')}
-                - Expense categories: ${main_expense_categories.join(', ')}
-                
-                
-                If found return: {
-                    found: true,
-                    transaction: Transaction
-                }
-                If no transaction information is found in the image, return: {
-                    found: false,
-                    transaction: null
-                }
-            `;
-            // Important timezone rules:
-            // 1. If you find a time in the image, convert it to UTC using the user's timezone (${timezone})
-            // 2. If no time is found in the image, use the current UTC time
-            // 3. Always return the timestamp in UTC format (ISO 8601)
-            // User timezone: ${timezone}
-        // console.log('Prompt:', prompt); 
-        const contents = [
-            {
-                inlineData: {
-                    mimeType: mimeType,
-                    data: base64,
-                },
-            },
-            { text: prompt },
-        ];
-
-        const response = await genAI.models.generateContent({ model, contents });
-        const text = response.text;
-        if (!text) throw new Error('Empty AI response');
-
-        const cleaned = text.replace(/```json\s*/, '').replace(/```/, '').trim();
-        let parsed: Transaction;
-        try {
-            parsed = JSON.parse(cleaned);
-        } catch (err) {
-            return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
-        }
-        // console.log('Parsed response:', parsed);
-        return NextResponse.json({ success: true, result: parsed });
+        return NextResponse.json({ 
+            success: true, 
+            result: transaction 
+        });
     } catch (error) {
         console.error('Error in pictureToBill API:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

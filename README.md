@@ -235,10 +235,11 @@ This video shows how Smart Ledger extracts transaction details from a receipt im
 ### ✅ Core
 - [x] User login
 - [x] User logout
+- [x] Change password and email used to login
 - [x] User authentication and multi-device sync
 - [x] Admin account management
 - [x] User registration
-- [ ] iPhone shortcut support
+- [x] iPhone shortcut support
 - [ ] Google login
 - [ ] WeChat login
 - [ ] Multi-user account support

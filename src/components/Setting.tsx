@@ -23,8 +23,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from '@/components/ui/input'
 import { Label } from "@/components/ui/label"
-import { Settings, Upload, Globe, LogOut, Loader } from "lucide-react"
-import React, { useState, ChangeEvent, KeyboardEvent, useRef } from 'react'
+import { Settings, Upload, Globe, LogOut, Loader, Key, Mail, Copy, RefreshCw } from "lucide-react"
+import React, { useState, ChangeEvent, KeyboardEvent, useRef, useEffect } from 'react'
 import { User, EditableUser, Language } from "@/models/user"
 import { toast } from "sonner"
 import { Plus } from "lucide-react"
@@ -38,6 +38,14 @@ import {
 import { cn } from "@/lib/utils"
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { signOut } from "next-auth/react"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 
 export interface UserProps {
     user: User | null;
@@ -122,6 +130,8 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
     if (!user) return null;
 
     const [loading, setLoading] = useState(false);
+    const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+    const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
     const [state, setState] = useState<EditableUser>({
         name: user.name,
         email: user.email,
@@ -130,6 +140,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
         currency: user.currency,
         locations: user.locations,
         tags: user.tags,
+        apiToken: user.apiToken,
         stats: user.stats
     });
 
@@ -139,6 +150,8 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
     const [openLocationId, setOpenLocationId] = useState<string | null>(null);
     const [newLocationName, setNewLocationName] = useState('');
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
+    const [apiToken, setApiToken] = useState<string | null>(null);
+    const [isGeneratingToken, setIsGeneratingToken] = useState(false);
 
     const handleAvatarChange = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -267,6 +280,104 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
         }
     }
 
+    // Add password change handler
+    const handlePasswordChange = async (currentPassword: string, newPassword: string) => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/app/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    currentPassword,
+                    newPassword,
+                }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to change password');
+            }
+
+            toast.success('Password changed successfully');
+            setIsPasswordDialogOpen(false);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to change password');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Add email change handler
+    const handleEmailChange = async (currentPassword: string, newEmail: string) => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/app/change-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    currentPassword,
+                    newEmail,
+                }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to change email');
+            }
+
+            toast.success('Email changed successfully');
+            setIsEmailDialogOpen(false);
+            // Update local state
+            setState(prev => ({
+                ...prev,
+                email: newEmail
+            }));
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to change email');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const generateNewToken = async () => {
+        try {
+            setIsGeneratingToken(true);
+            const response = await fetch('/api/app/api-token', {
+                method: 'POST',
+            });
+            if (!response.ok) throw new Error('Failed to generate API token');
+            const data = await response.json();
+            
+            // Refresh user data to get the new token
+            const userResponse = await fetch('/api/app/me');
+            if (!userResponse.ok) throw new Error('Failed to refresh user data');
+            const userData = await userResponse.json();
+            
+            // Update local state with new user data
+            setState(prev => ({
+                ...prev,
+                ...userData.data
+            }));
+            
+            toast.success('API token generated successfully');
+        } catch (error) {
+            toast.error('Failed to generate API token');
+        } finally {
+            setIsGeneratingToken(false);
+        }
+    };
+
+    const copyToken = () => {
+        if (state.apiToken) {
+            navigator.clipboard.writeText(state.apiToken);
+            toast.success('API token copied to clipboard');
+        }
+    };
+
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="w-full [&>button]:hidden">
@@ -285,7 +396,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                             onClick={() => signOut({ callbackUrl: '/login' })}
                         >
                             Logout
-                            <LogOut/>
+                            <LogOut />
                         </Button>
                     </div>
                 </SheetHeader>
@@ -648,9 +759,200 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                             </div>
                         </div>
                         <hr />
-                    </div>
 
+                        {/* Update API Token Section */}
+                        <div className="space-y-2">
+                            <Label>API Token (for Shortcuts)</Label>
+                            <div className="space-y-2">
+                                {state.apiToken ? (
+                                    <div className="flex items-center space-x-2">
+                                        <Input
+                                            value={state.apiToken}
+                                            readOnly
+                                            className="font-mono text-sm"
+                                        />
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={copyToken}
+                                        >
+                                            <Copy className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={generateNewToken}
+                                            disabled={isGeneratingToken}
+                                        >
+                                            <RefreshCw className={`w-4 h-4 ${isGeneratingToken ? 'animate-spin' : ''}`} />
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Button
+                                        variant="outline"
+                                        className="w-full"
+                                        onClick={generateNewToken}
+                                        disabled={isGeneratingToken}
+                                    >
+                                        {isGeneratingToken ? 'Generating...' : 'Generate API Token'}
+                                    </Button>
+                                )}
+                                <p className="text-sm text-muted-foreground">
+                                    Use this token in your iPhone Shortcuts to upload receipts.
+                                </p>
+                            </div>
+                        </div>
+                        <hr />
+
+                        {/* Add Security Section */}
+                        <div className="space-y-2">
+                            <Label>Security</Label>
+                            <div className="space-y-2">
+                                <Button
+                                    variant="outline"
+                                    className="w-full"
+                                    onClick={() => setIsEmailDialogOpen(true)}
+                                >
+                                    <Mail className="w-4 h-4 mr-2" />
+                                    Change Email
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="w-full"
+                                    onClick={() => setIsPasswordDialogOpen(true)}
+                                >
+                                    <Key className="w-4 h-4 mr-2" />
+                                    Change Password
+                                </Button>
+                            </div>
+                        </div>
+                        <hr />
+                    </div>
                 </div>
+
+                {/* Add Email Change Dialog */}
+                <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Change Email</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            const formData = new FormData(e.currentTarget);
+                            const currentPassword = formData.get('currentPassword') as string;
+                            const newEmail = formData.get('newEmail') as string;
+
+                            // Validate email format
+                            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                            if (!emailRegex.test(newEmail)) {
+                                toast.error('Invalid email format');
+                                return;
+                            }
+
+                            await handleEmailChange(currentPassword, newEmail);
+                        }} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="currentPassword">Current Password</Label>
+                                <Input
+                                    id="currentPassword"
+                                    name="currentPassword"
+                                    type="password"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="newEmail">New Email</Label>
+                                <Input
+                                    id="newEmail"
+                                    name="newEmail"
+                                    type="email"
+                                    defaultValue={state.email}
+                                    required
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsEmailDialogOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button type="submit" disabled={loading}>
+                                    {loading ? 'Changing...' : 'Change Email'}
+                                </Button>
+                            </div>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+                {/* Add Password Change Dialog */}
+                <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Change Password</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            const formData = new FormData(e.currentTarget);
+                            const currentPassword = formData.get('currentPassword') as string;
+                            const newPassword = formData.get('newPassword') as string;
+                            const confirmPassword = formData.get('confirmPassword') as string;
+
+                            if (newPassword !== confirmPassword) {
+                                toast.error('New passwords do not match');
+                                return;
+                            }
+
+                            if (newPassword.length < 6) {
+                                toast.error('Password must be at least 6 characters long');
+                                return;
+                            }
+
+                            await handlePasswordChange(currentPassword, newPassword);
+                        }} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="currentPassword">Current Password</Label>
+                                <Input
+                                    id="currentPassword"
+                                    name="currentPassword"
+                                    type="password"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="newPassword">New Password</Label>
+                                <Input
+                                    id="newPassword"
+                                    name="newPassword"
+                                    type="password"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                                <Input
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    type="password"
+                                    required
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsPasswordDialogOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button type="submit" disabled={loading}>
+                                    {loading ? 'Changing...' : 'Change Password'}
+                                </Button>
+                            </div>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
                 <SheetFooter className="p-0">
                     <div className="flex justify-evenly space-x-2 mb-6">
                         <Button

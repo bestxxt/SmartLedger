@@ -52,6 +52,7 @@ export type User = {
   };
   createdAt: string;
   updatedAt: string;
+  apiToken?: string;
 };
 
 /**
@@ -76,6 +77,7 @@ export interface IUser extends Document {
   };
   createdAt: Date;
   updatedAt: Date;
+  apiToken?: string;
 }
 
 /**
@@ -118,6 +120,7 @@ const UserSchema = new Schema<IUser>(
         default: []
       }
     },
+    apiToken: String,
   },
   { timestamps: true }
 );

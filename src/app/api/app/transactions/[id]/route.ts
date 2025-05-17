@@ -3,7 +3,7 @@ import { connectMongoose } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import { TransactionModel, Transaction } from '@/models/transaction';
 import { UserModel } from '@/models/user';
-import { exchangeRateService } from '@/services/exchangeRate';
+import { exchangeRateService } from '@/lib/services/exchangeRate';
 import { authOptions } from '@/app/utils/authOptions';
 
 // GET /api/app/transactions/:id

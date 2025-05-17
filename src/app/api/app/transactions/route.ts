@@ -4,7 +4,7 @@ import { connectMongoose } from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { TransactionModel, ITransaction, Transaction } from '@/models/transaction';
 import { UserModel } from '@/models/user';
-import { exchangeRateService } from '@/services/exchangeRate';
+import { exchangeRateService } from '@/lib/services/exchangeRate';
 
 type Pagination = {
   total: number;
@@ -24,18 +24,61 @@ export async function GET(req: Request): Promise<NextResponse> {
     const url = new URL(req.url);
     const page = parseInt(url.searchParams.get('page') || '1', 10);
     const limit = parseInt(url.searchParams.get('limit') || '10', 10);
-    const search = url.searchParams.get('search') || '';
 
     const filter: any = { userId: session.user.id };
     
-    if (search) {
-      filter.category = { $regex: search, $options: 'i' };
+    // Handle type filter
+    const type = url.searchParams.get('type');
+    if (type && type !== 'all') {
+      filter.type = type;
     }
-    url.searchParams.forEach((value, key) => {
-      if (!['page', 'limit', 'search'].includes(key)) {
-        filter[key] = value;
+
+    // Handle category filter
+    const category = url.searchParams.get('category');
+    if (category && category !== 'all') {
+      filter.category = category;
+    }
+
+    // Handle amount range filters
+    const minAmount = url.searchParams.get('minAmount');
+    const maxAmount = url.searchParams.get('maxAmount');
+    if (minAmount || maxAmount) {
+      filter.amount = {};
+      if (minAmount) {
+        filter.amount.$gte = parseFloat(minAmount);
       }
-    });
+      if (maxAmount) {
+        filter.amount.$lte = parseFloat(maxAmount);
+      }
+    }
+
+    // Handle date range filters
+    const dateFrom = url.searchParams.get('dateFrom');
+    const dateTo = url.searchParams.get('dateTo');
+    if (dateFrom || dateTo) {
+      filter.timestamp = {};
+      if (dateFrom) {
+        filter.timestamp.$gte = new Date(dateFrom);
+      }
+      if (dateTo) {
+        // Set to end of the day
+        const endDate = new Date(dateTo);
+        endDate.setHours(23, 59, 59, 999);
+        filter.timestamp.$lte = endDate;
+      }
+    }
+
+    // Handle location filter
+    const location = url.searchParams.get('location');
+    if (location && location !== 'all') {
+      filter.location = location;
+    }
+
+    // Handle tags filter
+    const tags = url.searchParams.getAll('tags');
+    if (tags.length > 0) {
+      filter.tags = { $in: tags };
+    }
 
     await connectMongoose();
     const total = await TransactionModel.countDocuments(filter);
@@ -132,7 +175,6 @@ export async function POST(req: Request): Promise<NextResponse> {
       originalAmount: originalAmount,
       type,
       category,
-      subcategory: body.subcategory,
       timestamp: new Date(timestamp),
       note: body.note,
       currency: userDefaultCurrency,

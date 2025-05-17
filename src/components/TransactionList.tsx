@@ -74,7 +74,7 @@ export default function TransactionList({ transactions, deleteTransaction, user,
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.3 }}
-            className="mb-6 bg-white shadow-sm overflow-hidden"
+            className="bg-white shadow-sm overflow-hidden"
           >
             <div className="bg-gray-50 px-4 py-3 border-b">
               <div className="flex items-center justify-between">
@@ -231,7 +231,6 @@ export default function TransactionList({ transactions, deleteTransaction, user,
         user={user}
         source="transaction"
       />
-      <div className='h-18' />
     </>
 
   );

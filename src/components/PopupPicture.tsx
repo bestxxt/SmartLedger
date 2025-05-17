@@ -17,29 +17,6 @@ export interface PopupPictureProps {
     user?: User;
 }
 
-/**
- * Response type for transaction transcription
- */
-export type TransactionResponse = {
-    success: boolean;
-    transcription: string;
-    result: {
-        found: boolean;
-        transaction?: {
-            amount: number;
-            type: 'income' | 'expense';
-            category: string;
-            subcategory?: string;
-            timestamp: string; // ISO string format
-            note?: string;
-            currency?: string;
-            location?: string;
-            tags?: string[];
-            emoji?: string;
-        };
-    };
-};
-
 
 export default function PopupPicture({ onSubmit, open, onOpenChange, user }: PopupPictureProps) {
     const [photo, setPhoto] = useState<File | null>(null);
@@ -102,30 +79,22 @@ export default function PopupPicture({ onSubmit, open, onOpenChange, user }: Pop
             const res = await fetch('/api/app/ai/pictureToBill', { method: 'POST', body: form });
             if (!res.ok) throw new Error(res.statusText);
             const data = await res.json();
-            if (!data.result.found) {
+            if (!data.success) {
                 setTransactionCards([]);
             } else {
-                if (data.result.transaction) {
-                    const txs = Array.isArray(data.result.transaction)
-                        ? data.result.transaction
-                        : [data.result.transaction];
-                    setTransactionCards(
-                        txs.map((tx: NonNullable<TransactionResponse['result']['transaction']>) => ({
-                            amount: tx.amount,
-                            type: tx.type,
-                            category: tx.category,
-                            subcategory: tx.subcategory,
-                            timestamp: new Date(tx.timestamp),
-                            note: tx.note,
-                            currency: tx.currency,
-                            tags: tx.tags || [],
-                            location: tx.location,
-                            emoji: tx.emoji,
-                        }))
-                    );
-                } else {
-                    setTransactionCards([]);
-                }
+                setTransactionCards([
+                    {
+                        amount: data.result.amount,
+                        type: data.result.type,
+                        category: data.result.category,
+                        timestamp: new Date(data.result.timestamp),
+                        note: data.result.note,
+                        currency: data.result.currency,
+                        tags: data.result.tags || [],
+                        location: data.result.location || undefined,
+                        emoji: data.result.emoji,
+                    }
+                ])
             }
             setState('finished');
         } catch (err) {
