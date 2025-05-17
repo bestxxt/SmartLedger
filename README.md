@@ -81,12 +81,6 @@ Or with `uvicorn`:
 uvicorn whisper_server:app --host 0.0.0.0 --port 8000
 ```
 
-For testing purposes, I am providing my Whisper server here. Please do not abuse it. **It's unstable and could be shutdown anytime.**
-
-URL: https://whisper.12080123.site/transcribe_sync
-API_KEY: 52Wj4mAPw4M6xTW4s6mI
-
-
 ---
 ### ☁️ Run in Vercel
 1. Import the GitHub repo into Vercel
