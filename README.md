@@ -40,7 +40,8 @@ All components are **open-source and self-manageable** . No vendor lock-in, no h
 
 ## 🚀 Quickstart 
 
- 
+
+### Run Locally 
 1. **Clone the repository** 
 
 
@@ -144,10 +145,6 @@ pm2 restart smart-ledger # Restart the app
 pm2 stop smart-ledger    # Stop the app
 ```
 
-
-
-
-
 ## 🎬 Demo Videos 
 
 
@@ -155,28 +152,29 @@ pm2 stop smart-ledger    # Stop the app
 
 This video demonstrates Smart Ledger's ability to process natural voice input and generate multiple transactions — including both **expenses**  and **income**  — in a single sentence.
 
-<video src="imgs/voice-demo.mp4" controls width="100%"></video>
+> I said: I had lunch with colleagues at a Korean restaurant, spent 28 dollars.
+> On my way home I stopped to get gas, paid 40 dollars.
+> Also, I received my salary today — 8000 dollars just landed in my account.”
 
+<img src="imgs/voice-demo.gif" alt="voice-demo.gif" height="400">
 
----
 
 ### 📷 Receipt Image Input Demo 
 
-This video shows how Smart Ledger extracts transaction details from a receipt image using **OCR + LLM**  and generates a structured expense record.
+This video shows how Smart Ledger extracts transaction details from a receipt image using **Multi LLM Model**  and generates a structured expense record.
 
-<video src="imgs/image-demo.mp4" controls width="100%"></video>
+<img src="imgs/image-demo.gif" alt="image-demo.gif" height="400">
 
 
 
 ## 🚧 Development Progress 
-
 
 > Current Version: `v0.1.0` (Alpha)
 
 ### ✅ Core Features
 - [x] User login
 - [x] User logout
-- [x] User authentication and multi-device sync (JWT + MongoDB)
+- [x] User authentication and multi-device sync
 - [x] Admin account management
 - [x] User registration
 - [ ] iPhone shortcut support
