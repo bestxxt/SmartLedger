@@ -40,8 +40,24 @@ All components are **open-source and self-manageable** . No vendor lock-in, no h
 
 ## 🚀 Quickstart 
 
+### ☁️ Run in Vercel
+1. Import the GitHub repo into Vercel
+2. Configure Environment Variables 
+In the Vercel dashboard, go to your project's Settings > Environment Variables and add the following (based on .env.example)
+| Key                     | Description                                             |
+| ----------------------- | ------------------------------------------------------- |
+| `MONGODB_URI`           | Your MongoDB connection string                          |
+| `MONGODB_DB`            | The database name                                       |
+| `NEXTAUTH_URL`          | Your Vercel domain (e.g. `https://your-app.vercel.app`) |
+| `NEXTAUTH_SECRET`       | A random secret string                                  |
+| `GEMINI_API_KEY`        | Your Gemini API key                                     |
+| `GEMINI_MODEL`          | e.g. `gemini-2.0-flash`                                 |
+| `INVITE_CODE`           | Optional invite code                                    |
+| `TRANSCRIPTION_API_KEY` | Your STT service key                                    |
+| `EXCHANGE_RATE_API_KEY` | Currency exchange API key                               |
 
-### Run Locally 
+
+### 💻 Run Locally 
 1. **Clone the repository** 
 
 
@@ -90,8 +106,6 @@ npm install -g pm2
 
 
 If you're deploying the production build:
-
-
 
 ```bash
 npm run build
@@ -171,7 +185,7 @@ This video shows how Smart Ledger extracts transaction details from a receipt im
 
 > Current Version: `v0.1.0` (Alpha)
 
-### ✅ Core Features
+### ✅ Core
 - [x] User login
 - [x] User logout
 - [x] User authentication and multi-device sync
@@ -184,7 +198,7 @@ This video shows how Smart Ledger extracts transaction details from a receipt im
 - [ ] Offline mode (local caching)
 - [ ] Export to Excel / CSV
 - [ ] Calendar and reminder integration
-
+- [ ] Forgot password
 
 ### 🎨 User Interface 
 - [x] Homepage with expense list
@@ -194,6 +208,9 @@ This video shows how Smart Ledger extracts transaction details from a receipt im
 - [x] Spending trend visualization
 - [x] Installable fullscreen Web App (PWA-style experience)
 - [ ] Transaction search and filters (in progress)
+- [ ] Statistic page
+- [ ] Export page
+
 
 ### 🧠 AI Features
 - [x] Voice input via Whisper
