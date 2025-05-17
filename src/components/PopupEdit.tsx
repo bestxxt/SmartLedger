@@ -62,9 +62,9 @@ import { User, Tag } from "@/models/user"
 import { Input } from "@/components/ui/input"
 import { main_income_categories, main_expense_categories, sub_expense_categories } from "@/lib/constants"
 
-// 定义分类图标映射
+// Define category icon mapping
 const categoryIcons: Record<string, any> = {
-    // 收入分类图标
+    // Income category icons
     'Salary': Banknote,
     'Bonus': Award,
     'Investment': PiggyBank,
@@ -82,7 +82,7 @@ const categoryIcons: Record<string, any> = {
     'Second-hand Sale': Package,
     'Borrowing': Wallet,
     'Charity': Heart,
-    // 支出分类图标
+    // Expense category icons
     'Housing': Home,
     'Food': Utensils,
     'Transportation': Car,
@@ -94,7 +94,7 @@ const categoryIcons: Record<string, any> = {
     'Other': HelpCircle,
 };
 
-// 日期时间选择器组件
+// DateTime picker component
 function DateTimePicker({ timestamp, onTimestampChange }: { timestamp: Date, onTimestampChange: (date: Date) => void }) {
     return (
         <Popover modal={true}>
@@ -198,7 +198,7 @@ function DateTimePicker({ timestamp, onTimestampChange }: { timestamp: Date, onT
     );
 }
 
-// 分类选择组件
+// Category selector component
 function CategorySelector({
     type,
     category,
@@ -245,21 +245,21 @@ function CategorySelector({
     );
 }
 
-// 标签选择组件
+// Tag selector component
 function TagSelector({ tags, selectedTags, onTagsChange }: {
     tags: Array<{ id: string, name: string, color?: string }>,
     selectedTags: string[],
     onTagsChange: (tags: string[]) => void
 }) {
-    // 创建一个包含所有标签的集合，包括用户当前标签和交易中已选择的标签
+    // Create a collection of all tags, including user's current tags and transaction's selected tags
     const allTags = new Map<string, { id: string, name: string, color?: string }>();
 
-    // 添加用户当前标签
+    // Add user's current tags
     tags.forEach(tag => {
         allTags.set(tag.name, tag);
     });
 
-    // 添加交易中已选择但不在用户当前标签中的标签
+    // Add transaction's selected tags that are not in user's current tags
     selectedTags.forEach(tagName => {
         if (!allTags.has(tagName)) {
             allTags.set(tagName, { id: tagName, name: tagName });
@@ -304,7 +304,7 @@ function TagSelector({ tags, selectedTags, onTagsChange }: {
     );
 }
 
-// 位置选择组件
+// Location selector component
 function LocationSelector({ locations, selectedLocation, onLocationChange }: {
     locations: Array<{ id: string, name: string }>,
     selectedLocation: string | undefined,

@@ -1,7 +1,4 @@
 'use client';
-
-import { Loader } from 'lucide-react';
-import { format } from 'date-fns';
 import FormattedNumber from '@/components/FormattedNumber';
 import { User } from '@/models/user';
 import { cn } from '@/lib/utils';
@@ -33,9 +30,9 @@ export default function CurrentBalance({ loading, user }: CurrentBalanceProps) {
     user.currency === 'EUR' ? '€' :
       user.currency === 'GBP' ? '£' : '$';
 
-  // 取最近8个月的余额数据
+  // Fetch the balance data for the last 8 months
   const chartData = user.stats.monthlyBalances || [];
-  // 环比增长率
+  // Month-over-month growth rate
   const last = chartData[chartData.length - 1]?.balance || 0;
   const prev = chartData[chartData.length - 2]?.balance || 0;
   const growth = prev === 0 ? 0 : ((last - prev) / Math.abs(prev)) * 100;

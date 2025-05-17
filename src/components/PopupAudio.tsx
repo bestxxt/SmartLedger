@@ -96,7 +96,7 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
         cancelAnimationFrame(rafIdRef.current);
     }
 
-    // 更新音量（RMS）并循环调用
+    // Update volume (RMS) and loop the call
     const updateVolume = () => {
         const analyser = analyserRef.current;
         if (analyser) {
@@ -116,7 +116,7 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
     const handleRecordStateChange = async () => {
         switch (recordState) {
             case 'idle':
-                // 1. idle -> 开始录制
+                // 1. idle -> Start recording
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     streamRef.current = stream;
@@ -128,7 +128,7 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
                     setRecordState('recording');
                     startTime.current = Date.now();
 
-                    // 设置 Web Audio 分析器
+                    // Set up Web Audio analyzer
                     const audioCtx = new AudioContext();
                     const source = audioCtx.createMediaStreamSource(stream);
                     const analyser = audioCtx.createAnalyser();
@@ -137,18 +137,18 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
                     analyserRef.current = analyser;
                     updateVolume();
                 } catch (err) {
-                    console.error('无法获取麦克风权限', err);
+                    console.error('Unable to get microphone permission', err);
                 }
                 break;
             case 'recording':
-                // 2. recording -> 停止录制并释放 stream
+                // 2. recording -> Stop recording and release stream
                 mediaRecorderRef.current?.stop();
                 streamRef.current?.getTracks().forEach((track) => track.stop());
                 cancelAnimationFrame(rafIdRef.current);
                 setRecordState('recorded');
                 break;
             case 'recorded':
-                // 3. recorded -> 上传到后端
+                // 3. recorded -> Upload to backend
                 setButtonEnabled(false);
                 setRecordState('uploading');
                 const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
@@ -173,7 +173,7 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
 
                     const data: TransactionResponse = await res.json();
                     if (!data.result.found) {
-                        setResponse('未找到交易信息');
+                        setResponse('No transaction found');
                         return;
                     }
                     const transactions = Array.isArray(data.result.transaction)
@@ -198,21 +198,21 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
 
                     // setResponse(data.segments.map((segment) => segment.text).join('\n'));
                 } catch (err) {
-                    console.error('上传失败', err);
-                    setResponse('上传失败');
+                    console.error('Upload failed', err);
+                    setResponse('Upload failed');
                 } finally {
                     setButtonEnabled(true);
                     setRecordState('finished');
                 }
                 break;
             case 'finished':
-                // 4. finished -> 重置状态
+                // 4. finished -> Reset state
                 resetState();
                 break;
         }
     };
 
-    // 根据 volume 渲染圆形大小，最小20px最大100px
+    // Render circle size based on volume, minimum 20px, maximum 100px
     const [volumeHistory, setVolumeHistory] = useState<number[]>([]);
     const smoothedVolume = volumeHistory.reduce((sum, v) => sum + v, 0) / volumeHistory.length || 0;
 

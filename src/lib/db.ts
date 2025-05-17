@@ -8,9 +8,9 @@ export async function getDB() {
     const client = await clientPromise;
     const dbName = process.env.MONGODB_DB;
     if (!dbName) {
-        throw new Error('请设置 MONGODB_DB 环境变量');
+        throw new Error('Please set the MONGODB_DB environment variable');
     }
-    // 连接到数据库
+    // Connect to the database
     const db = client.db(dbName);
     return db;
 }

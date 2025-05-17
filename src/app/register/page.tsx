@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-// 图片压缩函数
+// Image compression function
 async function compressImage(file: File, maxSizeKB: number = 128): Promise<string> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -21,8 +21,8 @@ async function compressImage(file: File, maxSizeKB: number = 128): Promise<strin
                 let width = img.width;
                 let height = img.height;
                 
-                // 如果图片太大，按比例缩小
-                const maxDimension = 1024; // 最大尺寸
+                // If the image is too large, scale it proportionally
+                const maxDimension = 1024; // Maximum dimension
                 if (width > maxDimension || height > maxDimension) {
                     if (width > height) {
                         height = Math.round((height * maxDimension) / width);
@@ -38,11 +38,11 @@ async function compressImage(file: File, maxSizeKB: number = 128): Promise<strin
                 const ctx = canvas.getContext('2d');
                 ctx?.drawImage(img, 0, 0, width, height);
 
-                // 转换为 base64
+                // Convert to base64
                 let quality = 0.9;
                 let base64 = canvas.toDataURL('image/jpeg', quality);
 
-                // 如果还是太大，继续压缩
+                // If still too large, continue compressing
                 while (base64.length > maxSizeKB * 1024 && quality > 0.1) {
                     quality -= 0.1;
                     base64 = canvas.toDataURL('image/jpeg', quality);
@@ -70,19 +70,19 @@ export default function RegisterPage() {
         const file = e.target.files?.[0];
         if (file) {
             try {
-                // 检查文件类型
+                // Check file type
                 if (!file.type.startsWith('image/')) {
                     toast.error('Please select an image file');
                     return;
                 }
 
-                // 检查文件大小
+                // Check file size
                 if (file.size > 5 * 1024 * 1024) { // 5MB
                     toast.error('Image size should be less than 5MB');
                     return;
                 }
 
-                // 压缩图片并转换为 base64
+                // Compress image and convert to base64
                 const base64 = await compressImage(file);
                 setAvatar(base64);
                 toast.success('Avatar uploaded successfully');
@@ -123,7 +123,7 @@ export default function RegisterPage() {
                 return;
             }
 
-            // 注册成功后跳转到登录页
+            // Redirect to login page after successful registration
             toast.success('Registration successful! Please log in.');
             router.push('/login?registered=true');
         } catch (err) {
@@ -232,4 +232,4 @@ export default function RegisterPage() {
             </div>
         </main>
     );
-} 
+}

@@ -11,7 +11,7 @@ if (!process.env.MONGODB_URI) {
 }
 
 declare global {
-  // 让开发环境热更新时避免多次实例化
+  // Avoid multiple instantiations during development hot-reloading
   var _mongoClientPromise: Promise<MongoClient>;
 }
 

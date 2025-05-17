@@ -116,7 +116,7 @@ You’ll get a live URL like https://smartledger-yourname.vercel.app.
 
 ---
 
-### 💻 Run Locally 
+### 💻 Run In Your sever 
 1. **Clone the repository** 
 
 

@@ -44,7 +44,7 @@ export default function AdminPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const router = useRouter();
 
-  // 获取所有用户
+  // get all users
   const fetchUsers = async () => {
     setLoading(true);
     const res = await fetch("/api/admin/users");
@@ -63,7 +63,7 @@ export default function AdminPage() {
     fetchUsers();
   }, []);
 
-  // 编辑用户
+  // Edit user
   const handleEdit = (user: any) => {
     setEditUser(user);
     setEditForm({
@@ -92,7 +92,7 @@ export default function AdminPage() {
     }
   };
 
-  // 删除用户
+  // Delete user
   const handleDelete = async (user: any) => {
     if (!window.confirm(`Delete user ${user.name}?`)) return;
     const res = await fetch("/api/admin/users", {
@@ -108,7 +108,7 @@ export default function AdminPage() {
     }
   };
 
-  // 头像上传
+  // Change avatar
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -121,7 +121,7 @@ export default function AdminPage() {
     reader.readAsDataURL(file);
   };
 
-  // tag 批量添加
+  // tag 
   const handleAddTags = () => {
     const names = tagAddInput.split(',').map(s => s.trim()).filter(Boolean);
     if (names.length) {
@@ -140,7 +140,7 @@ export default function AdminPage() {
     setTagAddInput('');
     setTagAddOpen(false);
   };
-  // location 批量添加
+  // location 
   const handleAddLocations = () => {
     const names = locationAddInput.split(',').map(s => s.trim()).filter(Boolean);
     if (names.length) {
@@ -203,7 +203,7 @@ export default function AdminPage() {
             <DialogTitle>Edit User</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-            {/* 头像 */}
+            {/* Avatar */}
             <Label>Avatar</Label>
             <div className="flex items-center gap-4">
               <div className="relative w-16 h-16 rounded-full overflow-hidden cursor-pointer group border" onClick={() => fileInputRef.current?.click()}>
@@ -218,10 +218,10 @@ export default function AdminPage() {
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><Upload className="w-4 h-4 text-white" /></div>
               </div>
             </div>
-            {/* 名字 */}
+            {/* Name */}
             <Label>Name</Label>
             <Input value={editForm.name || ''} onChange={e => setEditForm((f: any) => ({ ...f, name: e.target.value }))} placeholder="Name" />
-            {/* tag 管理 */}
+            {/* Tag management */}
             <Label>Tags</Label>
             <div className="flex flex-wrap gap-2 mb-2">
               {(editForm.tags || []).map((tag: any, idx: number) => (
@@ -242,7 +242,7 @@ export default function AdminPage() {
                 <Button size="sm" onClick={handleAddTags} disabled={!tagAddInput.trim()}>Add Tag(s)</Button>
               </div>
             )}
-            {/* location 管理 */}
+            {/* Location management */}
             <Label>Locations</Label>
             <div className="flex flex-wrap gap-2 mb-2">
               {(editForm.locations || []).map((loc: any, idx: number) => (
@@ -273,4 +273,4 @@ export default function AdminPage() {
       </Dialog>
     </div>
   );
-} 
+}

@@ -56,7 +56,7 @@ const TAG_COLORS = [
     { name: 'Gray', value: '#6b7280' },
 ]
 
-// 添加常用货币列表
+// Add common currency list
 const CURRENCIES = [
     { code: 'USD', symbol: '$', name: 'US Dollar' },
     { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
@@ -64,13 +64,13 @@ const CURRENCIES = [
     { code: 'EUR', symbol: '€', name: 'Euro' },
 ]
 
-// 添加语言列表
+// Add language list
 const LANGUAGES = [
     { code: 'en', name: 'English', nativeName: 'English' },
     { code: 'zh', name: 'Chinese', nativeName: '中文' },
 ]
 
-// 图片压缩函数
+// Image compression function
 async function compressImage(file: File, maxSizeKB: number = 128): Promise<string> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -83,8 +83,8 @@ async function compressImage(file: File, maxSizeKB: number = 128): Promise<strin
                 let width = img.width;
                 let height = img.height;
 
-                // 如果图片太大，按比例缩小
-                const maxDimension = 1024; // 最大尺寸
+                // If the image is too large, scale it proportionally
+                const maxDimension = 1024; // Maximum dimension
                 if (width > maxDimension || height > maxDimension) {
                     if (width > height) {
                         height = Math.round((height * maxDimension) / width);
@@ -100,11 +100,11 @@ async function compressImage(file: File, maxSizeKB: number = 128): Promise<strin
                 const ctx = canvas.getContext('2d');
                 ctx?.drawImage(img, 0, 0, width, height);
 
-                // 转换为 base64
+                // Convert to base64
                 let quality = 0.9;
                 let base64 = canvas.toDataURL('image/jpeg', quality);
 
-                // 如果还是太大，继续压缩
+                // If still too large, continue compressing
                 while (base64.length > maxSizeKB * 1024 && quality > 0.1) {
                     quality -= 0.1;
                     base64 = canvas.toDataURL('image/jpeg', quality);

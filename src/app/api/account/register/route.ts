@@ -2,41 +2,39 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { UserModel, IUserTag } from '@/models/user'; // Import UserModel
 import { connectMongoose } from '@/lib/db'; // Import connectMongoose
-import { sub_expense_categories } from '@/lib/constants';
-import { Schema } from 'mongoose';
 
-// 定义初始标签及其颜色
+// Define initial tags and their colors
 const initialTags: Omit<IUserTag, '_id'>[] = [
-    // 餐饮相关
-    { name: 'Breakfast', color: '#E63946', description: '早餐支出' },
-    { name: 'Lunch', color: '#D62828', description: '午餐支出' },
-    { name: 'Dinner', color: '#C1121F', description: '晚餐支出' },
-    { name: 'Snacks', color: '#780000', description: '零食饮料' },
-    { name: 'Groceries', color: '#9D0208', description: '生鲜食品' },
+    // Food-related
+    { name: 'Breakfast', color: '#E63946', description: 'Breakfast expenses' },
+    { name: 'Lunch', color: '#D62828', description: 'Lunch expenses' },
+    { name: 'Dinner', color: '#C1121F', description: 'Dinner expenses' },
+    { name: 'Snacks', color: '#780000', description: 'Snacks and drinks' },
+    { name: 'Groceries', color: '#9D0208', description: 'Fresh food' },
     
-    // 交通相关
-    { name: 'Taxi', color: '#1A535C', description: '打车费用' },
-    { name: 'Public', color: '#2A9D8F', description: '公共交通' },
-    { name: 'Parking', color: '#006D77', description: '停车费用' },
-    { name: 'Fuel', color: '#073B4C', description: '加油费用' },
+    // Transportation-related
+    { name: 'Taxi', color: '#1A535C', description: 'Taxi expenses' },
+    { name: 'Public', color: '#2A9D8F', description: 'Public transportation' },
+    { name: 'Parking', color: '#006D77', description: 'Parking fees' },
+    { name: 'Fuel', color: '#073B4C', description: 'Fuel expenses' },
     
-    // 购物相关
-    { name: 'Clothing', color: '#7209B7', description: '服饰鞋包' },
-    { name: 'Electronics', color: '#3A0CA3', description: '数码电器' },
-    { name: 'Beauty', color: '#4CC9F0', description: '个护美妆' },
-    { name: 'Gifts', color: '#4361EE', description: '礼物礼品' },
+    // Shopping-related
+    { name: 'Clothing', color: '#7209B7', description: 'Clothing and accessories' },
+    { name: 'Electronics', color: '#3A0CA3', description: 'Electronics and appliances' },
+    { name: 'Beauty', color: '#4CC9F0', description: 'Personal care and beauty' },
+    { name: 'Gifts', color: '#4361EE', description: 'Gifts and presents' },
     
-    // 生活服务
-    { name: 'Rent', color: '#2B2D42', description: '房租水电' },
-    { name: 'Medical', color: '#8D0801', description: '医疗保健' },
-    { name: 'Education', color: '#003049', description: '教育培训' },
-    { name: 'Entertainment', color: '#D90429', description: '休闲娱乐' },
+    // Life services
+    { name: 'Rent', color: '#2B2D42', description: 'Rent and utilities' },
+    { name: 'Medical', color: '#8D0801', description: 'Medical and healthcare' },
+    { name: 'Education', color: '#003049', description: 'Education and training' },
+    { name: 'Entertainment', color: '#D90429', description: 'Leisure and entertainment' },
     
-    // 其他
-    { name: 'Travel', color: '#1B4332', description: '旅游度假' },
-    { name: 'Social', color: '#2D6A4F', description: '人情往来' },
-    { name: 'Pet', color: '#40916C', description: '宠物相关' },
-    { name: 'Other', color: '#495057', description: '其他支出' }
+    // Others
+    { name: 'Travel', color: '#1B4332', description: 'Travel and vacation' },
+    { name: 'Social', color: '#2D6A4F', description: 'Social interactions' },
+    { name: 'Pet', color: '#40916C', description: 'Pet-related expenses' },
+    { name: 'Other', color: '#495057', description: 'Other expenses' }
 ];
 
 export async function POST(request: NextRequest) {
@@ -45,7 +43,7 @@ export async function POST(request: NextRequest) {
 
         const { email, password, name, inviteCode, avatar } = await request.json();
 
-        // 验证必填字段
+        // Validate required fields
         if (!email || !password || !name || !inviteCode) {
             return NextResponse.json(
                 { message: 'All fields are required' },
@@ -53,7 +51,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 验证邀请码
+        // Validate invite code
         if (inviteCode !== process.env.INVITE_CODE) {
             return NextResponse.json(
                 { message: 'Invalid invite code' },
@@ -61,7 +59,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 只检查邮箱是否已存在
+        // Check if email already exists
         const existingUser = await UserModel.findOne({ email }); // Use UserModel
         if (existingUser) {
             return NextResponse.json(
@@ -70,10 +68,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 加密密码
+        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        // 创建新用户 - Mongoose 会自动处理 _id, createdAt, updatedAt
+        // Create new user - Mongoose will handle _id, createdAt, updatedAt automatically
         const newUserDoc = new UserModel({
             email,
             name,

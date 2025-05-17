@@ -5,13 +5,13 @@ import React, { useState } from "react"
 import FormattedNumber from '@/components/FormattedNumber'
 
 export interface NumericKeypadProps {
-  /** 初始值，作为字符串 */
+  /** Initial value as a string */
   initialValue?: string
-  /** 可选货币符号数组，默认 ["$"] */
+  /** Optional array of currency symbols, default is ["$"] */
   currencySymbols?: string
-  /** 占位符，value 为空时显示 */
+  /** Placeholder displayed when value is empty */
   placeholder?: string
-  /** 值变化时回调，传递当前字符串 */
+  /** Callback when value changes, passing the current string */
   onChange?: (value: string) => void
 }
 
@@ -29,20 +29,20 @@ export default function NumericKeypad({
   }
 
   const handleKey = (key: string) => {
-    // 处理小数点
+    // Handle decimal point
     if (key === ".") {
-      if (value.includes(".")) return      // 已有小数点就忽略
+      if (value.includes(".")) return      // Ignore if a decimal point already exists
       const next = value === "" ? "0." : value + "."
       return updateValue(next)
     }
 
-    // 处理数字键
-    // 如果当前值是纯 "0"（且还没小数），再输入数字就直接覆盖
+    // Handle numeric keys
+    // If the current value is purely "0" (and no decimal yet), overwrite with the new number
     if (!value.includes(".") && value === "0") {
       return updateValue(key)
     }
 
-    // 如果已有小数点且小数部分长度已 >=2，就不再添加
+    // If a decimal point exists and the decimal part length is already >=2, do not add more
     if (value.includes(".")) {
       const [, dec = ""] = value.split(".")
       if (dec.length >= 2) {
@@ -50,7 +50,7 @@ export default function NumericKeypad({
       }
     }
 
-    // 其它情况直接累加
+    // In other cases, just append the number
     updateValue(value + key)
   }
 
@@ -65,13 +65,13 @@ export default function NumericKeypad({
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {/* 显示框 */}
+      {/* Display box */}
       <div className="flex items-center justify-center w-64 h-16 text-4xl font-bold text-gray-700 rounded">
         {currencySymbols[0]}
         {value === "0" ? placeholder : <FormattedNumber value={value}/>}
       </div>
 
-      {/* 键盘 */}
+      {/* Keypad */}
       <div className="grid grid-cols-4 gap-2">
         {["7", "8", "9"].map((n) => (
           <button

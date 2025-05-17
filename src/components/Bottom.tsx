@@ -1,8 +1,7 @@
 'use client';
 
-import { ChevronDown, MoreHorizontal, Camera, Plus, Mic } from 'lucide-react';
-import { Skeleton } from "@/components/ui/skeleton"
-import { useCallback } from 'react';
+import { Camera, Plus, Mic } from 'lucide-react';
+
 
 type BottomProps = {
     onPicture?: () => void;
