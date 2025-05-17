@@ -4,8 +4,8 @@ import { Transaction } from '@/models/transaction';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/utils/authOptions";
 import { main_income_categories, main_expense_categories, sub_expense_categories } from '@/lib/constants';
-// 音频转写服务的URL (same as in transcribe API)
-const TRANSCRIPTION_SERVICE_URL = 'https://whisper.12080123.site/transcribe_sync';
+
+const TRANSCRIPTION_SERVICE_URL =  process.env.TRANSCRIPTION_URL || 'https://api.example.com/transcribe';
 
 export async function POST(req: NextRequest) {
     try {
@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
         let transcriptionText;
         try {
             // Forward request to audio transcription service
+            
             const transcriptionResponse = await fetch(TRANSCRIPTION_SERVICE_URL, {
                 method: 'POST',
                 body: formData,
@@ -111,7 +112,7 @@ export async function POST(req: NextRequest) {
                     note: string,                 // extra details, use objective, factual description instead, in user's language
                     currency: string,             //  currency mentions in text, default to "${userCurrency}"
                     location?: string,             // optional, location of transaction
-                    emoji: string,                 // one emoji representing the transaction
+                    emoji: string,                 // ONE emoji representing the transaction
                     tags: string[]               // relevant tags from user's tag list
                 }
 

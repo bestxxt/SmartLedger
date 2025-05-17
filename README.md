@@ -40,6 +40,54 @@ All components are **open-source and self-manageable** . No vendor lock-in, no h
 
 ## 🚀 Quickstart 
 
+### 🗣️ Install Whisper Transcription Server (Required)
+Smart Ledger uses a separate FastAPI-based Whisper server (powered by faster-whisper) to handle speech-to-text transcription.
+
+**Requirements**
+
+- Python 3.8+
+ 
+- `ffmpeg` installed (for `pydub` to work)
+ 
+- A machine with CPU or CUDA-compatible GPU
+
+**Install dependencies**
+
+Go to `/whisper`
+```bash
+pip install -r requirements.txt
+```
+**Prepare environment variables**
+
+Create a `.env` file in the root of the whisper server directory.
+
+
+```bash
+cp .env.example .env
+```
+
+**Run the server**
+
+
+
+```bash
+python whisper_server.py
+```
+
+Or with `uvicorn`:
+
+
+```bash
+uvicorn whisper_server:app --host 0.0.0.0 --port 8000
+```
+
+For testing purposes, I am providing my Whisper server here. Please do not abuse it. **It's unstable and could be shutdown anytime.**
+
+URL: https://whisper.12080123.site/transcribe_sync
+API_KEY: 52Wj4mAPw4M6xTW4s6mI
+
+
+---
 ### ☁️ Run in Vercel
 1. Import the GitHub repo into Vercel
 2. Configure Environment Variables 
@@ -53,8 +101,9 @@ In the Vercel dashboard, go to your project's Settings > Environment Variables a
 | `NEXTAUTH_SECRET`       | A random secret string                                  |
 | `GEMINI_API_KEY`        | Your Gemini API key                                     |
 | `GEMINI_MODEL`          | e.g. `gemini-2.0-flash`                                 |
-| `INVITE_CODE`           | Optional invite code                                    |
-| `TRANSCRIPTION_API_KEY` | Your STT service key                                    |
+| `INVITE_CODE`           | Optional invite code, used for register                 |
+| `TRANSCRIPTION_URL`     | Your Whisper server URL                                 |
+| `TRANSCRIPTION_API_KEY` | Your Whisper service                                    |
 | `EXCHANGE_RATE_API_KEY` | Currency exchange API key                               |
 
 > You can get a free 128MB database from the MongoDB website.
@@ -64,6 +113,8 @@ Vercel will build and deploy your app automatically. It may take 1–2 minutes.
 
 4. Done!
 You’ll get a live URL like https://smartledger-yourname.vercel.app.
+
+---
 
 ### 💻 Run Locally 
 1. **Clone the repository** 
@@ -98,11 +149,11 @@ Then fill in the required values like **MongoDB URI, API keys, etc**.
 ```bash
 npm run dev
 ```
----
+
 ### **(Optional) Run in background using PM2** 
 [PM2]()  is a production-grade process manager for Node.js applications. It keeps your app running in the background, automatically restarts it on crash or reboot, and makes it easy to manage logs and processes.
 
-#### 🔧 Step 1: Install PM2 globally 
+**Install PM2 globally**
 
 
 ```bash
@@ -110,8 +161,7 @@ npm install -g pm2
 ```
 
 
-#### 🚀 Step 2: Build the Next.js app (if not already done) 
-
+**Build the Next.js app (if not already done)**
 
 If you're deploying the production build:
 
@@ -119,10 +169,7 @@ If you're deploying the production build:
 npm run build
 ```
 
-
-#### ▶️ Step 3: Start the app with PM2 
-
-
+**Start the app with PM2**
 
 ```bash
 pm2 start "npm run start" --name smart-ledger
@@ -134,7 +181,7 @@ pm2 start "npm run start" --name smart-ledger
 - `--name smart-ledger` assigns a name to your process for easy management.
 
 
-#### 💾 Step 4: Save the PM2 process list 
+**Save the PM2 process list**
 
 
 This ensures your app will restart automatically on system reboot.
@@ -146,7 +193,7 @@ pm2 save
 ```
 
 
-#### 🔁 (Optional) Set up PM2 to start on boot 
+**🔁 (Optional) Set up PM2 to start on boot**
 
 
 
@@ -156,9 +203,7 @@ pm2 startup
 
 Follow the printed instructions (it will give you a command to run, e.g. `sudo env PATH=... pm2 startup systemd -u youruser --hp /home/youruser`).
 
-#### 📋 Step 5: Monitor or manage the process 
-
-
+**Monitor or manage the process**
 
 ```bash
 pm2 list              # View all running apps
