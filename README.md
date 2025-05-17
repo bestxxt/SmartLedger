@@ -44,9 +44,10 @@ All components are **open-source and self-manageable** . No vendor lock-in, no h
 1. Import the GitHub repo into Vercel
 2. Configure Environment Variables 
 In the Vercel dashboard, go to your project's Settings > Environment Variables and add the following (based on .env.example)
+
 | Key                     | Description                                             |
 | ----------------------- | ------------------------------------------------------- |
-| `MONGODB_URI`           | Your MongoDB connection string                          |
+| `MONGODB_URI`           | Your MongoDB connection string.                         |
 | `MONGODB_DB`            | The database name                                       |
 | `NEXTAUTH_URL`          | Your Vercel domain (e.g. `https://your-app.vercel.app`) |
 | `NEXTAUTH_SECRET`       | A random secret string                                  |
@@ -56,6 +57,13 @@ In the Vercel dashboard, go to your project's Settings > Environment Variables a
 | `TRANSCRIPTION_API_KEY` | Your STT service key                                    |
 | `EXCHANGE_RATE_API_KEY` | Currency exchange API key                               |
 
+> You can get a free 128MB database from the MongoDB website.
+
+3. Click "Deploy"
+Vercel will build and deploy your app automatically. It may take 1–2 minutes.
+
+4. Done!
+You’ll get a live URL like https://smartledger-yourname.vercel.app.
 
 ### 💻 Run Locally 
 1. **Clone the repository** 
