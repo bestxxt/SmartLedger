@@ -14,7 +14,7 @@ export default function Head({ loading, user, onMenuClick }: HeadProps) {
     if (loading || !user) {
         return (
             <div className="flex items-center justify-between py-2 px-4 w-full bg-white">
-                <Skeleton className="h-14 w-14 rounded-full bg-gray-200" />
+                <Skeleton className="h-14 w-14 rounded-full bg-gray-200 ml-2" />
                 <div className="flex-1 flex flex-col ml-3">
                     <Skeleton className="h-5 w-32 mb-1 rounded bg-gray-200" />
                     <Skeleton className="h-4 w-24 rounded bg-gray-200" />
@@ -29,7 +29,7 @@ export default function Head({ loading, user, onMenuClick }: HeadProps) {
             <img
                 src={user.avatar}
                 alt={`${user.name}'s Avatar`}
-                className="w-14 h-14 rounded-full object-cover"
+                className="w-14 h-14 rounded-full object-cover ml-2"
             />
             <div className="flex-1 flex flex-col ml-3">
                 <div className="flex items-center gap-1">

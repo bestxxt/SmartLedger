@@ -336,146 +336,156 @@ export default function Home() {
 
                 {/* Filter Dialog */}
                 <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                    <DialogContent className="overflow-y-auto max-h-[85dvh]">
+                    <DialogContent className="overflow-y-auto max-h-[85dvh] flex flex-col">
                         <DialogHeader>
                             <DialogTitle>Filter Transactions</DialogTitle>
                         </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Type</Label>
-                                    <Select
-                                        value={filters.type || 'all'}
-                                        onValueChange={(value) => handleFilterChange('type', value)}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All</SelectItem>
-                                            <SelectItem value="income">Income</SelectItem>
-                                            <SelectItem value="expense">Expense</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Category</Label>
-                                    <Select
-                                        value={filters.category || 'all'}
-                                        onValueChange={(value) => handleFilterChange('category', value)}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select category" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All</SelectItem>
-                                            {filters.type === 'income' ? (
-                                                main_income_categories.map((cat) => (
-                                                    <SelectItem key={cat} value={cat}>
-                                                        {cat}
-                                                    </SelectItem>
-                                                ))
-                                            ) : (
-                                                main_expense_categories.map((cat) => (
-                                                    <SelectItem key={cat} value={cat}>
-                                                        {cat}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Min Amount</Label>
-                                    <Input
-                                        type="number"
-                                        value={filters.minAmount}
-                                        onChange={(e) => handleFilterChange('minAmount', e.target.value)}
-                                        placeholder="0"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Max Amount</Label>
-                                    <Input
-                                        type="number"
-                                        value={filters.maxAmount}
-                                        onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
-                                        placeholder="0"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2 ">
-                                    <Label>From Date</Label>
-                                    <Input
-                                        type="date"
-                                        value={filters.dateFrom}
-                                        onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>To Date</Label>
-                                    <Input
-                                        className="w-full"
-                                        type="date"
-                                        value={filters.dateTo}
-                                        onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Location</Label>
-                                <Select
-                                    value={filters.location || 'all'}
-                                    onValueChange={(value) => handleFilterChange('location', value)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select location" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All</SelectItem>
-                                        {user?.locations.map((loc) => (
-                                            <SelectItem key={loc.id} value={loc.name}>
-                                                {loc.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Tags</Label>
-                                <div className="flex flex-wrap gap-2">
-                                    {user?.tags.map((tag) => (
-                                        <Button
-                                            key={tag.name}
-                                            variant={filters.tags.includes(tag.name) ? "default" : "outline"}
-                                            size="sm"
-                                            onClick={() => {
-                                                const newTags = filters.tags.includes(tag.name)
-                                                    ? filters.tags.filter(t => t !== tag.name)
-                                                    : [...filters.tags, tag.name];
-                                                handleFilterChange('tags', newTags);
-                                            }}
+                        <div className="flex-1 overflow-y-auto">
+                            <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Type</Label>
+                                        <Select
+                                            value={filters.type || 'all'}
+                                            onValueChange={(value) => handleFilterChange('type', value)}
                                         >
-                                            {tag.name}
-                                        </Button>
-                                    ))}
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All</SelectItem>
+                                                <SelectItem value="income">Income</SelectItem>
+                                                <SelectItem value="expense">Expense</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Category</Label>
+                                        <Select
+                                            value={filters.category || 'all'}
+                                            onValueChange={(value) => handleFilterChange('category', value)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select category" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All</SelectItem>
+                                                {filters.type === 'income' ? (
+                                                    main_income_categories.map((cat) => (
+                                                        <SelectItem key={cat} value={cat}>
+                                                            {cat}
+                                                        </SelectItem>
+                                                    ))
+                                                ) : (
+                                                    main_expense_categories.map((cat) => (
+                                                        <SelectItem key={cat} value={cat}>
+                                                            {cat}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Min Amount</Label>
+                                        <Input
+                                            type="number"
+                                            value={filters.minAmount}
+                                            onChange={(e) => handleFilterChange('minAmount', e.target.value)}
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Max Amount</Label>
+                                        <Input
+                                            type="number"
+                                            value={filters.maxAmount}
+                                            onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
+                                            placeholder="0"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>From Date</Label>
+                                        <Input
+                                            type="date"
+                                            value={filters.dateFrom}
+                                            onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>To Date</Label>
+                                        <Input
+                                            type="date"
+                                            value={filters.dateTo}
+                                            onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Location</Label>
+                                    <Select
+                                        value={filters.location || 'all'}
+                                        onValueChange={(value) => handleFilterChange('location', value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select location" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All</SelectItem>
+                                            {user?.locations.map((loc) => (
+                                                <SelectItem key={loc.id} value={loc.name}>
+                                                    {loc.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Tags</Label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {user?.tags.map((tag) => (
+                                            <Button
+                                                key={tag.name}
+                                                variant={filters.tags.includes(tag.name) ? "default" : "outline"}
+                                                size="sm"
+                                                onClick={() => {
+                                                    const newTags = filters.tags.includes(tag.name)
+                                                        ? filters.tags.filter(t => t !== tag.name)
+                                                        : [...filters.tags, tag.name];
+                                                    handleFilterChange('tags', newTags);
+                                                }}
+                                            >
+                                                {tag.name}
+                                            </Button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={resetFilters}>
-                                Reset
-                            </Button>
-                            <Button onClick={applyFilters}>
-                                Apply Filters
-                            </Button>
+                        <DialogFooter className="p-0 mt-4 border-t pt-4">
+                            <div className="flex justify-evenly space-x-2">
+                                <Button
+                                    variant="outline"
+                                    className="w-[45%] h-11"
+                                    onClick={resetFilters}
+                                >
+                                    Reset
+                                </Button>
+                                <Button
+                                    className="w-[45%] h-11"
+                                    onClick={applyFilters}
+                                >
+                                    Apply Filters
+                                </Button>
+                            </div>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
