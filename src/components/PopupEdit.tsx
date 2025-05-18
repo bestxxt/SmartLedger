@@ -398,7 +398,7 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
     };
 
     return (
-        <Drawer open={open} onOpenChange={onOpenChange}>
+        <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
             <DrawerContent className="p-6 w-full h-full">
                 <DrawerHeader className="pt-0">
                     <DrawerTitle className="flex justify-center gap-2">
@@ -406,7 +406,7 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                         {isEditMode ? 'Edit Transaction' : 'Add Transaction'}
                     </DrawerTitle>
                 </DrawerHeader>
-                <div className="flex flex-col gap-4 w-full h-full overflow-y-scroll">
+                <div className="flex flex-col gap-4 w-full overflow-y-scroll">
                     <div className="space-y-6">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Date & Time & Income / Expense

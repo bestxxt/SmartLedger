@@ -547,7 +547,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                                         >
                                             <span className="whitespace-nowrap px-2">{tag.name}</span>
                                         </Button>
-                                        <Drawer open={openTagId === tag.id} onOpenChange={(open) => !open && setOpenTagId(null)}>
+                                        <Drawer open={openTagId === tag.id} onOpenChange={(open) => !open && setOpenTagId(null)} repositionInputs={false}>
                                             <DrawerContent>
                                                 <DrawerHeader>
                                                     <DrawerTitle>Edit Tag</DrawerTitle>
@@ -611,7 +611,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                                 >
                                     <Plus className="h-4 w-4" />
                                 </Button>
-                                <Drawer open={openTagId === 'new'} onOpenChange={(open) => !open && setOpenTagId(null)}>
+                                <Drawer open={openTagId === 'new'} onOpenChange={(open) => !open && setOpenTagId(null)} repositionInputs={false}>
                                     <DrawerContent>
                                         <DrawerHeader>
                                             <DrawerTitle>Add New Tag</DrawerTitle>
@@ -683,7 +683,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                                         >
                                             <span className="whitespace-nowrap px-2">{location.name}</span>
                                         </Button>
-                                        <Drawer open={openLocationId === location.id} onOpenChange={(open) => !open && setOpenLocationId(null)}>
+                                        <Drawer open={openLocationId === location.id} onOpenChange={(open) => !open && setOpenLocationId(null)} repositionInputs={false}>
                                             <DrawerContent>
                                                 <DrawerHeader>
                                                     <DrawerTitle>Edit Location</DrawerTitle>
@@ -727,7 +727,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                                 >
                                     <Plus className="h-4 w-4" />
                                 </Button>
-                                <Drawer open={openLocationId === 'new'} onOpenChange={(open) => !open && setOpenLocationId(null)}>
+                                <Drawer open={openLocationId === 'new'} onOpenChange={(open) => !open && setOpenLocationId(null)} repositionInputs={false}>
                                     <DrawerContent>
                                         <DrawerHeader>
                                             <DrawerTitle>Add New Location</DrawerTitle>
