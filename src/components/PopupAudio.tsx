@@ -16,16 +16,13 @@ import { cn } from "@/lib/utils"
 
 import { Transaction, EditableTransaction } from '@/models/transaction';
 import { ConfirmBillCard } from './BillCard';
-import { User } from '@/models/user';
+import { useTransactionStore } from '@/store/useTransactionStore';
+import { useUserStore } from '@/store/useUserStore';
 
 export interface PopupAudioProps {
-    /** called to add a transaction to parent state */
-    onSubmit?: (tx: EditableTransaction) => Promise<void>;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
-    user?: User;
 }
-
 
 /**
  * Response type for transaction transcription
@@ -50,9 +47,9 @@ export type TransactionResponse = {
     };
 };
 
-export default function PopupAudio({ onSubmit, open, onOpenChange, user }: PopupAudioProps) {
-    const [recordState, setRecordState] = useState<'idle' | 'recording' | 'recorded' | 'uploading' | 'finished'>('idle');
-    const [response, setResponse] = useState<any>("null");
+export default function PopupAudio({ open, onOpenChange }: PopupAudioProps) {
+    const { user } = useUserStore();
+    const [recordState, setRecordState] = useState<'idle' | 'recording' | 'uploading' | 'finished'>('idle');
     const [volume, setVolume] = useState<number>(0);
     const [buttonEnabled, setButtonEnabled] = useState(true);
     const [transactionCards, setTransactionCards] = useState<EditableTransaction[]>([]);
@@ -74,7 +71,6 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
     // reset state when the component unmounts
     const resetState = () => {
         setRecordState('idle');
-        setResponse('null');
         setTransactionCards([]);
         setVolume(0);
         startTime.current = 0;
@@ -116,7 +112,7 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
     const handleRecordStateChange = async () => {
         switch (recordState) {
             case 'idle':
-                // 1. idle -> Start recording
+                // Start recording
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     streamRef.current = stream;
@@ -141,16 +137,25 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
                 }
                 break;
             case 'recording':
-                // 2. recording -> Stop recording and release stream
+                // Stop recording and immediately start uploading
+                setButtonEnabled(false);
+                setRecordState('uploading');
+                
+                // Stop recording and release stream
                 mediaRecorderRef.current?.stop();
                 streamRef.current?.getTracks().forEach((track) => track.stop());
                 cancelAnimationFrame(rafIdRef.current);
-                setRecordState('recorded');
-                break;
-            case 'recorded':
-                // 3. recorded -> Upload to backend
-                setButtonEnabled(false);
-                setRecordState('uploading');
+
+                // Wait for the last chunk of audio data
+                await new Promise<void>((resolve) => {
+                    if (mediaRecorderRef.current) {
+                        mediaRecorderRef.current.onstop = () => resolve();
+                    } else {
+                        resolve();
+                    }
+                });
+
+                // Upload the recording
                 const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
                 const file = new File([blob], 'recording.webm', { type: blob.type });
                 const form = new FormData();
@@ -158,14 +163,14 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
                 form.append('localTime', new Date().toISOString());
                 form.append('userCurrency', user?.currency || 'USD');
                 form.append('userLanguage', user?.language || 'en');
-                form.append('userTags', JSON.stringify(user?.tags || []));
-                form.append('userLocations', JSON.stringify(user?.locations || []));
+                form.append('userTags', JSON.stringify(user?.tags.map((tag) => tag.name) || []));
+                form.append('userLocations', JSON.stringify(user?.locations.map((location) => location.name) || []));
+                
                 try {
                     const res = await fetch('/api/app/ai/audioToBill', {
                         method: 'POST',
                         body: form,
                     });
-                    console.log(res)
 
                     if (!res.ok) {
                         throw new Error(`API error: ${res.statusText}`);
@@ -173,9 +178,9 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
 
                     const data: TransactionResponse = await res.json();
                     if (!data.result.found) {
-                        setResponse('No transaction found');
                         return;
                     }
+                    
                     const transactions = Array.isArray(data.result.transaction)
                         ? data.result.transaction
                         : [data.result.transaction];
@@ -195,18 +200,15 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
 
                     setTransactionCards(transactionCards);
                     console.log('Transactions:', transactions);
-
-                    // setResponse(data.segments.map((segment) => segment.text).join('\n'));
                 } catch (err) {
                     console.error('Upload failed', err);
-                    setResponse('Upload failed');
                 } finally {
                     setButtonEnabled(true);
                     setRecordState('finished');
                 }
                 break;
             case 'finished':
-                // 4. finished -> Reset state
+                // Reset state
                 resetState();
                 break;
         }
@@ -250,12 +252,12 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
                             "text-center transition-color duration-200",
                             recordState === 'idle' ? "text-gray-500" :
                                 recordState === 'recording' ? "text-red-500" :
-                                    recordState === 'recorded' ? "text-blue-500" :
+                                    recordState === 'uploading' ? "text-blue-500" :
                                         recordState === 'finished' ? "text-green-500" : ""
                         )}>
                             {recordState === 'idle' ? "Tap the button below to start." :
                                 recordState === 'recording' ? "Recording... Speak now!" :
-                                    recordState === 'recorded' ? "Preparing to upload..." :
+                                    recordState === 'uploading' ? "Processing your recording..." :
                                         recordState === 'finished' ? "Identified transaction" : ""}
                         </p>
                     </DrawerTitle>
@@ -266,7 +268,7 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
                         {recordState !== 'finished' && (
                             <div className='h-[50%] w-full flex flex-col items-center justify-center'>
                                 <div className="fixed top-26 text-gray-500">
-                                    {(recordState === 'recording' || recordState === 'recorded') && (
+                                    {(recordState === 'recording' || recordState === 'uploading') && (
                                         <p
                                             className={cn(
                                                 "text-3xl font-bold transition-colors duration-500",
@@ -308,7 +310,7 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
                                                 "rounded-full shadow-lg flex items-center justify-center transition-all duration-300 ease-in-out",
                                                 recordState === 'idle' ? "bg-gradient-to-r from-indigo-300 to-blue-300 opacity-60" :
                                                 recordState === 'recording' ? "bg-gradient-to-r from-indigo-500 to-violet-500 opacity-80" :
-                                                recordState === 'recorded' ? "bg-gradient-to-r from-blue-400 to-indigo-400 opacity-70" : ""
+                                                recordState === 'uploading' ? "bg-gradient-to-r from-blue-400 to-indigo-400 opacity-70" : ""
                                             )}
                                             style={{
                                                 width: `${circleSize}px`,
@@ -331,9 +333,6 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
                                         <ConfirmBillCard
                                             key={index}
                                             transaction={transactionCard}
-                                            onConfirm={async (tx) => {
-                                                if (onSubmit) await onSubmit(tx);
-                                            }}
                                             onSuccess={() => handleCardRemoval(index)}
                                             onCancel={() => handleCardRemoval(index)}
                                         />
@@ -359,9 +358,9 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
                         {/* Cancel button */}
                         <button
                             onClick={() => onOpenChange?.(false)}
-                            className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white text-black flex items-center justify-center border-4 border-black"
+                            className="w-24 h-24 rounded-full bg-white text-black flex items-center justify-center border-4 border-black"
                         >
-                            <X size={32} className="md:size-48" />
+                            <X size={32}/>
                         </button>
 
                         {/* Action button - changes based on recording state */}
@@ -369,7 +368,7 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
                             disabled={!buttonEnabled}
                             onClick={handleRecordStateChange}
                             className={cn(
-                                'w-24 h-24 md:w-32 md:h-32 rounded-full text-white flex items-center justify-center transition-all duration-300 ease-in-out transform',
+                                'w-24 h-24 rounded-full text-white flex items-center justify-center transition-all duration-300 ease-in-out transform',
                                 !buttonEnabled ? 'bg-gray-400 scale-100' :
                                     recordState === 'idle' ? 'bg-teal-500 scale-100' :
                                         recordState === 'recording' ? 'bg-red-500 scale-110' : 'bg-black scale-100'
@@ -377,7 +376,6 @@ export default function PopupAudio({ onSubmit, open, onOpenChange, user }: Popup
                         >
                             {recordState === 'idle' && <Mic size={32} />}
                             {recordState === 'recording' && <Check size={32} />}
-                            {recordState === 'recorded' && <ArrowUpFromLine size={32} />}
                             {recordState === 'uploading' && <Loader className="animate-spin" />}
                             {recordState === 'finished' && <RefreshCcw size={32} />}
                         </button>

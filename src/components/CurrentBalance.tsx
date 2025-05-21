@@ -1,17 +1,14 @@
 'use client';
 import FormattedNumber from '@/components/FormattedNumber';
-import { User } from '@/models/user';
 import { cn } from '@/lib/utils';
 import { Skeleton } from "@/components/ui/skeleton"
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { useUserStore } from '@/store/useUserStore';
 
-type CurrentBalanceProps = {
-  loading: boolean;
-  user: User | null;
-};
+export default function CurrentBalance() {
+  const { user, user_loading } = useUserStore();
 
-export default function CurrentBalance({ loading, user }: CurrentBalanceProps) {
-  if (loading || !user) {
+  if (user_loading || !user) {
     return (
       <div className="bg-white p-6">
         <div className="space-y-2">

@@ -1,17 +1,17 @@
 'use client';
 
-import { User } from '@/models/user';
 import { MoreHorizontal } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton"
+import { useUserStore } from '@/store/useUserStore';
 
 type HeadProps = {
-    loading: boolean;
-    user: User | null;
     onMenuClick?: () => void;
 };
 
-export default function Head({ loading, user, onMenuClick }: HeadProps) {
-    if (loading || !user) {
+export default function Head({ onMenuClick }: HeadProps) {
+    const { user, user_loading } = useUserStore();
+
+    if (user_loading || !user) {
         return (
             <div className="flex items-center justify-between py-2 px-4 w-full bg-white">
                 <Skeleton className="h-14 w-14 rounded-full bg-gray-200 ml-2" />
@@ -36,7 +36,6 @@ export default function Head({ loading, user, onMenuClick }: HeadProps) {
                     <span className="font-semibold text-lg truncate">{user.name || "Terry's Notion"}</span>
                 </div>
                 <div className="flex-1 flex flex-col min-w-0">
-
                     <span className="text-gray-500 text-sm truncate">{user.email}</span>
                 </div>
             </div>

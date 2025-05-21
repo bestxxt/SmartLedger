@@ -46,7 +46,8 @@
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.2.0",
     "vaul": "^1.1.2",
-    "webm-to-wav-converter": "^1.1.0"
+    "webm-to-wav-converter": "^1.1.0",
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

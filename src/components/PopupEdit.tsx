@@ -38,7 +38,6 @@ import {
     DrawerFooter,
     DrawerClose,
 } from '@/components/ui/drawer';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import NumericKeypad from '@/components/NumericKeypad';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon } from "lucide-react"
@@ -61,6 +60,8 @@ import { EditableTransaction, Transaction } from "@/models/transaction"
 import { User, Tag } from "@/models/user"
 import { Input } from "@/components/ui/input"
 import { main_income_categories, main_expense_categories, sub_expense_categories } from "@/lib/constants"
+import { useTransactionStore } from '@/store/useTransactionStore';
+import { useUserStore } from '@/store/useUserStore';
 
 // Define category icon mapping
 const categoryIcons: Record<string, any> = {
@@ -330,42 +331,51 @@ function LocationSelector({ locations, selectedLocation, onLocationChange }: {
 }
 
 export interface PopupEditProps {
-    onSubmit?: (tx: EditableTransaction) => Promise<void>
-    onChange?: (value: string) => void;
-    user: User | null;
     transaction?: Transaction;
-    open?: boolean;
+    open: boolean;
     onOpenChange?: (open: boolean) => void;
-    source?: 'home' | 'transaction';
 }
 
-export default function PopupEdit({ onSubmit, user, transaction, open, onOpenChange }: PopupEditProps) {
+export default function PopupEdit({ transaction, open, onOpenChange }: PopupEditProps) {
+    const { addTransaction, updateTransaction } = useTransactionStore();
+    const { user } = useUserStore();
+    
     if (!user) {
         return null;
     }
+
     const [form, setForm] = useState<EditableTransaction>({
         amount: transaction?.amount || 0,
+        originalAmount: transaction?.originalAmount,
         type: transaction?.type || 'expense',
         category: transaction?.category || 'Other',
         timestamp: transaction?.timestamp || new Date(),
         note: transaction?.note || '',
         currency: transaction?.currency || user.currency || 'USD',
+        originalCurrency: transaction?.originalCurrency,
         tags: transaction?.tags || [],
         location: transaction?.location || '',
         emoji: transaction?.emoji || '💰',
     });
 
     const isEditMode = !!transaction;
+    const hasDifferentCurrency = isEditMode && 
+        transaction?.originalAmount !== undefined && 
+        transaction?.originalCurrency !== undefined &&
+        (transaction.originalAmount !== transaction.amount || 
+         transaction.originalCurrency !== transaction.currency);
 
     useEffect(() => {
         if (transaction) {
             setForm({
                 amount: transaction.amount,
+                originalAmount: transaction.originalAmount,
                 type: transaction.type,
                 category: transaction.category,
                 timestamp: transaction.timestamp,
                 note: transaction.note || '',
                 currency: transaction.currency || user?.currency || 'USD',
+                originalCurrency: transaction.originalCurrency,
                 tags: transaction.tags || [],
                 location: transaction.location || '',
                 emoji: transaction.emoji || '💰',
@@ -375,18 +385,22 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
 
     const handleSubmit = async () => {
         try {
-            if (onSubmit) {
-                await onSubmit(form);
+            if (isEditMode && transaction) {
+                await updateTransaction(form, transaction.id);
+            } else {
+                await addTransaction(form);
             }
 
             if (!isEditMode) {
                 setForm({
                     amount: 0,
+                    originalAmount: undefined,
                     type: 'expense',
                     category: 'Other',
                     timestamp: new Date(),
                     note: '',
                     currency: user?.currency || 'USD',
+                    originalCurrency: undefined,
                     tags: [],
                     location: '',
                     emoji: '💰',
@@ -440,13 +454,19 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                             Amount & Currency
                         </label>
                         <div className="flex flex-col gap-4">
-
                             <div className="flex-1">
                                 <NumericKeypad
-                                    initialValue={form.amount.toString()}
-                                    currencySymbols={form.currency === 'CNY' ? '¥' : form.currency === 'EUR' ? '€' : '$'}
+                                    initialValue={hasDifferentCurrency ? form.originalAmount?.toString() || '0' : form.amount.toString()}
+                                    currencySymbols={hasDifferentCurrency ? 
+                                        (form.originalCurrency === 'CNY' ? '¥' : form.originalCurrency === 'EUR' ? '€' : '$') :
+                                        (form.currency === 'CNY' ? '¥' : form.currency === 'EUR' ? '€' : '$')
+                                    }
                                     onChange={(newVal) => {
-                                        setForm((prev) => ({ ...prev, amount: parseFloat(newVal), }));
+                                        if (hasDifferentCurrency) {
+                                            setForm((prev) => ({ ...prev, originalAmount: parseFloat(newVal) }));
+                                        } else {
+                                            setForm((prev) => ({ ...prev, amount: parseFloat(newVal) }));
+                                        }
                                     }}
                                 />
                             </div>
@@ -462,14 +482,27 @@ export default function PopupEdit({ onSubmit, user, transaction, open, onOpenCha
                                         variant="outline"
                                         className={cn(
                                             "w-15 justify-center",
-                                            form.currency === currency.value && "bg-primary text-primary-foreground"
+                                            (hasDifferentCurrency ? form.originalCurrency === currency.value : form.currency === currency.value) && "bg-primary text-primary-foreground"
                                         )}
-                                        onClick={() => setForm((prev) => ({ ...prev, currency: currency.value }))}
+                                        onClick={() => {
+                                            if (hasDifferentCurrency) {
+                                                setForm((prev) => ({ ...prev, originalCurrency: currency.value }));
+                                            } else {
+                                                setForm((prev) => ({ ...prev, currency: currency.value }));
+                                            }
+                                        }}
                                     >
                                         {currency.value}
                                     </Button>
                                 ))}
                             </div>
+                            {isEditMode && hasDifferentCurrency && (
+                                <div className="text-sm text-gray-500 text-center">
+                                    Original amount: {form.originalAmount} {form.originalCurrency}
+                                    <br />
+                                    Converted to: {form.amount} {form.currency}
+                                </div>
+                            )}
                         </div>
                         <hr />
                         <label className="block text-sm font-medium text-gray-700 mb-1">

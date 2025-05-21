@@ -1,30 +1,36 @@
 'use client';
 // Create PopupPicture component similar to PopupAudio for selecting, previewing, uploading image
 import React, { useState, useRef, useEffect, FormEvent } from 'react';
-import { Camera, ArrowUpFromLine, X, Loader, RefreshCcw } from 'lucide-react';
+import { Camera, ArrowUpFromLine, X, Loader, RefreshCcw, Check } from 'lucide-react';
 import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerFooter, DrawerTitle } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ConfirmBillCard } from './BillCard';
 import { EditableTransaction } from '@/models/transaction';
 import { cn } from '@/lib/utils';
-import { User } from '@/models/user';
+import { useUserStore } from '@/store/useUserStore';
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
 
 export interface PopupPictureProps {
-    /** called to add a transaction to parent state */
-    onSubmit?: (tx: EditableTransaction) => Promise<void>;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
-    user?: User;
 }
 
 
-export default function PopupPicture({ onSubmit, open, onOpenChange, user }: PopupPictureProps) {
+export default function PopupPicture({ open, onOpenChange }: PopupPictureProps) {
     const [photo, setPhoto] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [state, setState] = useState<'idle' | 'selected' | 'uploading' | 'finished'>('idle');
     const [transactionCards, setTransactionCards] = useState<EditableTransaction[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
-
+    const { user } = useUserStore();
     // Add function to handle card removal
     const handleCardRemoval = (index: number) => {
         setTransactionCards(prev => {
@@ -73,8 +79,8 @@ export default function PopupPicture({ onSubmit, open, onOpenChange, user }: Pop
         form.append('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
         form.append('userCurrency', user?.currency || 'USD');
         form.append('userLanguage', user?.language || 'en');
-        form.append('userTags', JSON.stringify(user?.tags || []));
-        form.append('userLocations', JSON.stringify(user?.locations || []));
+        form.append('userTags', JSON.stringify(user?.tags.map((tag) => tag.name) || []));
+        form.append('userLocations', JSON.stringify(user?.locations.map((location) => location.name) || []));
         try {
             const res = await fetch('/api/app/ai/pictureToBill', { method: 'POST', body: form });
             if (!res.ok) throw new Error(res.statusText);
@@ -141,7 +147,26 @@ export default function PopupPicture({ onSubmit, open, onOpenChange, user }: Pop
                         {state === 'selected' && previewUrl && (
                             <img src={previewUrl} alt="Preview" className="max-h-[70%] object-contain mb-4" />
                         )}
-                        {state === 'uploading' && <Loader className="animate-spin text-gray-500 my-8" />}
+                        {state === 'uploading' &&
+                            <>
+                                <Card className="w-full hover:shadow-md transition-shadow mt-2">
+                                    <CardHeader className="">
+                                        <Skeleton className="h-10 w-full mb-1 rounded bg-gray-200" />
+                                    </CardHeader>
+                                    <CardContent className="">
+                                        <Skeleton className="h-7 w-64 mb-1 rounded bg-gray-200" />
+                                        <Skeleton className="h-7 w-48 mb-1 rounded bg-gray-200" />
+                                    </CardContent>
+                                    <CardFooter className="flex justify-between items-center">
+                                        <Skeleton className="h-5 w-32 mb-1 rounded bg-gray-200" />
+                                        <div className="flex items-center gap-2">
+                                            <Skeleton className="h-14 w-14 mb-1 rounded-full bg-gray-200" />
+                                            <Skeleton className="h-14 w-14 mb-1 rounded-full bg-gray-200" />
+                                        </div>
+                                    </CardFooter>
+                                </Card>
+                            </>
+                        }
                         {state === 'finished' && (
                             <ScrollArea className="h-auto max-h-[70%] w-full flex flex-col ">
                                 {transactionCards.length > 0 ? (
@@ -149,9 +174,6 @@ export default function PopupPicture({ onSubmit, open, onOpenChange, user }: Pop
                                         <ConfirmBillCard
                                             key={i}
                                             transaction={tx}
-                                            onConfirm={async confirmTx => {
-                                                if (onSubmit) await onSubmit(confirmTx);
-                                            }}
                                             onSuccess={() => handleCardRemoval(i)}
                                             onCancel={() => handleCardRemoval(i)}
                                         />
@@ -171,14 +193,14 @@ export default function PopupPicture({ onSubmit, open, onOpenChange, user }: Pop
                     <div className="flex justify-evenly w-full fixed bottom-6 left-0 right-0 px-4">
                         <button
                             onClick={() => onOpenChange?.(false)}
-                            className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white text-black flex items-center justify-center border-4 border-black"
+                            className="w-24 h-24 rounded-full bg-white text-black flex items-center justify-center border-4 border-black"
                         >
                             <X size={32} />
                         </button>
                         <button
                             onClick={handleUpload}
                             className={cn(
-                                "w-24 h-24 md:w-32 md:h-32 rounded-full text-white flex items-center justify-center transition-all duration-300 ease-in-out",
+                                "w-24 h-24 rounded-full text-white flex items-center justify-center transition-all duration-300 ease-in-out",
                                 state === 'idle' ? 'bg-black' :
                                     state === 'selected' ? 'bg-black' :
                                         state === 'uploading' ? 'bg-gray-400' :

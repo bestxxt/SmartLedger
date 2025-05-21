@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/utils/authOptions";
-import { AIService } from '@/lib/services/ai';
+import { AIService } from '@/lib/services/ai/pictureToBill';
 
 export async function POST(req: NextRequest) {
     try {

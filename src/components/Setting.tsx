@@ -130,8 +130,8 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
     if (!user) return null;
 
     const [loading, setLoading] = useState(false);
-    const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-    const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+    const [isPasswordDrawerOpen, setIsPasswordDrawerOpen] = useState(false);
+    const [isEmailDrawerOpen, setIsEmailDrawerOpen] = useState(false);
     const [state, setState] = useState<EditableUser>({
         name: user.name,
         email: user.email,
@@ -150,7 +150,6 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
     const [openLocationId, setOpenLocationId] = useState<string | null>(null);
     const [newLocationName, setNewLocationName] = useState('');
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
-    const [apiToken, setApiToken] = useState<string | null>(null);
     const [isGeneratingToken, setIsGeneratingToken] = useState(false);
 
     const handleAvatarChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -301,7 +300,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
             }
 
             toast.success('Password changed successfully');
-            setIsPasswordDialogOpen(false);
+            setIsPasswordDrawerOpen(false);
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to change password');
         } finally {
@@ -330,7 +329,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
             }
 
             toast.success('Email changed successfully');
-            setIsEmailDialogOpen(false);
+            setIsEmailDrawerOpen(false);
             // Update local state
             setState(prev => ({
                 ...prev,
@@ -811,7 +810,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                                 <Button
                                     variant="outline"
                                     className="w-full"
-                                    onClick={() => setIsEmailDialogOpen(true)}
+                                    onClick={() => setIsEmailDrawerOpen(true)}
                                 >
                                     <Mail className="w-4 h-4 mr-2" />
                                     Change Email
@@ -819,7 +818,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                                 <Button
                                     variant="outline"
                                     className="w-full"
-                                    onClick={() => setIsPasswordDialogOpen(true)}
+                                    onClick={() => setIsPasswordDrawerOpen(true)}
                                 >
                                     <Key className="w-4 h-4 mr-2" />
                                     Change Password
@@ -830,12 +829,15 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                     </div>
                 </div>
 
-                {/* Add Email Change Dialog */}
-                <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Change Email</DialogTitle>
-                        </DialogHeader>
+                {/* Replace Email Dialog with Drawer */}
+                <Drawer open={isEmailDrawerOpen} onOpenChange={setIsEmailDrawerOpen} repositionInputs={false}>
+                    <DrawerContent>
+                        <DrawerHeader>
+                            <DrawerTitle>Change Email</DrawerTitle>
+                            <DrawerDescription>
+                                Enter your current password and new email address
+                            </DrawerDescription>
+                        </DrawerHeader>
                         <form onSubmit={async (e) => {
                             e.preventDefault();
                             const formData = new FormData(e.currentTarget);
@@ -850,8 +852,8 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                             }
 
                             await handleEmailChange(currentPassword, newEmail);
-                        }} className="space-y-4">
-                            <div className="space-y-2">
+                        }} className="grid gap-4 p-4">
+                            <div className="grid gap-2">
                                 <Label htmlFor="currentPassword">Current Password</Label>
                                 <Input
                                     id="currentPassword"
@@ -860,7 +862,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                                     required
                                 />
                             </div>
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="newEmail">New Email</Label>
                                 <Input
                                     id="newEmail"
@@ -870,27 +872,38 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                                     required
                                 />
                             </div>
-                            <div className="flex justify-end space-x-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setIsEmailDialogOpen(false)}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button type="submit" disabled={loading}>
-                                    {loading ? 'Changing...' : 'Change Email'}
-                                </Button>
-                            </div>
                         </form>
-                    </DialogContent>
-                </Dialog>
-                {/* Add Password Change Dialog */}
-                <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Change Password</DialogTitle>
-                        </DialogHeader>
+                        <DrawerFooter>
+                            <DrawerClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                            </DrawerClose>
+                            <Button
+                                onClick={async (e) => {
+                                    const form = e.currentTarget.closest('form');
+                                    if (form) {
+                                        const formData = new FormData(form);
+                                        const currentPassword = formData.get('currentPassword') as string;
+                                        const newEmail = formData.get('newEmail') as string;
+                                        await handleEmailChange(currentPassword, newEmail);
+                                    }
+                                }}
+                                disabled={loading}
+                            >
+                                {loading ? 'Changing...' : 'Change Email'}
+                            </Button>
+                        </DrawerFooter>
+                    </DrawerContent>
+                </Drawer>
+
+                {/* Replace Password Dialog with Drawer */}
+                <Drawer open={isPasswordDrawerOpen} onOpenChange={setIsPasswordDrawerOpen} repositionInputs={false}>
+                    <DrawerContent>
+                        <DrawerHeader>
+                            <DrawerTitle>Change Password</DrawerTitle>
+                            <DrawerDescription>
+                                Enter your current password and new password
+                            </DrawerDescription>
+                        </DrawerHeader>
                         <form onSubmit={async (e) => {
                             e.preventDefault();
                             const formData = new FormData(e.currentTarget);
@@ -909,8 +922,8 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                             }
 
                             await handlePasswordChange(currentPassword, newPassword);
-                        }} className="space-y-4">
-                            <div className="space-y-2">
+                        }} className="grid gap-4 p-4">
+                            <div className="grid gap-2">
                                 <Label htmlFor="currentPassword">Current Password</Label>
                                 <Input
                                     id="currentPassword"
@@ -919,7 +932,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                                     required
                                 />
                             </div>
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="newPassword">New Password</Label>
                                 <Input
                                     id="newPassword"
@@ -928,7 +941,7 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                                     required
                                 />
                             </div>
-                            <div className="space-y-2">
+                            <div className="grid gap-2">
                                 <Label htmlFor="confirmPassword">Confirm New Password</Label>
                                 <Input
                                     id="confirmPassword"
@@ -937,21 +950,40 @@ export default function Setting({ user, open, onOpenChange }: UserProps) {
                                     required
                                 />
                             </div>
-                            <div className="flex justify-end space-x-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setIsPasswordDialogOpen(false)}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button type="submit" disabled={loading}>
-                                    {loading ? 'Changing...' : 'Change Password'}
-                                </Button>
-                            </div>
                         </form>
-                    </DialogContent>
-                </Dialog>
+                        <DrawerFooter>
+                            <DrawerClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                            </DrawerClose>
+                            <Button
+                                onClick={async (e) => {
+                                    const form = e.currentTarget.closest('form');
+                                    if (form) {
+                                        const formData = new FormData(form);
+                                        const currentPassword = formData.get('currentPassword') as string;
+                                        const newPassword = formData.get('newPassword') as string;
+                                        const confirmPassword = formData.get('confirmPassword') as string;
+
+                                        if (newPassword !== confirmPassword) {
+                                            toast.error('New passwords do not match');
+                                            return;
+                                        }
+
+                                        if (newPassword.length < 6) {
+                                            toast.error('Password must be at least 6 characters long');
+                                            return;
+                                        }
+
+                                        await handlePasswordChange(currentPassword, newPassword);
+                                    }
+                                }}
+                                disabled={loading}
+                            >
+                                {loading ? 'Changing...' : 'Change Password'}
+                            </Button>
+                        </DrawerFooter>
+                    </DrawerContent>
+                </Drawer>
 
                 <SheetFooter className="p-0">
                     <div className="flex justify-evenly space-x-2 mb-6">

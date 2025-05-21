@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { UserModel } from "@/models/user";
 import { connectMongoose } from "@/lib/db";
 import { TransactionModel, Transaction } from "@/models/transaction";
-import { ObjectId } from 'mongodb';
-import { AIService } from '@/lib/services/ai';
+import { AIService } from '@/lib/services/ai/pictureToBill';
 import { exchangeRateService } from '@/lib/services/exchangeRate';
 
 // Helper function to validate API token
@@ -66,7 +65,7 @@ export async function POST(req: Request) {
 
     // Recognize bill from image
     const recognizedTransaction = await aiService.recognizeBill(base64Image, image.type, context);
-
+    console.log('Recognized transaction:', recognizedTransaction);
     if (!recognizedTransaction) {
       return new Response('No transaction information found in the image', { status: 400 });
     }

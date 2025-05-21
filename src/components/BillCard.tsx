@@ -10,42 +10,28 @@ import {
 } from "@/components/ui/card"
 
 import { Transaction, EditableTransaction } from "@/models/transaction"
-import { Check, X, Pencil, Trash2, CalendarIcon, Loader } from "lucide-react";
-import { useRouter } from 'next/navigation';
+import { Check, X, Pencil, Trash2, Loader } from "lucide-react";
 import { useState } from 'react';
 import PopupEdit from './PopupEdit';
 import { cn } from "@/lib/utils"
-
+import { useTransactionStore } from '@/store/useTransactionStore';
+import { useUserStore } from '@/store/useUserStore';
 type BillCardProps = {
     transaction: Transaction;
-    onDelete?: (id: string) => Promise<void>;
-    user?: any; // Add user prop for PopupEdit
     onEdit?: () => void;
 };
 
-export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps) {
+export function BillCard({ transaction, onEdit }: BillCardProps) {
+    const { user } = useUserStore();
+    const { deleteTransaction } = useTransactionStore();
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleEdit = async (editedTx: EditableTransaction) => {
-        try {
-            const res = await fetch(`/api/app/transactions/${transaction.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(editedTx),
-            });
-            if (!res.ok) throw new Error('Failed to update transaction');
-            setIsEditing(false);
-            window.location.reload(); // Refresh to show updated data
-        } catch (err) {
-            console.error('Error updating transaction:', err);
-        }
-    };
     const handleDelete = async () => {
-        if (!onDelete || isDeleting) return;
+        if (isDeleting) return;
         setIsDeleting(true);
         try {
-            await onDelete(transaction.id);
+            await deleteTransaction(transaction.id);
         } catch (err) {
             console.error('Error deleting transaction:', err);
         } finally {
@@ -132,8 +118,6 @@ export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps)
                 transaction={transaction}
                 open={isEditing}
                 onOpenChange={setIsEditing}
-                onSubmit={handleEdit}
-                user={user}
             />
         </>
     );
@@ -141,33 +125,18 @@ export function BillCard({ transaction, onDelete, user, onEdit }: BillCardProps)
 
 type ConfirmBillCardProps = {
     transaction: EditableTransaction;
-    /** custom confirm handler: should POST and update parent state */
-    onConfirm?: (tx: EditableTransaction) => Promise<void>;
-    /** called after successful confirmation, for removing the card */
     onSuccess?: () => void;
-    /** called when user cancels the transaction */
     onCancel?: () => void;
 };
 
-export function ConfirmBillCard({ transaction, onConfirm, onSuccess, onCancel }: ConfirmBillCardProps) {
-    const router = useRouter();
+export function ConfirmBillCard({ transaction, onSuccess, onCancel }: ConfirmBillCardProps) {
+    const { addTransaction } = useTransactionStore();
     const [loading, setLoading] = useState(false);
 
     const handleConfirm = async () => {
         setLoading(true);
         try {
-            if (onConfirm) {
-                await onConfirm(transaction);
-            } else {
-                const res = await fetch('/api/app/transactions', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(transaction),
-                });
-                if (!res.ok) throw new Error('Failed to create transaction');
-                // default: refresh the page
-                router.refresh();
-            }
+            await addTransaction(transaction);
             if (onSuccess) onSuccess();
         } catch (error) {
             console.error(error);
