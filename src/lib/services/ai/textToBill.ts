@@ -26,49 +26,51 @@ export class AIService {
 
     private buildPrompt(context: AIContext, text: string): string {
         return `
+            Objective: 
             Extract financial transaction information from the input text and return it in this JSON schema:
 
-            Transaction = {
-                amount: number,                // numeric amount of the transaction, default to 0
-                type: "income" | "expense", 
-                category: string,              // You must choose from the categories I give to you
-                timestamp: string,             // ISO 8601 date-time (default to current time if not provided)
-                note: string,                 // extra details, use objective, factual description instead, in user's language
-                currency: string,             //  currency mentions in text, default to "${context.userCurrency}"
-                location?: string,             // optional, location of transaction
-                emoji: string,                 // ONE emoji representing the transaction
-                tags: string[]               // relevant tags from user's tag list
-            }
+            Input:
+            Text: ${text}
 
-            Information you can rely on:
+            Context:
             Current time: ${context.localTime}
-            User preferences:
-            - Default currency: ${context.userCurrency}
-            - Language: ${context.userLanguage}
-            - tags: ${context.userTags}
-            - locations: ${context.userLocations}
+            currency: ${context.userCurrency}
+            tags: ${context.userTags}
+            locations: ${context.userLocations}
 
             Categories:
             - Income categories: ${main_income_categories.join(', ')}
             - Expense categories: ${main_expense_categories.join(', ')}
-            
-            Transaction details:
-            Text: ${text}
-            
-            If found return: {
-                found: true,
-                transaction: Transaction
+
+            Output Format:
+            {
+                "found": true,
+                "transactions": [
+                    {
+                        "amount": number,                             // Default: 0 if not found
+                        "type": "income" | "expense", 
+                        "category": string,                           // Must match given categories
+                        "timestamp": string,                          // ISO 8601 (default: context.localTime)
+                        "note": string,                               // Brief factual summary in ${context.userLanguage},Use objective and factual language.
+                        "currency": string,                           // Currency mentioned in Text else context.currency
+                        "location": string (optional),                // Match from context.locations
+                        "emoji": string,                              // One emoji best representing the transaction
+                        "tags": string[]                              // Relevant from context.tags
+                    }
+                ]
             }
-            If no transaction information is found in the input text, return: {
-                found: false,
-                transaction: null
+            If no transaction is detected, return:
+            {
+                "found": false,
+                "transactions": []
             }
         `;
     }
 
-    async recognizeBill(text: string, context: AIContext): Promise<Transaction | null> {
+    async recognizeBill(text: string, context: AIContext): Promise<Transaction[] | null> {
         try {
             const prompt = this.buildPrompt(context, text);
+            // console.log('AI prompt:', prompt);
             const response = await this.genAI.models.generateContent({
                 model: this.model,
                 contents: prompt,
@@ -85,12 +87,11 @@ export class AIService {
                 .trim();
 
             const parsed = JSON.parse(cleaned);
-
-            if (!parsed.found || !parsed.transaction) {
+            // console.log('Parsed transaction:', parsed);
+            if (!parsed.found) {
                 return null;
             }
-
-            return parsed.transaction;
+            return parsed.transactions;
         } catch (error) {
             console.error('AI recognition error:', error);
             throw error;

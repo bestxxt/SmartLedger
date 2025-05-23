@@ -7,6 +7,7 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 // Image compression function
 async function compressImage(file: File, maxSizeKB: number = 128): Promise<string> {
@@ -14,7 +15,7 @@ async function compressImage(file: File, maxSizeKB: number = 128): Promise<strin
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = (event) => {
-            const img = new Image();
+            const img = new window.Image();
             img.src = event.target?.result as string;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
@@ -54,6 +55,55 @@ async function compressImage(file: File, maxSizeKB: number = 128): Promise<strin
         };
         reader.onerror = reject;
     });
+}
+
+// AuthBg 组件（复用 login 页背景）
+function AuthBg() {
+    return (
+        <div
+            style={{
+                background: "linear-gradient(135deg, #a9c6ff 0%, #062b74 100%)",
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                zIndex: -1,
+                overflow: "hidden",
+            }}
+        >
+            {/* Top Right SVG */}
+            <svg
+                style={{
+                    position: "absolute",
+                    right: "-200px",
+                    top: "-400px",
+                    width: "600px",
+                    height: "600px",
+                }}
+                viewBox="0 0 600 600"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <circle cx="300" cy="300" r="300" fill="#fff" fillOpacity="0.15" />
+            </svg>
+            {/* Bottom Left SVG */}
+            <svg
+                style={{
+                    position: "absolute",
+                    left: "-200px",
+                    bottom: "-300px",
+                    width: "500px",
+                    height: "500px",
+                }}
+                viewBox="0 0 500 500"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <circle cx="250" cy="250" r="250" fill="#fff" fillOpacity="0.10" />
+            </svg>
+        </div>
+    );
 }
 
 export default function RegisterPage() {
@@ -133,103 +183,119 @@ export default function RegisterPage() {
     };
 
     return (
-        <main className="flex items-center justify-center min-h-screen bg-cover bg-center" style={{ backgroundImage: 'url(/login_bg.png)' }}>
-            <div className="backdrop-blur-xl p-6 rounded-lg shadow-lg min-w-[350px] border border-gray-300">
-                <h1 className="text-2xl font-bold text-center mb-6">Create Account</h1>
-                <form className="space-y-4 w-full max-w-sm" onSubmit={handleSubmit}>
-                    {/* Avatar Upload */}
-                    <div className="flex flex-col items-center gap-4 mb-4">
-                        <div 
-                            className="relative w-20 h-20 rounded-full overflow-hidden cursor-pointer group"
-                            onClick={handleAvatarClick}
-                        >
-                            {avatar ? (
-                                <img
-                                    src={avatar}
-                                    alt="Profile"
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                    <Upload className="w-8 h-8 text-gray-400" />
-                                </div>
-                            )}
-                            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Upload className="w-6 h-6 text-white" />
-                            </div>
+        <>
+            <AuthBg />
+            <main className="flex items-center justify-center min-h-screen ">
+                <div className="bg-white p-6 rounded-lg shadow-lg w-full mx-4 sm:min-w-[450px] sm:w-auto border border-gray-300">
+                    <div className="mb-8 flex flex-col items-center">
+                        <div className="relative mb-4">
+                            <Image 
+                                src="/logo.png" 
+                                alt="Smart Ledger Logo" 
+                                width={72} 
+                                height={72} 
+                                className="rounded-2xl border border-gray-200 p-2 shadow-sm transition-all hover:shadow-md" 
+                            />
                         </div>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleAvatarChange}
-                            className="hidden"
-                        />
-                        <p className="text-sm text-gray-500">
-                            Click to upload avatar. Max size: 5MB
-                        </p>
+                        <h1 className="text-center text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                            Create your account
+                        </h1>
+                        <p className="text-sm text-gray-500 mt-1">Register to get started</p>
                     </div>
-
-                    <div className="relative">
-                        <Input
-                            type="text"
-                            id="name"
-                            placeholder="Full Name"
-                            className="pl-10"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    </div>
-                    <div className="relative">
-                        <Input
-                            type="email"
-                            id="email"
-                            placeholder="Email"
-                            className="pl-10"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    </div>
-                    <div className="relative">
-                        <Input
-                            type="password"
-                            id="password"
-                            placeholder="Password"
-                            className="pl-10"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                        <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    </div>
-                    <div className="relative">
-                        <Input
-                            type="text"
-                            id="inviteCode"
-                            placeholder="Invite Code"
-                            className="pl-10"
-                            value={inviteCode}
-                            onChange={(e) => setInviteCode(e.target.value)}
-                            required
-                        />
-                        <Ticket className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    </div>
-                    {error && <p className="text-red-500 text-sm">{error}</p>}
-                    <Button type="submit" className="w-full">
-                        Register
-                    </Button>
-                </form>
-                <p className="mt-4 text-center text-sm text-gray-600">
-                    Already have an account?{' '}
-                    <Link href="/login" className="text-blue-600 hover:underline">
-                        Log in
-                    </Link>
-                </p>
-            </div>
-        </main>
+                    <form className="space-y-4 w-full" onSubmit={handleSubmit}>
+                        {/* Avatar Upload */}
+                        <div className="flex flex-col items-center gap-4 mb-4">
+                            <div 
+                                className="relative w-20 h-20 rounded-full overflow-hidden cursor-pointer group"
+                                onClick={handleAvatarClick}
+                            >
+                                {avatar ? (
+                                    <img
+                                        src={avatar}
+                                        alt="Profile"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                        <Upload className="w-8 h-8 text-gray-400" />
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Upload className="w-6 h-6 text-white" />
+                                </div>
+                            </div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleAvatarChange}
+                                className="hidden"
+                            />
+                            <p className="text-sm text-gray-500">
+                                Click to upload avatar. Max size: 5MB
+                            </p>
+                        </div>
+                        <div className="relative">
+                            <Input
+                                type="text"
+                                id="name"
+                                placeholder="Full Name"
+                                className="pl-10 h-12"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                            />
+                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        </div>
+                        <div className="relative">
+                            <Input
+                                type="email"
+                                id="email"
+                                placeholder="Email"
+                                className="pl-10 h-12"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        </div>
+                        <div className="relative">
+                            <Input
+                                type="password"
+                                id="password"
+                                placeholder="Password"
+                                className="pl-10 h-12"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                            <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        </div>
+                        <div className="relative">
+                            <Input
+                                type="text"
+                                id="inviteCode"
+                                placeholder="Invite Code"
+                                className="pl-10 h-12"
+                                value={inviteCode}
+                                onChange={(e) => setInviteCode(e.target.value)}
+                                required
+                            />
+                            <Ticket className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        </div>
+                        {error && <p className="text-red-500 text-sm">{error}</p>}
+                        <Button type="submit" className="w-full h-11">
+                            Register
+                        </Button>
+                    </form>
+                    <p className="mt-4 text-center text-sm text-gray-600">
+                        Already have an account?{' '}
+                        <Link href="/login" className="text-blue-600 hover:underline">
+                            Log in
+                        </Link>
+                    </p>
+                </div>
+            </main>
+        </>
     );
 }

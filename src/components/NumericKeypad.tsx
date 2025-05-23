@@ -1,76 +1,67 @@
 // components/NumericKeypad.tsx
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import FormattedNumber from '@/components/FormattedNumber'
 
 export interface NumericKeypadProps {
-  /** Initial value as a string */
-  initialValue?: string
-  /** Optional array of currency symbols, default is ["$"] */
-  currencySymbols?: string
-  /** Placeholder displayed when value is empty */
-  placeholder?: string
-  /** Callback when value changes, passing the current string */
-  onChange?: (value: string) => void
+  value: string;
+  currencySymbols: string;
+  placeholder?: string;
+  onChange?: (value: string) => void;
 }
 
 export default function NumericKeypad({
-  initialValue = "",
+  value = "0",
   currencySymbols = "$",
   placeholder = "0.00",
   onChange,
 }: NumericKeypadProps) {
-  const [value, setValue] = useState<string>(initialValue)
+  const [displayValue, setDisplayValue] = useState(value);
 
-  const updateValue = (next: string) => {
-    setValue(next)
-    onChange?.(next)
-  }
+  const updateDisplayValue = (next: string) => {
+    setDisplayValue?.(next);
+    if (!next.endsWith(".")) {
+      onChange?.(next);
+    }
+  };
 
   const handleKey = (key: string) => {
-    // Handle decimal point
     if (key === ".") {
-      if (value.includes(".")) return      // Ignore if a decimal point already exists
-      const next = value === "" ? "0." : value + "."
-      return updateValue(next)
+      if (displayValue.includes(".")) return;
+      const next = displayValue === "" ? "0." : displayValue + ".";
+      return updateDisplayValue(next);
     }
-
-    // Handle numeric keys
-    // If the current value is purely "0" (and no decimal yet), overwrite with the new number
-    if (!value.includes(".") && value === "0") {
-      return updateValue(key)
+    if (!displayValue.includes(".") && displayValue === "0") {
+      // console.log(key);
+      return updateDisplayValue(key);
     }
-
-    // If a decimal point exists and the decimal part length is already >=2, do not add more
-    if (value.includes(".")) {
-      const [, dec = ""] = value.split(".")
+    if (displayValue.includes(".")) {
+      const [, dec = ""] = displayValue.split(".");
       if (dec.length >= 2) {
-        return
+        return;
       }
     }
-
-    // In other cases, just append the number
-    updateValue(value + key)
-  }
-
+    updateDisplayValue(displayValue + key);
+  };
 
   const handleAction = (action: "clear" | "back") => {
     if (action === "clear") {
-      updateValue("0")
-    } else if (action === "back") {
-      updateValue(value.slice(0, -1))
+      updateDisplayValue("0");
     }
-  }
+  };
+
+  useEffect(() => {
+    setDisplayValue(value);
+  }, [value]);
 
   return (
     <div className="flex flex-col items-center gap-4">
       {/* Display box */}
       <div className="flex items-center justify-center w-64 h-16 text-4xl font-bold text-gray-700 rounded">
         {currencySymbols[0]}
-        {value === "0" ? placeholder : <FormattedNumber value={value}/>}
+        {displayValue === "0" ? placeholder : <FormattedNumber value={displayValue} />}
       </div>
-
       {/* Keypad */}
       <div className="grid grid-cols-4 gap-2">
         {["7", "8", "9"].map((n) => (
@@ -90,7 +81,6 @@ export default function NumericKeypad({
         >
           C
         </button>
-
         {["4", "5", "6"].map((n) => (
           <button
             key={n}
@@ -108,7 +98,6 @@ export default function NumericKeypad({
         >
           .
         </button>
-
         {["1", "2", "3", "0"].map((n) => (
           <button
             key={n}
@@ -121,5 +110,6 @@ export default function NumericKeypad({
         ))}
       </div>
     </div>
-  )
+  );
 }
+

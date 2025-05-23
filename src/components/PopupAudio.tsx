@@ -29,21 +29,17 @@ export interface PopupAudioProps {
  */
 export type TransactionResponse = {
     success: boolean;
-    transcription: string;
     result: {
-        found: boolean;
-        transaction?: {
-            amount: number;
-            type: 'income' | 'expense';
-            category: string;
-            subcategory?: string;
-            timestamp: string; // ISO string format
-            note?: string;
-            currency?: string;
-            location?: string;
-            tags?: string[];
-            emoji?: string;
-        };
+        amount: number;
+        type: 'income' | 'expense';
+        category: string;
+        subcategory?: string;
+        timestamp: string; // ISO string format
+        note?: string;
+        currency?: string;
+        location?: string;
+        tags?: string[];
+        emoji?: string;
     };
 };
 
@@ -75,17 +71,17 @@ export default function PopupAudio({ open, onOpenChange }: PopupAudioProps) {
         setVolume(0);
         startTime.current = 0;
         audioChunksRef.current = [];
-        
+
         // Stop the media recorder if it's active
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
             mediaRecorderRef.current.stop();
         }
-        
+
         // Release stream tracks
         if (streamRef.current) {
             streamRef.current.getTracks().forEach((track) => track.stop());
         }
-        
+
         mediaRecorderRef.current = null;
         streamRef.current = null;
         analyserRef.current = null;
@@ -140,7 +136,7 @@ export default function PopupAudio({ open, onOpenChange }: PopupAudioProps) {
                 // Stop recording and immediately start uploading
                 setButtonEnabled(false);
                 setRecordState('uploading');
-                
+
                 // Stop recording and release stream
                 mediaRecorderRef.current?.stop();
                 streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -165,7 +161,7 @@ export default function PopupAudio({ open, onOpenChange }: PopupAudioProps) {
                 form.append('userLanguage', user?.language || 'en');
                 form.append('userTags', JSON.stringify(user?.tags.map((tag) => tag.name) || []));
                 form.append('userLocations', JSON.stringify(user?.locations.map((location) => location.name) || []));
-                
+
                 try {
                     const res = await fetch('/api/app/ai/audioToBill', {
                         method: 'POST',
@@ -177,13 +173,11 @@ export default function PopupAudio({ open, onOpenChange }: PopupAudioProps) {
                     }
 
                     const data: TransactionResponse = await res.json();
-                    if (!data.result.found) {
-                        return;
-                    }
-                    
-                    const transactions = Array.isArray(data.result.transaction)
-                        ? data.result.transaction
-                        : [data.result.transaction];
+                    console.log('data:', data);
+
+                    const transactions = Array.isArray(data.result)
+                        ? data.result
+                        : [data.result];
 
                     const transactionCards = transactions.map((transaction) => ({
                         amount: transaction.amount,
@@ -243,7 +237,7 @@ export default function PopupAudio({ open, onOpenChange }: PopupAudioProps) {
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
             <DrawerTrigger asChild>
-                
+
             </DrawerTrigger>
             <DrawerContent className="p-6 w-full h-full">
                 <DrawerHeader>
@@ -286,31 +280,31 @@ export default function PopupAudio({ open, onOpenChange }: PopupAudioProps) {
                                             "absolute rounded-full opacity-10 animate-pulse",
                                             recordState === 'recording' ? "bg-indigo-400" : "bg-gray-400"
                                         )}
-                                        style={{
-                                            width: `${circleSize * 1.4}px`,
-                                            height: `${circleSize * 1.4}px`,
-                                            // transition: 'all 0.5s ease-in-out'
-                                        }}
+                                            style={{
+                                                width: `${circleSize * 1.4}px`,
+                                                height: `${circleSize * 1.4}px`,
+                                                // transition: 'all 0.5s ease-in-out'
+                                            }}
                                         />
                                         <div className={cn(
                                             "absolute rounded-full opacity-20 animate-pulse",
                                             recordState === 'recording' ? "bg-indigo-500" : "bg-gray-500"
                                         )}
-                                        style={{
-                                            width: `${circleSize * 1.2}px`,
-                                            height: `${circleSize * 1.2}px`,
-                                            animationDelay: '0.3s',
-                                           
-                                        }}
+                                            style={{
+                                                width: `${circleSize * 1.2}px`,
+                                                height: `${circleSize * 1.2}px`,
+                                                animationDelay: '0.3s',
+
+                                            }}
                                         />
-                                        
+
                                         {/* Main circle with gradient */}
                                         <div
                                             className={cn(
                                                 "rounded-full shadow-lg flex items-center justify-center transition-all duration-300 ease-in-out",
                                                 recordState === 'idle' ? "bg-gradient-to-r from-indigo-300 to-blue-300 opacity-60" :
-                                                recordState === 'recording' ? "bg-gradient-to-r from-indigo-500 to-violet-500 opacity-80" :
-                                                recordState === 'uploading' ? "bg-gradient-to-r from-blue-400 to-indigo-400 opacity-70" : ""
+                                                    recordState === 'recording' ? "bg-gradient-to-r from-indigo-500 to-violet-500 opacity-80" :
+                                                        recordState === 'uploading' ? "bg-gradient-to-r from-blue-400 to-indigo-400 opacity-70" : ""
                                             )}
                                             style={{
                                                 width: `${circleSize}px`,
@@ -360,7 +354,7 @@ export default function PopupAudio({ open, onOpenChange }: PopupAudioProps) {
                             onClick={() => onOpenChange?.(false)}
                             className="w-24 h-24 rounded-full bg-white text-black flex items-center justify-center border-4 border-black"
                         >
-                            <X size={32}/>
+                            <X size={32} />
                         </button>
 
                         {/* Action button - changes based on recording state */}

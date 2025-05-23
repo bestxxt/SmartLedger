@@ -13,7 +13,23 @@ export async function POST(req: NextRequest) {
 
         // Get request body
         const body = await req.json();
-        const { text, userCurrency, userLanguage, userTags, userLocations, localTime } = body;
+        const text = body.text;
+        const userCurrency = body.userCurrency || 'USD';
+        const userLanguage = body.userLanguage || 'en';
+        let userTags = [];
+        let userLocations = [];
+        try {
+            userTags = typeof body.userTags === 'string' ? JSON.parse(body.userTags) : (body.userTags || []);
+        } catch {
+            userTags = [];
+        }
+        try {
+            userLocations = typeof body.userLocations === 'string' ? JSON.parse(body.userLocations) : (body.userLocations || []);
+        } catch {
+            userLocations = [];
+        }
+        const localTime = body.localTime || new Date().toISOString();
+        const timezone = body.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
         if (!text) {
             return NextResponse.json({
@@ -23,12 +39,12 @@ export async function POST(req: NextRequest) {
 
         // Prepare context
         const context: AIContext = {
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            userCurrency: userCurrency || 'USD',
-            userLanguage: userLanguage || 'en',
-            userTags: userTags || [],
-            userLocations: userLocations || [],
-            localTime: localTime || new Date().toISOString(),
+            timezone,
+            userCurrency,
+            userLanguage,
+            userTags,
+            userLocations,
+            localTime,
         };
 
         try {

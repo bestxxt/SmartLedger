@@ -129,8 +129,14 @@ export async function POST(req: Request): Promise<NextResponse> {
 
     const body = await req.json();
 
-    const { amount, type, category, timestamp, currency } = body;
-    if (amount == null || !type || !category || !timestamp) {
+    // console.log("body:", body);
+
+
+    // Always treat amount/currency as originalAmount/originalCurrency
+    const originalAmount = body.originalAmount !== undefined ? body.originalAmount : body.amount;
+    const originalCurrency = body.originalCurrency || body.currency;
+    const { type, category, timestamp } = body;
+    if (originalAmount == null || !type || !category || !timestamp) {
       return NextResponse.json(
         { message: 'Missing required fields: amount, type, category or timestamp' },
         { status: 400 }
@@ -146,18 +152,14 @@ export async function POST(req: Request): Promise<NextResponse> {
     }
 
     const userDefaultCurrency = user.currency || 'USD';
-    const transactionCurrency = currency || userDefaultCurrency;
+    let convertedAmount = originalAmount;
+    let finalCurrency = userDefaultCurrency;
 
-    // If transaction currency is different from user's default currency, convert the amount
-    let convertedAmount = amount;
-    let originalAmount = amount;
-    let originalCurrency = transactionCurrency;
-
-    if (transactionCurrency !== userDefaultCurrency) {
+    if (originalCurrency !== userDefaultCurrency) {
       try {
         convertedAmount = await exchangeRateService.convertCurrency(
-          amount,
-          transactionCurrency,
+          originalAmount,
+          originalCurrency,
           userDefaultCurrency
         );
       } catch (error) {
@@ -167,6 +169,8 @@ export async function POST(req: Request): Promise<NextResponse> {
           { status: 500 }
         );
       }
+    } else {
+      convertedAmount = originalAmount;
     }
 
     const transaction = new TransactionModel({

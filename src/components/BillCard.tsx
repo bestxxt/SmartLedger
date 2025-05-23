@@ -22,7 +22,6 @@ type BillCardProps = {
 };
 
 export function BillCard({ transaction, onEdit }: BillCardProps) {
-    const { user } = useUserStore();
     const { deleteTransaction } = useTransactionStore();
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);

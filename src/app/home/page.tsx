@@ -39,7 +39,7 @@ export default function Home() {
     const [isPictureOpen, setIsPictureOpen] = useState(false);
     const [isSettingOpen, setIsSettingOpen] = useState(false);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const { user, user_loading, fetchUser } = useUserStore();
+    const { user, fetchUser } = useUserStore();
     const {
         transaction_loading,
         hasMore,

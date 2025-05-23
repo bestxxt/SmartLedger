@@ -94,6 +94,7 @@ export async function POST(req: Request) {
 
     // Create new transaction
     const transaction = new TransactionModel({
+      userId: user._id,
       amount: convertedAmount,
       originalAmount: originalAmount,
       type: recognizedTransaction.type,

@@ -1,6 +1,6 @@
 'use client';
 
-import {  useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
     CircleDollarSign,
     CirclePlus,
@@ -28,6 +28,7 @@ import {
     HeartHandshake,
     Package,
     HelpCircle,
+    ArrowUpCircle,
 } from 'lucide-react';
 import {
     Drawer,
@@ -57,11 +58,12 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { EditableTransaction, Transaction } from "@/models/transaction"
-import { User, Tag } from "@/models/user"
 import { Input } from "@/components/ui/input"
-import { main_income_categories, main_expense_categories, sub_expense_categories } from "@/lib/constants"
+import { main_income_categories, main_expense_categories } from "@/lib/constants"
 import { useTransactionStore } from '@/store/useTransactionStore';
 import { useUserStore } from '@/store/useUserStore';
+import { toast } from 'sonner';
+import FormattedNumber from './FormattedNumber';
 
 // Define category icon mapping
 const categoryIcons: Record<string, any> = {
@@ -93,6 +95,13 @@ const categoryIcons: Record<string, any> = {
     'Shopping': ShoppingBag,
     'Social': Users,
     'Other': HelpCircle,
+};
+
+const CurrencySymbols: { [key: string]: string } = {
+    'USD': '$',
+    'CAD': '$',
+    'CNY': '¥',
+    'EUR': '€',
 };
 
 // DateTime picker component
@@ -339,7 +348,7 @@ export interface PopupEditProps {
 export default function PopupEdit({ transaction, open, onOpenChange }: PopupEditProps) {
     const { addTransaction, updateTransaction } = useTransactionStore();
     const { user } = useUserStore();
-    
+
     if (!user) {
         return null;
     }
@@ -347,35 +356,34 @@ export default function PopupEdit({ transaction, open, onOpenChange }: PopupEdit
     const [form, setForm] = useState<EditableTransaction>({
         amount: transaction?.amount || 0,
         originalAmount: transaction?.originalAmount,
+        currency: transaction?.currency || user.currency || 'USD',
+        originalCurrency: transaction?.originalCurrency || user.currency || 'USD',
         type: transaction?.type || 'expense',
         category: transaction?.category || 'Other',
         timestamp: transaction?.timestamp || new Date(),
         note: transaction?.note || '',
-        currency: transaction?.currency || user.currency || 'USD',
-        originalCurrency: transaction?.originalCurrency,
         tags: transaction?.tags || [],
         location: transaction?.location || '',
         emoji: transaction?.emoji || '💰',
     });
 
+    const [aiInput, setAiInput] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
+
     const isEditMode = !!transaction;
-    const hasDifferentCurrency = isEditMode && 
-        transaction?.originalAmount !== undefined && 
-        transaction?.originalCurrency !== undefined &&
-        (transaction.originalAmount !== transaction.amount || 
-         transaction.originalCurrency !== transaction.currency);
+    const hasDifferentCurrency = isEditMode && transaction.originalCurrency !== transaction.currency;
 
     useEffect(() => {
         if (transaction) {
             setForm({
                 amount: transaction.amount,
+                currency: transaction.currency || user?.currency || 'USD',
+                originalCurrency: transaction.originalCurrency,
                 originalAmount: transaction.originalAmount,
                 type: transaction.type,
                 category: transaction.category,
                 timestamp: transaction.timestamp,
                 note: transaction.note || '',
-                currency: transaction.currency || user?.currency || 'USD',
-                originalCurrency: transaction.originalCurrency,
                 tags: transaction.tags || [],
                 location: transaction.location || '',
                 emoji: transaction.emoji || '💰',
@@ -394,32 +402,77 @@ export default function PopupEdit({ transaction, open, onOpenChange }: PopupEdit
             if (!isEditMode) {
                 setForm({
                     amount: 0,
-                    originalAmount: undefined,
+                    originalAmount: 0.00,
+                    currency: user?.currency || 'USD',
+                    originalCurrency: user?.currency || 'USD',
                     type: 'expense',
                     category: 'Other',
                     timestamp: new Date(),
                     note: '',
-                    currency: user?.currency || 'USD',
-                    originalCurrency: undefined,
                     tags: [],
                     location: '',
                     emoji: '💰',
                 });
+                setAiInput('');
             }
         } catch (error) {
             console.error('Error submitting transaction:', error);
         }
     };
 
+    const handleAIPrompt = async () => {
+        if (!aiInput.trim()) return;
+        setAiLoading(true);
+        try {
+            const formData = await fetch('/api/app/ai/textToBill', {
+                method: 'POST',
+                body: JSON.stringify({
+                    text: aiInput,
+                    userCurrency: user?.currency || 'USD',
+                    userLanguage: user?.language || 'en',
+                    userTags: JSON.stringify(user?.tags.map(tag => tag.name) || []),
+                    userLocations: JSON.stringify(user?.locations.map(loc => loc.name) || []),
+                    localTime: new Date().toISOString(),
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                }),
+            });
+            const data = await formData.json();
+            if (data.success && data.result && data.result.length > 0) {
+                const t = data.result[0];
+                console.log('AI recognized transaction:', t);
+                setForm(prev => ({
+                    ...prev,
+                    originalAmount: t.amount,
+                    originalCurrency: t.currency,
+                    type: t.type,
+                    category: t.category,
+                    timestamp: new Date(t.timestamp),
+                    note: t.note,
+                    tags: t.tags,
+                    location: t.location,
+                    emoji: t.emoji,
+                }));
+                toast.success('Recognition successful. Form auto-filled.');
+            } else {
+                toast.error('No valid transaction information recognized.');
+            }
+        } catch (err) {
+            toast.error('Recognition failed.');
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
     return (
         <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
-            <DrawerContent className="p-6 w-full h-full">
+            <DrawerContent className="p-6 w-full h-full px-2">
                 <DrawerHeader className="pt-0">
                     <DrawerTitle className="flex justify-center gap-2">
                         <CircleDollarSign />
                         {isEditMode ? 'Edit Transaction' : 'Add Transaction'}
                     </DrawerTitle>
                 </DrawerHeader>
+                {/* AI prompt input and upload button */}
                 <div className="flex flex-col gap-4 w-full overflow-y-scroll">
                     <div className="space-y-6">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -456,43 +509,27 @@ export default function PopupEdit({ transaction, open, onOpenChange }: PopupEdit
                         <div className="flex flex-col gap-4">
                             <div className="flex-1">
                                 <NumericKeypad
-                                    initialValue={hasDifferentCurrency ? form.originalAmount?.toString() || '0' : form.amount.toString()}
-                                    currencySymbols={hasDifferentCurrency ? 
-                                        (form.originalCurrency === 'CNY' ? '¥' : form.originalCurrency === 'EUR' ? '€' : '$') :
-                                        (form.currency === 'CNY' ? '¥' : form.currency === 'EUR' ? '€' : '$')
-                                    }
+                                    value={form.originalAmount?.toString() || '0'}
+                                    currencySymbols={CurrencySymbols[form.originalCurrency || 'USD']}
                                     onChange={(newVal) => {
-                                        if (hasDifferentCurrency) {
-                                            setForm((prev) => ({ ...prev, originalAmount: parseFloat(newVal) }));
-                                        } else {
-                                            setForm((prev) => ({ ...prev, amount: parseFloat(newVal) }));
-                                        }
+                                        setForm((prev) => ({ ...prev, originalAmount: parseFloat(newVal) }));
                                     }}
                                 />
                             </div>
                             <div className="flex gap-2 justify-center">
-                                {[
-                                    { value: 'USD', symbol: '$', label: 'USD' },
-                                    { value: 'CAD', symbol: '$', label: 'CAD' },
-                                    { value: 'CNY', symbol: '¥', label: 'CNY' },
-                                    { value: 'EUR', symbol: '€', label: 'EUR' },
-                                ].map((currency) => (
+                                {Object.keys(CurrencySymbols).map((currency) => (
                                     <Button
-                                        key={currency.value}
+                                        key={currency}
                                         variant="outline"
                                         className={cn(
                                             "w-15 justify-center",
-                                            (hasDifferentCurrency ? form.originalCurrency === currency.value : form.currency === currency.value) && "bg-primary text-primary-foreground"
+                                            form.originalCurrency === currency && "bg-blue-500 text-primary-foreground",
                                         )}
                                         onClick={() => {
-                                            if (hasDifferentCurrency) {
-                                                setForm((prev) => ({ ...prev, originalCurrency: currency.value }));
-                                            } else {
-                                                setForm((prev) => ({ ...prev, currency: currency.value }));
-                                            }
+                                            setForm((prev) => ({ ...prev, originalCurrency: currency }));
                                         }}
                                     >
-                                        {currency.value}
+                                        {currency}
                                     </Button>
                                 ))}
                             </div>
@@ -575,14 +612,39 @@ export default function PopupEdit({ transaction, open, onOpenChange }: PopupEdit
                         </div>
                     </div>
                 </div>
-                <DrawerFooter>
+                <DrawerFooter className=''>
+                    <div className="flex items-center gap-3 mb-4 relative">
+                        <Input
+                            value={aiInput}
+                            onChange={e => setAiInput(e.target.value)}
+                            placeholder="AI recognition"
+                            className="flex-1 h-12 rounded-full pr-14 bg-gradient-to-r from-blue-50/30 to-purple-50/30 border-blue-200 focus-visible:ring-blue-300"
+                            disabled={aiLoading}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !aiLoading && aiInput.trim()) {
+                                    handleAIPrompt();
+                                }
+                            }}
+                        />
+                        <Button
+                            onClick={handleAIPrompt}
+                            disabled={aiLoading || !aiInput.trim()}
+                            variant="outline"
+                            size="icon"
+                            className={`h-10 w-15 rounded-full absolute right-1 transition-all duration-300 
+                                ${aiLoading ? 'bg-blue-100 border-blue-300' : 'hover:bg-blue-100 hover:border-blue-400 hover:shadow-md'} 
+                                ${aiInput.trim() ? 'border-blue-400 bg-gradient-to-r from-blue-100 to-purple-100' : 'opacity-70'}`}
+                        >
+                            <ArrowUpCircle className={`transition-all ${aiLoading ? 'animate-bounce text-blue-500' : 'text-blue-600 hover:scale-110'}`} />
+                        </Button>
+                    </div>
                     <div className='flex justify-between'>
                         <DrawerClose asChild>
-                            <Button variant="outline" className="w-[49%] h-12">Cancel</Button>
+                            <Button variant="outline" className="w-[49%] h-10">Cancel</Button>
                         </DrawerClose>
                         <DrawerClose asChild>
                             <Button
-                                className="w-[49%] h-12"
+                                className="w-[49%] h-10"
                                 onClick={handleSubmit}
                             >
                                 {isEditMode ? 'Save Changes' : 'Add'}

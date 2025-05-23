@@ -1,6 +1,8 @@
 import type { Transaction } from '@/models/transaction';
 import { AIService as TextToBillService, AIContext } from './textToBill';
 
+export type { AIContext };
+
 export class AIService {
     private transcriptionServiceUrl: string;
     private textToBillService: TextToBillService;
@@ -11,6 +13,7 @@ export class AIService {
     }
 
     private async transcribeAudio(formData: FormData): Promise<string> {
+        
         try {
             const transcriptionResponse = await fetch(this.transcriptionServiceUrl, {
                 method: 'POST',
@@ -25,23 +28,24 @@ export class AIService {
             }
 
             const transcriptionResult = await transcriptionResponse.json();
-
+            
             if (transcriptionResult.segments) {
                 return transcriptionResult.segments.map((segment: any) => segment.text).join(' ');
             } else {
                 throw new Error('Invalid transcription response format');
             }
+            
         } catch (error) {
             console.error('Error during audio transcription:', error);
             throw error;
         }
     }
 
-    async recognizeBill(formData: FormData, context: AIContext): Promise<Transaction | null> {
+    async recognizeBill(formData: FormData, context: AIContext): Promise<Transaction[] | null> {
         try {
             // Step 1: Transcribe the audio
             const transcriptionText = await this.transcribeAudio(formData);
-
+            // console.log('Transcription result:', transcriptionText);
             // Step 2: Use textToBill service to process the transcribed text
             return this.textToBillService.recognizeBill(transcriptionText, context);
         } catch (error) {

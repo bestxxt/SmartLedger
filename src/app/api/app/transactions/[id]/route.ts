@@ -70,6 +70,7 @@ export async function PATCH(
 
     // Remove id field from updates if present
     const { id: _, ...safeUpdates } = updates;
+    // console.log('Safe updates:', safeUpdates);
 
     await connectMongoose();
 
@@ -79,8 +80,6 @@ export async function PATCH(
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    const userDefaultCurrency = user.currency || 'USD';
-    const transactionCurrency = safeUpdates.currency || userDefaultCurrency;
 
     // If amount or currency is being updated, handle currency conversion
     if (safeUpdates.amount !== undefined || safeUpdates.currency !== undefined) {
@@ -93,16 +92,14 @@ export async function PATCH(
         return NextResponse.json({ message: 'Transaction not found' }, { status: 404 });
       }
 
-      const amount = safeUpdates.amount ?? currentTransaction.amount;
-      const originalAmount = amount;
-      let convertedAmount = amount;
+      let convertedAmount = safeUpdates.amount;
 
-      if (transactionCurrency !== userDefaultCurrency) {
+      if (safeUpdates.originalCurrency !== user.currency ) {
         try {
           convertedAmount = await exchangeRateService.convertCurrency(
-            amount,
-            transactionCurrency,
-            userDefaultCurrency
+            safeUpdates.originalAmount,
+            safeUpdates.originalCurrency,
+            user.currency
           );
         } catch (error) {
           console.error('Error converting currency:', error);
@@ -111,12 +108,12 @@ export async function PATCH(
             { status: 500 }
           );
         }
+      } else {
+        convertedAmount = safeUpdates.originalAmount;
       }
 
       safeUpdates.amount = convertedAmount;
-      safeUpdates.originalAmount = originalAmount;
-      safeUpdates.currency = userDefaultCurrency;
-      safeUpdates.originalCurrency = transactionCurrency;
+      safeUpdates.currency = user.currency;
     }
 
     const updated = await TransactionModel.findOneAndUpdate(
@@ -138,18 +135,19 @@ export async function PATCH(
       id: String(updated._id),
       amount: updated.amount,
       originalAmount: updated.originalAmount,
+      currency: updated.currency,
+      originalCurrency: updated.originalCurrency,
       type: updated.type,
       category: updated.category,
       timestamp: updated.timestamp,
       note: updated.note,
-      currency: updated.currency,
-      originalCurrency: updated.originalCurrency,
       tags: updated.tags,
       emoji: updated.emoji,
       location: updated.location,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
     };
+    // console.log('Updated transaction:', dto);
 
     return NextResponse.json({ message: 'Transaction updated', transaction: dto });
   } catch (error) {

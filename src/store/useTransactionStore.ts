@@ -105,11 +105,13 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
         try {
             const payload = {
                 amount: txData.amount,
+                originalAmount: txData.originalAmount,
                 type: txData.type,
                 category: txData.category,
                 timestamp: txData.timestamp,
                 note: txData.note,
                 currency: txData.currency,
+                originalCurrency: txData.originalCurrency,
                 tags: txData.tags,
                 location: txData.location,
                 emoji: txData.emoji,
