@@ -7,55 +7,49 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 
 // LoginBg 组件
 function LoginBg() {
     return (
-        <div
-            style={{
-                background: "linear-gradient(135deg, #a9c6ff 0%, #062b74 100%)",
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100vw",
-                height: "100vh",
-                zIndex: -1,
-                overflow: "hidden",
-            }}
-        >
-            {/* Top Right SVG */}
-            <svg
-                style={{
-                    position: "absolute",
-                    right: "-200px",
-                    top: "-400px",
-                    width: "600px",
-                    height: "600px",
-                }}
-                viewBox="0 0 600 600"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-            >
-                <circle cx="300" cy="300" r="300" fill="#fff" fillOpacity="0.15" />
-            </svg>
-            {/* Bottom Left SVG */}
-            <svg
-                style={{
-                    position: "absolute",
-                    left: "-200px",
-                    bottom: "-300px",
-                    width: "500px",
-                    height: "500px",
-                }}
-                viewBox="0 0 500 500"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-            >
-                <circle cx="250" cy="250" r="250" fill="#fff" fillOpacity="0.10" />
-            </svg>
+        <div className="fixed inset-0 -z-10 overflow-hidden">
+            {/* 主背景渐变 */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" />
+            
+            {/* 动态背景形状 */}
+            <div className="absolute inset-0">
+                {/* 大圆形背景 - 桌面版 */}
+                <motion.div
+                    className="absolute -top-40 -right-40 w-80 h-80 md:w-96 md:h-96 lg:w-[500px] lg:h-[500px] rounded-full bg-gradient-to-br from-blue-400/20 to-indigo-500/20 backdrop-blur-3xl"
+                    initial={{ scale: 0, rotate: 0 }}
+                    animate={{ scale: 1, rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                />
+                
+                {/* 中等圆形背景 */}
+                <motion.div
+                    className="absolute -bottom-32 -left-32 w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full bg-gradient-to-tr from-purple-400/15 to-pink-400/15 backdrop-blur-3xl"
+                    initial={{ scale: 0, rotate: 0 }}
+                    animate={{ scale: 1, rotate: -360 }}
+                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                />
+                
+                {/* 小装饰圆形 */}
+                <motion.div
+                    className="absolute top-1/4 left-1/4 w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-emerald-400/10 to-teal-400/10 backdrop-blur-2xl"
+                    initial={{ y: 0 }}
+                    animate={{ y: [-20, 20, -20] }}
+                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+            </div>
+            
+            {/* 模糊光效 */}
+            <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-400/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" />
+            <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-purple-400/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" />
         </div>
     );
 }
@@ -110,99 +104,202 @@ export default function LoginPage() {
     return (
         <>
             <LoginBg />
-            <main className="flex items-center justify-center min-h-screen ">
-                <div className="bg-white p-6 rounded-lg shadow-lg w-full mx-4 sm:min-w-[450px] sm:w-auto border border-gray-300">
-                    <div className="mb-8 flex flex-col items-center">
-                        <div className="relative mb-4">
-                            <Image 
-                                src="/logo.png" 
-                                alt="Smart Ledger Logo" 
-                                width={72} 
-                                height={72} 
-                                className="rounded-2xl border border-gray-200 p-2 shadow-sm transition-all hover:shadow-md" 
-                            />
-                        </div>
-                        <h1 className="text-center text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                            Welcome to Smart Ledger
-                        </h1>
-                        <p className="text-sm text-gray-500 mt-1">Sign in to continue</p>
-                    </div>
-                    <form className="space-y-4 w-full" onSubmit={handleSubmit}>
-                        <div className="relative">
-                            <Input
-                                type="email"
-                                id="email"
-                                placeholder="Email"
-                                className="pl-10 h-12"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                        </div>
-                        <div className="relative">
-                            <Input
-                                type={showPassword ? 'text' : 'password'}
-                                id="password"
-                                placeholder="Password"
-                                className="pl-10 h-12"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+            <main className="min-h-screen flex items-center justify-center p-4">
+                <motion.div
+                    className="w-full max-w-md"
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                >
+                    {/* 主登录卡片 */}
+                    <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 relative overflow-hidden">
+                        {/* 卡片内部装饰光效 */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+                        <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl" />
+                        <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-gradient-to-tr from-indigo-400/20 to-cyan-400/20 rounded-full blur-xl" />
+                        
+                        {/* Logo 和标题区域 */}
+                        <div
+                            className="text-center mb-8 relative z-10"
+                            
+                        >
+                            <motion.div
+                                className="relative inline-block mb-6"
+                                whileHover={{ scale: 1.05 }}
+                                transition={{ type: "spring", stiffness: 300 }}
                             >
-                                {showPassword ? (
-                                    <EyeOff className="w-5 h-5 text-gray-500" />
-                                ) : (
-                                    <Eye className="w-5 h-5 text-gray-500" />
-                                )}
-                            </button>
-                        </div>
-
-                        <div className="flex justify-between text-sm ">
-                            {/* remember me checkbox */}
-                            <div className="flex items-center">
-                                <Checkbox id="remember-me" className="mr-2" />
-                                <label htmlFor="remember-me" className="text-sm text-gray-600">Remember me</label>
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-3xl blur-lg" />
+                                <div className="relative bg-white/90 backdrop-blur-sm rounded-3xl p-4 border border-white/40 shadow-lg">
+                                    <Image 
+                                        src="/logo.png" 
+                                        alt="Smart Ledger Logo" 
+                                        width={64} 
+                                        height={64} 
+                                        className="rounded-2xl" 
+                                    />
+                                </div>
+                                <motion.div
+                                    className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full"
+                                    animate={{ 
+                                        scale: [1, 1.2, 1],
+                                        rotate: [0, 180, 360]
+                                    }}
+                                    transition={{ 
+                                        duration: 2,
+                                        repeat: Infinity,
+                                        ease: "easeInOut"
+                                    }}
+                                >
+                                    <Sparkles className="w-3 h-3 text-white p-0.5" />
+                                </motion.div>
+                            </motion.div>
+                            
+                            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-2">
+                                Welcome Back
+                            </h1>
+                            <p className="text-gray-600 text-lg">Sign in to Smart Ledger</p>
+                            <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-500">
+                                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                                <span>AI-Powered Financial Assistant</span>
                             </div>
-                            {/* forgot password */}
-                            <Link href="/forgot-password" className="text-blue-600 hover:underline">
-                                Forgot password?
-                            </Link>
                         </div>
 
-                        {error && <p className="text-red-500 text-sm">{error}</p>}
+                        {/* 登录表单 */}
+                        <motion.form
+                            className="space-y-6"
+                            onSubmit={handleSubmit}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.6, delay: 0.4 }}
+                        >
+                            {/* 邮箱输入框 */}
+                            <div className="relative group">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Email Address
+                                </label>
+                                <div className="relative">
+                                    <Input
+                                        type="email"
+                                        placeholder="Enter your email"
+                                        className="pl-12 pr-4 py-3 h-14 text-base border-gray-200 rounded-2xl bg-gray-50/50 backdrop-blur-sm focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 transition-all duration-300 group-hover:border-gray-300"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                    />
+                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-blue-500 transition-colors">
+                                        <Mail className="w-5 h-5" />
+                                    </div>
+                                </div>
+                            </div>
 
-                        <Button type="submit" className="w-full h-11" disabled={loading}>
-                            {loading ? 'Signing in...' : 'Sign in'}
-                        </Button>
-                    </form>
-                    <p className="mt-4 text-center text-sm text-gray-600">
-                        Don't have an account?{' '}
-                        <Link href="/register" className="text-blue-600 hover:underline">
-                            Register
-                        </Link>
-                    </p>
-                    {/* Split line */}
-                    <div className="flex items-center justify-center mt-4">
-                        <div className="w-full h-[1px] bg-gray-300"></div>
-                        <span className="text-gray-500 mx-4">OR</span>
-                        <div className="w-full h-[1px] bg-gray-300"></div> 
-                    </div>
-                    {/* Google login */}
-                    <div className="flex items-center justify-center mt-4">
-                        <Image src="https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/symbol.svg?c=1dxbfHSJFAPEGdCLU4o5B" alt="Google Logo" width={20} height={20} className="w-10 h-10 border border-gray-300 rounded-full p-1" onClick={() => {
-                            console.log('Google login');
-                        }} />
-                    </div>
+                            {/* 密码输入框 */}
+                            <div className="relative group">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Password
+                                </label>
+                                <div className="relative">
+                                    <Input
+                                        type={showPassword ? 'text' : 'password'}
+                                        placeholder="Enter your password"
+                                        className="pl-12 pr-12 py-3 h-14 text-base border-gray-200 rounded-2xl bg-gray-50/50 backdrop-blur-sm focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 transition-all duration-300 group-hover:border-gray-300"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                    />
+                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-blue-500 transition-colors">
+                                        <Lock className="w-5 h-5" />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none transition-colors"
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="w-5 h-5" />
+                                        ) : (
+                                            <Eye className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
 
-                </div>
+                            {/* 记住我和忘记密码 */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox 
+                                        id="remember-me" 
+                                        className="border-gray-300 text-blue-600 focus:ring-blue-500 rounded"
+                                    />
+                                    <label htmlFor="remember-me" className="text-sm text-gray-600 select-none">
+                                        Remember me
+                                    </label>
+                                </div>
+                                <Link 
+                                    href="/forgot-password" 
+                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                                >
+                                    Forgot password?
+                                </Link>
+                            </div>
+
+                            {/* 错误信息 */}
+                            {error && (
+                                <motion.div
+                                    className="bg-red-50 border border-red-200 rounded-xl p-3"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <p className="text-red-600 text-sm font-medium">{error}</p>
+                                </motion.div>
+                            )}
+
+                            {/* 登录按钮 */}
+                            <motion.div
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                <Button 
+                                    type="submit" 
+                                    disabled={loading}
+                                    className="w-full h-14 text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:transform-none relative overflow-hidden group"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                                    <span className="relative flex items-center justify-center gap-2">
+                                        {loading ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Signing in...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Sign in
+                                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                            </>
+                                        )}
+                                    </span>
+                                </Button>
+                            </motion.div>
+                        </motion.form>
+
+                        {/* 注册链接 */}
+                        <motion.div
+                            className="text-center mt-6 relative z-10"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.6, delay: 0.6 }}
+                        >
+                            <p className="text-gray-600">
+                                Don't have an account?{' '}
+                                <Link 
+                                    href="/register" 
+                                    className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
+                                >
+                                    Create Account
+                                </Link>
+                            </p>
+                        </motion.div>
+                    </div>
+                </motion.div>
             </main>
         </>
     );

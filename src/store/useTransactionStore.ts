@@ -48,7 +48,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     hasMore: true,
     page: 0,
     filters: initialFilters,
-    limit: 10,
+    limit: 20,
 
     queryTransactions: async (pageNumber = 1, append = false) => {
         const { filters, limit } = get();

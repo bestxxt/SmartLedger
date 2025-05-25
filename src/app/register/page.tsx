@@ -1,155 +1,85 @@
 'use client';
 
+import { useEffect, useState, useRef } from 'react';
+import { getSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { User, Key, Mail, Ticket, Upload } from 'lucide-react';
-import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Eye, EyeOff, Mail, Lock, User, Ticket, ArrowRight, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 
-// Image compression function
-async function compressImage(file: File, maxSizeKB: number = 128): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new window.Image();
-            img.src = event.target?.result as string;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-                
-                // If the image is too large, scale it proportionally
-                const maxDimension = 1024; // Maximum dimension
-                if (width > maxDimension || height > maxDimension) {
-                    if (width > height) {
-                        height = Math.round((height * maxDimension) / width);
-                        width = maxDimension;
-                    } else {
-                        width = Math.round((width * maxDimension) / height);
-                        height = maxDimension;
-                    }
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx?.drawImage(img, 0, 0, width, height);
-
-                // Convert to base64
-                let quality = 0.9;
-                let base64 = canvas.toDataURL('image/jpeg', quality);
-
-                // If still too large, continue compressing
-                while (base64.length > maxSizeKB * 1024 && quality > 0.1) {
-                    quality -= 0.1;
-                    base64 = canvas.toDataURL('image/jpeg', quality);
-                }
-
-                resolve(base64);
-            };
-            img.onerror = reject;
-        };
-        reader.onerror = reject;
-    });
-}
-
-// AuthBg 组件（复用 login 页背景）
-function AuthBg() {
+// RegisterBg 组件 - 复用登录页面的背景设计
+function RegisterBg() {
     return (
-        <div
-            style={{
-                background: "linear-gradient(135deg, #a9c6ff 0%, #062b74 100%)",
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100vw",
-                height: "100vh",
-                zIndex: -1,
-                overflow: "hidden",
-            }}
-        >
-            {/* Top Right SVG */}
-            <svg
-                style={{
-                    position: "absolute",
-                    right: "-200px",
-                    top: "-400px",
-                    width: "600px",
-                    height: "600px",
-                }}
-                viewBox="0 0 600 600"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-            >
-                <circle cx="300" cy="300" r="300" fill="#fff" fillOpacity="0.15" />
-            </svg>
-            {/* Bottom Left SVG */}
-            <svg
-                style={{
-                    position: "absolute",
-                    left: "-200px",
-                    bottom: "-300px",
-                    width: "500px",
-                    height: "500px",
-                }}
-                viewBox="0 0 500 500"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-            >
-                <circle cx="250" cy="250" r="250" fill="#fff" fillOpacity="0.10" />
-            </svg>
+        <div className="fixed inset-0 -z-10 overflow-hidden">
+            {/* 主背景渐变 */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" />
+            
+            {/* 动态背景形状 */}
+            <div className="absolute inset-0">
+                {/* 大圆形背景 - 桌面版 */}
+                <motion.div
+                    className="absolute -top-40 -right-40 w-80 h-80 md:w-96 md:h-96 lg:w-[500px] lg:h-[500px] rounded-full bg-gradient-to-br from-blue-400/20 to-indigo-500/20 backdrop-blur-3xl"
+                    initial={{ scale: 0, rotate: 0 }}
+                    animate={{ scale: 1, rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                />
+                
+                {/* 中等圆形背景 */}
+                <motion.div
+                    className="absolute -bottom-32 -left-32 w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full bg-gradient-to-tr from-purple-400/15 to-pink-400/15 backdrop-blur-3xl"
+                    initial={{ scale: 0, rotate: 0 }}
+                    animate={{ scale: 1, rotate: -360 }}
+                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                />
+                
+                {/* 小装饰圆形 */}
+                <motion.div
+                    className="absolute top-1/4 left-1/4 w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-emerald-400/10 to-teal-400/10 backdrop-blur-2xl"
+                    initial={{ y: 0 }}
+                    animate={{ y: [-20, 20, -20] }}
+                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+            </div>
+            
+            {/* 模糊光效 */}
+            <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-400/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" />
+            <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-purple-400/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" />
         </div>
     );
 }
 
 export default function RegisterPage() {
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
     const [inviteCode, setInviteCode] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [avatar, setAvatar] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const router = useRouter();
 
-    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            try {
-                // Check file type
-                if (!file.type.startsWith('image/')) {
-                    toast.error('Please select an image file');
-                    return;
-                }
-
-                // Check file size
-                if (file.size > 5 * 1024 * 1024) { // 5MB
-                    toast.error('Image size should be less than 5MB');
-                    return;
-                }
-
-                // Compress image and convert to base64
-                const base64 = await compressImage(file);
-                setAvatar(base64);
-                toast.success('Avatar uploaded successfully');
-            } catch (error) {
-                console.error('Error processing image:', error);
-                toast.error('Failed to process image');
+    useEffect(() => {
+        const checkAuth = async () => {
+            const session = await getSession();
+            if (session) {
+                router.push('/home');
             }
-        }
-    }
+        };
+        checkAuth();
+    }, [router]);
 
-    const handleAvatarClick = () => {
-        fileInputRef.current?.click();
-    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
 
         try {
             const response = await fetch('/api/account/register', {
@@ -179,122 +109,233 @@ export default function RegisterPage() {
         } catch (err) {
             console.error('Error during registration:', err);
             setError('An unexpected error occurred');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <>
-            <AuthBg />
-            <main className="flex items-center justify-center min-h-screen ">
-                <div className="bg-white p-6 rounded-lg shadow-lg w-full mx-4 sm:min-w-[450px] sm:w-auto border border-gray-300">
-                    <div className="mb-8 flex flex-col items-center">
-                        <div className="relative mb-4">
-                            <Image 
-                                src="/logo.png" 
-                                alt="Smart Ledger Logo" 
-                                width={72} 
-                                height={72} 
-                                className="rounded-2xl border border-gray-200 p-2 shadow-sm transition-all hover:shadow-md" 
-                            />
-                        </div>
-                        <h1 className="text-center text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                            Create your account
-                        </h1>
-                        <p className="text-sm text-gray-500 mt-1">Register to get started</p>
-                    </div>
-                    <form className="space-y-4 w-full" onSubmit={handleSubmit}>
-                        {/* Avatar Upload */}
-                        <div className="flex flex-col items-center gap-4 mb-4">
-                            <div 
-                                className="relative w-20 h-20 rounded-full overflow-hidden cursor-pointer group"
-                                onClick={handleAvatarClick}
+            <RegisterBg />
+            <main className="min-h-screen flex items-center justify-center p-4">
+                <motion.div
+                    className="w-full max-w-md"
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                >
+                    {/* 主注册卡片 */}
+                    <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 relative overflow-hidden">
+                        {/* 卡片内部装饰光效 */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+                        <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl" />
+                        <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-gradient-to-tr from-indigo-400/20 to-cyan-400/20 rounded-full blur-xl" />
+                        
+                        {/* Logo 和标题区域 */}
+                        <div
+                            className="text-center mb-8 relative z-10"
+                        >
+                            <motion.div
+                                className="relative inline-block mb-6"
+                                whileHover={{ scale: 1.05 }}
+                                transition={{ type: "spring", stiffness: 300 }}
                             >
-                                {avatar ? (
-                                    <img
-                                        src={avatar}
-                                        alt="Profile"
-                                        className="w-full h-full object-cover"
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-3xl blur-lg" />
+                                <div className="relative bg-white/90 backdrop-blur-sm rounded-3xl p-4 border border-white/40 shadow-lg">
+                                    <Image 
+                                        src="/logo.png" 
+                                        alt="Smart Ledger Logo" 
+                                        width={64} 
+                                        height={64} 
+                                        className="rounded-2xl" 
                                     />
-                                ) : (
-                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                        <Upload className="w-8 h-8 text-gray-400" />
+                                </div>
+                                <motion.div
+                                    className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full"
+                                    animate={{ 
+                                        scale: [1, 1.2, 1],
+                                        rotate: [0, 180, 360]
+                                    }}
+                                    transition={{ 
+                                        duration: 2,
+                                        repeat: Infinity,
+                                        ease: "easeInOut"
+                                    }}
+                                >
+                                    <Sparkles className="w-3 h-3 text-white p-0.5" />
+                                </motion.div>
+                            </motion.div>
+                            
+                            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-2">
+                                Join Smart Ledger
+                            </h1>
+                            <p className="text-gray-600 text-lg">Create your account</p>
+                            <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-500">
+                                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                                <span>AI-Powered Financial Assistant</span>
+                            </div>
+                        </div>
+
+                        {/* 注册表单 */}
+                        <motion.form
+                            className="space-y-6"
+                            onSubmit={handleSubmit}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.6, delay: 0.4 }}
+                        >
+
+
+                            {/* 姓名输入框 */}
+                            <div className="relative group">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Name
+                                </label>
+                                <div className="relative">
+                                    <Input
+                                        type="text"
+                                        placeholder="Enter your name"
+                                        className="pl-12 pr-4 py-3 h-14 text-base border-gray-200 rounded-2xl bg-gray-50/50 backdrop-blur-sm focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 transition-all duration-300 group-hover:border-gray-300"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        required
+                                    />
+                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-blue-500 transition-colors">
+                                        <User className="w-5 h-5" />
                                     </div>
-                                )}
-                                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Upload className="w-6 h-6 text-white" />
                                 </div>
                             </div>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleAvatarChange}
-                                className="hidden"
-                            />
-                            <p className="text-sm text-gray-500">
-                                Click to upload avatar. Max size: 5MB
+
+                            {/* 邮箱输入框 */}
+                            <div className="relative group">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Email Address
+                                </label>
+                                <div className="relative">
+                                    <Input
+                                        type="email"
+                                        placeholder="Enter your email"
+                                        className="pl-12 pr-4 py-3 h-14 text-base border-gray-200 rounded-2xl bg-gray-50/50 backdrop-blur-sm focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 transition-all duration-300 group-hover:border-gray-300"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                    />
+                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-blue-500 transition-colors">
+                                        <Mail className="w-5 h-5" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 密码输入框 */}
+                            <div className="relative group">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Password
+                                </label>
+                                <div className="relative">
+                                    <Input
+                                        type={showPassword ? 'text' : 'password'}
+                                        placeholder="Create a password"
+                                        className="pl-12 pr-12 py-3 h-14 text-base border-gray-200 rounded-2xl bg-gray-50/50 backdrop-blur-sm focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 transition-all duration-300 group-hover:border-gray-300"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                    />
+                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-blue-500 transition-colors">
+                                        <Lock className="w-5 h-5" />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none transition-colors"
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="w-5 h-5" />
+                                        ) : (
+                                            <Eye className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* 邀请码输入框 */}
+                            <div className="relative group">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Invite Code
+                                </label>
+                                <div className="relative">
+                                    <Input
+                                        type="text"
+                                        placeholder="Enter invite code"
+                                        className="pl-12 pr-4 py-3 h-14 text-base border-gray-200 rounded-2xl bg-gray-50/50 backdrop-blur-sm focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 transition-all duration-300 group-hover:border-gray-300"
+                                        value={inviteCode}
+                                        onChange={(e) => setInviteCode(e.target.value)}
+                                        required
+                                    />
+                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-blue-500 transition-colors">
+                                        <Ticket className="w-5 h-5" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 错误信息 */}
+                            {error && (
+                                <motion.div
+                                    className="bg-red-50 border border-red-200 rounded-xl p-3"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <p className="text-red-600 text-sm font-medium">{error}</p>
+                                </motion.div>
+                            )}
+
+                            {/* 注册按钮 */}
+                            <motion.div
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                <Button 
+                                    type="submit" 
+                                    disabled={loading}
+                                    className="w-full h-14 text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:transform-none relative overflow-hidden group"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                                    <span className="relative flex items-center justify-center gap-2">
+                                        {loading ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Creating account...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Create Account
+                                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                            </>
+                                        )}
+                                    </span>
+                                </Button>
+                            </motion.div>
+                        </motion.form>
+
+                        {/* 登录链接 */}
+                        <motion.div
+                            className="text-center mt-6 relative z-10"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.6, delay: 0.6 }}
+                        >
+                            <p className="text-gray-600">
+                                Already have an account?{' '}
+                                <Link 
+                                    href="/login" 
+                                    className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
+                                >
+                                    Sign In
+                                </Link>
                             </p>
-                        </div>
-                        <div className="relative">
-                            <Input
-                                type="text"
-                                id="name"
-                                placeholder="Full Name"
-                                className="pl-10 h-12"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                            />
-                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                        </div>
-                        <div className="relative">
-                            <Input
-                                type="email"
-                                id="email"
-                                placeholder="Email"
-                                className="pl-10 h-12"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                        </div>
-                        <div className="relative">
-                            <Input
-                                type="password"
-                                id="password"
-                                placeholder="Password"
-                                className="pl-10 h-12"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                            <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                        </div>
-                        <div className="relative">
-                            <Input
-                                type="text"
-                                id="inviteCode"
-                                placeholder="Invite Code"
-                                className="pl-10 h-12"
-                                value={inviteCode}
-                                onChange={(e) => setInviteCode(e.target.value)}
-                                required
-                            />
-                            <Ticket className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                        </div>
-                        {error && <p className="text-red-500 text-sm">{error}</p>}
-                        <Button type="submit" className="w-full h-11">
-                            Register
-                        </Button>
-                    </form>
-                    <p className="mt-4 text-center text-sm text-gray-600">
-                        Already have an account?{' '}
-                        <Link href="/login" className="text-blue-600 hover:underline">
-                            Log in
-                        </Link>
-                    </p>
-                </div>
+                        </motion.div>
+
+                    </div>
+                </motion.div>
             </main>
         </>
     );

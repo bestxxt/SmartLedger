@@ -17,5 +17,6 @@ export const config = {
         "/home/:path*",
         "/test/:path*",
         "/api/app/:path*",
+        "/api/admin/:path*",
     ],
 }; 
