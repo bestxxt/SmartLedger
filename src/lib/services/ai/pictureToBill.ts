@@ -26,39 +26,37 @@ export class AIService {
     private buildPrompt(context: AIContext): string {
 
         return `
-            Extract financial transaction information from the image and return it in this JSON schema:
+            Extract financial transaction information from the input image and return it in this JSON schema:
 
-            Transaction = {
-                amount: number,                // numeric amount of the transaction, default to 0
-                type: "income" | "expense", 
-                category: string,              // You must choose from the categories I give to you
-                timestamp: string,             // If content have date, use it(don't change it), otherwise use current time
-                note: string,                 // extra details, use objective, factual description instead, in user's language
-                currency: string,             //  default to "${context.userCurrency}"
-                emoji: string,                 // one emoji representing the transaction
-                location?: string,             // optional, relevant location from user's location list
-                tags: string[]               // optional, relevant tags from user's tag list
-            }
-
-            Information you can rely on:
-            current time: ${new Date().toISOString()}
-            User preferences:
-            - Default currency: ${context.userCurrency}
-            - Language: ${context.userLanguage}
-            - tags: ${context.userTags}
-            - locations: ${context.userLocations}
+            Context:
+                - CurrentTime: ${new Date().toISOString()}
+                - currency: ${context.userCurrency}
+                - tags: ${context.userTags}
+                - locations: ${context.userLocations}
 
             Categories:
-            - Income categories: ${main_income_categories.join(', ')}
-            - Expense categories: ${main_expense_categories.join(', ')}
-            
-            If found return: {
-                found: true,
-                transaction: Transaction
+                - ${main_income_categories.join(', ') + ', ' + main_expense_categories.join(', ')}
+
+            Output Format:
+            {
+                "found": true,
+                "transactions": 
+                {
+                    "amount": number,                             // Default: 0 if not found
+                    "type": "income" | "expense", 
+                    "category": string,                           // Must match given categories
+                    "timestamp": string,                          // ISO 8601 (default: context.CurrentTime time)
+                    "note": string,                               // Brief factual summary in ${context.userLanguage},Use objective and factual language.
+                    "currency": string,                           // Currency mentioned in Text else context.currency
+                    "location": string (optional),                // Match from context.locations
+                    "emoji": string,                              // One emoji best representing the transaction
+                    "tags": string[]                              // Relevant from context.tags
+                }
             }
-            If no transaction information is found in the image, return: {
-                found: false,
-                transaction: null
+            If no transaction is detected, return:
+            {
+                "found": false,
+                "transactions": {}
             }
         `;
     }

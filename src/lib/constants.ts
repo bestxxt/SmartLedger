@@ -17,7 +17,6 @@ export const main_income_categories = [
     'Second-hand Sale',
     'Borrowing',
     'Charity',
-    'Other'
 ];
 
 // Define all main expense categories

@@ -27,20 +27,19 @@ export class AIService {
     private buildPrompt(context: AIContext, text: string): string {
         return `
             Objective: 
-            Extract financial transaction information from the input text and return it in this JSON schema:
+                Extract financial transaction information from the input text and return it in this JSON schema:
 
             Input:
-            Text: ${text}
+                - Text: ${text}
 
             Context:
-            Current time: ${context.localTime}
-            currency: ${context.userCurrency}
-            tags: ${context.userTags}
-            locations: ${context.userLocations}
+                - Current time: ${context.localTime}
+                - currency: ${context.userCurrency}
+                - tags: ${context.userTags}
+                - locations: ${context.userLocations}
 
             Categories:
-            - Income categories: ${main_income_categories.join(', ')}
-            - Expense categories: ${main_expense_categories.join(', ')}
+                - ${main_income_categories.join(', ') + ', ' + main_expense_categories.join(', ')}
 
             Output Format:
             {
@@ -70,7 +69,7 @@ export class AIService {
     async recognizeBill(text: string, context: AIContext): Promise<Transaction[] | null> {
         try {
             const prompt = this.buildPrompt(context, text);
-            // console.log('AI prompt:', prompt);
+            console.log('AI prompt:', prompt);
             const response = await this.genAI.models.generateContent({
                 model: this.model,
                 contents: prompt,

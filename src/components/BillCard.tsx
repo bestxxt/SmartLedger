@@ -176,9 +176,6 @@ export function ConfirmBillCard({ transaction, onSuccess, onCancel }: ConfirmBil
                         )}
                     </span>
                 </div>
-                {transaction.category && (
-                    <CardDescription className="text-sm">{transaction.category}</CardDescription>
-                )}
             </CardHeader>
             <CardContent className="">
                 <div className="text-sm space-y-1">
