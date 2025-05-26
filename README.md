@@ -2,14 +2,14 @@
 Smart Ledger is a **self-hosted, LLM-powered, multi-input personal expense tracking system** designed for privacy-conscious users who want intelligent automation without sacrificing data ownership.
 
 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-  <img src="imgs/HomePage.png" alt="HomePage.png" height="400">
-  <img src="imgs/Card.png" alt="Card.png" height="400">
-  <img src="imgs/Setting.png" alt="Setting.png" height="400">
+  <img src="imgs/home.png" alt="HomePage.png" height="400">
+  <img src="imgs/edit.png" alt="Card.png" height="400">
+  <img src="imgs/setting.png" alt="Setting.png" height="400">
 </div>
 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-  <img src="imgs/EditPage.png" alt="EditPage.png" height="400">
-  <img src="imgs/Voice.png" alt="Voice.png" height="400">
-  <img src="imgs/Picture.png" alt="Picture.png" height="400">
+  <img src="imgs/shortcut.png" alt="EditPage.png" height="400">
+  <img src="imgs/speech.png" alt="Voice.png" height="400">
+  <img src="imgs/picture.png" alt="Picture.png" height="400">
 </div>
 
 ## ⭐ Key Features 
@@ -95,12 +95,11 @@ In the Vercel dashboard, go to your project's Settings > Environment Variables a
 | `NEXTAUTH_SECRET`       | A random secret string                                  |
 | `GEMINI_API_KEY`        | Your Gemini API key                                     |
 | `GEMINI_MODEL`          | e.g. `gemini-2.0-flash`                                 |
-| `INVITE_CODE`           | Optional invite code, used for register                 |
+| `INVITE_CODE`           | Invite code, used for register                 |
 | `TRANSCRIPTION_URL`     | Your Whisper server URL                                 |
 | `TRANSCRIPTION_API_KEY` | Your Whisper service                                    |
 | `EXCHANGE_RATE_API_KEY` | Currency exchange API key                               |
 
-> You can get a free 128MB database from the MongoDB website.
 
 3. Click "Deploy"
 Vercel will build and deploy your app automatically. It may take 1–2 minutes.
@@ -245,7 +244,6 @@ This video shows how Smart Ledger extracts transaction details from a receipt im
 - [ ] Multi-user account support
 - [ ] Offline mode (local caching)
 - [ ] Export to Excel / CSV
-- [ ] Calendar and reminder integration
 - [ ] Forgot password
 
 ### 🎨 User Interface 

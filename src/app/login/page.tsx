@@ -22,27 +22,19 @@ function LoginBg() {
             {/* 动态背景形状 */}
             <div className="absolute inset-0">
                 {/* 大圆形背景 - 桌面版 */}
-                <motion.div
+                <div
                     className="absolute -top-40 -right-40 w-80 h-80 md:w-96 md:h-96 lg:w-[500px] lg:h-[500px] rounded-full bg-gradient-to-br from-blue-400/20 to-indigo-500/20 backdrop-blur-3xl"
-                    initial={{ scale: 0, rotate: 0 }}
-                    animate={{ scale: 1, rotate: 360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                 />
                 
                 {/* 中等圆形背景 */}
-                <motion.div
+                <div
                     className="absolute -bottom-32 -left-32 w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full bg-gradient-to-tr from-purple-400/15 to-pink-400/15 backdrop-blur-3xl"
-                    initial={{ scale: 0, rotate: 0 }}
-                    animate={{ scale: 1, rotate: -360 }}
-                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
                 />
                 
                 {/* 小装饰圆形 */}
                 <motion.div
                     className="absolute top-1/4 left-1/4 w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-emerald-400/10 to-teal-400/10 backdrop-blur-2xl"
-                    initial={{ y: 0 }}
-                    animate={{ y: [-20, 20, -20] }}
-                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                    
                 />
                 
             </div>
@@ -105,11 +97,9 @@ export default function LoginPage() {
         <>
             <LoginBg />
             <main className="min-h-screen flex items-center justify-center p-4">
-                <motion.div
+                <div
                     className="w-full max-w-md"
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    
                 >
                     {/* 主登录卡片 */}
                     <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 relative overflow-hidden">
@@ -165,12 +155,10 @@ export default function LoginPage() {
                         </div>
 
                         {/* 登录表单 */}
-                        <motion.form
+                        <form
                             className="space-y-6"
                             onSubmit={handleSubmit}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.6, delay: 0.4 }}
+                            
                         >
                             {/* 邮箱输入框 */}
                             <div className="relative group">
@@ -279,14 +267,11 @@ export default function LoginPage() {
                                     </span>
                                 </Button>
                             </motion.div>
-                        </motion.form>
+                        </form>
 
                         {/* 注册链接 */}
-                        <motion.div
+                        <div
                             className="text-center mt-6 relative z-10"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.6, delay: 0.6 }}
                         >
                             <p className="text-gray-600">
                                 Don't have an account?{' '}
@@ -297,9 +282,9 @@ export default function LoginPage() {
                                     Create Account
                                 </Link>
                             </p>
-                        </motion.div>
+                        </div>
                     </div>
-                </motion.div>
+                </div>
             </main>
         </>
     );
