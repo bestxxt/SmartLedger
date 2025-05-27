@@ -26,7 +26,7 @@ export class AIService {
     private buildPrompt(context: AIContext): string {
 
         return `
-            Extract financial transaction information from the input image and return it in this JSON schema:
+            Extract financial transaction information from the images and return it in this JSON schema:
 
             Context:
                 - CurrentTime: ${new Date().toISOString()}
@@ -40,7 +40,7 @@ export class AIService {
             Output Format:
             {
                 "found": true,
-                "transactions": 
+                "transaction": 
                 {
                     "amount": number,                             // Default: 0 if not found
                     "type": "income" | "expense", 
@@ -56,7 +56,7 @@ export class AIService {
             If no transaction is detected, return:
             {
                 "found": false,
-                "transactions": {}
+                "transaction": {}
             }
         `;
     }
@@ -77,11 +77,12 @@ export class AIService {
             const response = await this.genAI.models.generateContent({ model: this.model, contents });
             const text = response.text;
             if (!text) throw new Error('Empty AI response');
-
+            
             const cleaned = text.replace(/```json\s*/, '').replace(/```/, '').trim();
             const parsed = JSON.parse(cleaned);
-
-            if (!parsed.found || !parsed.transaction) {
+            
+            // console.log(parsed);
+            if (!parsed.found) {
                 return null;
             }
 
