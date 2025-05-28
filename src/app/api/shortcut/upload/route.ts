@@ -134,7 +134,7 @@ export async function GET(req: Request) {
     const transaction = new TransactionModel(pending.data);
     const savedTransaction = await transaction.save();
     delete pendingTransactions[id];
-    return new Response('success!');
+    return new Response('🥳 Success!');
   } catch (error) {
     console.error('Shortcut upload GET error:', error);
     return new Response('Failed to save transaction', { status: 500 });
