@@ -69,7 +69,7 @@ export class AIService {
     async recognizeBill(text: string, context: AIContext): Promise<Transaction[] | null> {
         try {
             const prompt = this.buildPrompt(context, text);
-            console.log('AI prompt:', prompt);
+            // console.log('AI prompt:', prompt);
             const response = await this.genAI.models.generateContent({
                 model: this.model,
                 contents: prompt,

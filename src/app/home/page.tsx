@@ -24,6 +24,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useRouter } from "next/navigation";
+
 import {
     Select,
     SelectContent,
@@ -31,6 +33,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { signOut } from "next-auth/react";
 
 export default function Home() {
     const [isInView, setIsInView] = useState(true);
@@ -39,7 +42,7 @@ export default function Home() {
     const [isPictureOpen, setIsPictureOpen] = useState(false);
     const [isSettingOpen, setIsSettingOpen] = useState(false);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const { user, fetchUser } = useUserStore();
+    const { user, queryUser } = useUserStore();
     const {
         transaction_loading,
         hasMore,
@@ -50,12 +53,17 @@ export default function Home() {
         applyFilters,
         resetFilters,
     } = useTransactionStore();
-
+    const router = useRouter();
     const loaderRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        fetchUser();
-    }, [fetchUser]);
+        try {
+            queryUser();
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            // 不需要在这里处理登出，因为 useUserStore 中已经处理了
+        }
+    }, [queryUser]);
 
     useEffect(() => {
         if (!isInView || transaction_loading || !hasMore) return;
@@ -306,7 +314,7 @@ export default function Home() {
                         open={isSettingOpen}
                         onOpenChange={(open) => {
                             setIsSettingOpen(open);
-                            if (!open) fetchUser();
+                            if (!open) queryUser();
                         }}
                         user={user}
                     />

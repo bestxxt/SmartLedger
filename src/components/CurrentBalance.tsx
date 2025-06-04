@@ -33,7 +33,7 @@ export default function CurrentBalance() {
   const last = chartData[chartData.length - 1]?.balance || 0;
   const prev = chartData[chartData.length - 2]?.balance || 0;
   const growth = prev === 0 ? 0 : ((last - prev) / Math.abs(prev)) * 100;
-
+  console.log(chartData);
   return (
     <div className="bg-white p-6">
       <div className="space-y-1">
@@ -45,9 +45,9 @@ export default function CurrentBalance() {
           {growth >= 0 ? '+' : ''}{growth.toFixed(1)}% from last month
         </div>
       </div>
-      <div className="mt-4 w-full h-[80%] ">
+      <div className="mt-4 w-full h-[80%]">
         <ResponsiveContainer width="100%" height={100}>
-          <LineChart data={chartData} margin={{ left: 10, right: 10, top: 5, bottom: 0 }}>
+          <LineChart data={chartData} margin={{ left: 15, right: 15, top: 5, bottom: 0 }}>
             <XAxis
               dataKey="month"
               hide={false}
@@ -58,7 +58,9 @@ export default function CurrentBalance() {
                 // m: "2024-05"
                 const monthNum = Number(m.split('-')[1]);
                 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                // console.log("month", monthNum, months[monthNum - 1]);
                 return months[monthNum - 1];
+                // return '1234';
               }}
             />
             <YAxis hide domain={['auto', 'auto']} />

@@ -126,7 +126,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
             if (json.transaction) {
                 await get().queryTransactions(1);
                 toast.success('Transaction added successfully');
-                useUserStore.getState().fetchUser();
+                useUserStore.getState().queryUser();
             }
         } catch (err) {
             console.error('Failed to add transaction', err);
@@ -142,7 +142,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
                 transactions: state.transactions.filter(tx => tx.id !== id)
             }));
             toast.success('Transaction deleted successfully');
-            useUserStore.getState().fetchUser();
+            useUserStore.getState().queryUser();
         } catch (err) {
             console.error('Error deleting transaction:', err);
             toast.error('Failed to delete transaction');
@@ -170,7 +170,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
                     )
                 }));
                 toast.success('Transaction updated successfully');
-                useUserStore.getState().fetchUser();
+                useUserStore.getState().queryUser();
             }
         } catch (err) {
             console.error('Error updating transaction:', err);
