@@ -274,7 +274,7 @@ export default function PopupEdit({ transaction, open, onOpenChange }: PopupEdit
                 body.append('userLocations', JSON.stringify(user?.locations.map((location) => location.name) || []));
                 const res = await fetch('/api/app/ai/audioToBill', { method: 'POST', body });
                 const data = await res.json();
-                console.log('data', data);
+                // console.log('data', data);
                 if (data.result) {
                     const t = Array.isArray(data.result) ? data.result[0] : data.result;
                     setForm(prev => ({
@@ -328,7 +328,7 @@ export default function PopupEdit({ transaction, open, onOpenChange }: PopupEdit
                                     value={aiInput}
                                     onChange={e => setAiInput(e.target.value)}
                                     placeholder="AI recognition"
-                                    className={`w-full h-12 pl-20 rounded-full pr-14 transition-all duration-300
+                                    className={`w-full h-12 pl-20 rounded-full pr-14 transition-all duration-1000
                                     ${aiLoading
                                             ? 'bg-blue-100 border-blue-300'
                                             : 'bg-gradient-to-r from-blue-50/30 to-purple-50/30 border-blue-200 hover:bg-blue-100 hover:border-blue-400 hover:shadow-md'
