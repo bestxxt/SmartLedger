@@ -41,20 +41,12 @@ export async function POST(request: NextRequest) {
     try {
         await connectMongoose(); // Ensure Mongoose is connected
 
-        const { email, password, name, inviteCode, avatar } = await request.json();
+        const { email, password, name, avatar } = await request.json();
 
         // Validate required fields
-        if (!email || !password || !name || !inviteCode) {
+        if (!email || !password || !name ) {
             return NextResponse.json(
                 { message: 'All fields are required' },
-                { status: 400 }
-            );
-        }
-
-        // Validate invite code
-        if (inviteCode !== process.env.INVITE_CODE) {
-            return NextResponse.json(
-                { message: 'Invalid invite code' },
                 { status: 400 }
             );
         }

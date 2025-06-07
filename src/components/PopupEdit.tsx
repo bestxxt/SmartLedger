@@ -328,7 +328,7 @@ export default function PopupEdit({ transaction, open, onOpenChange }: PopupEdit
                                     value={aiInput}
                                     onChange={e => setAiInput(e.target.value)}
                                     placeholder="AI recognition"
-                                    className={`w-full h-12 pl-20 rounded-full pr-14 transition-all duration-1000
+                                    className={`w-full h-12 pl-20 rounded-full pr-14 transition-all duration-500
                                     ${aiLoading
                                             ? 'bg-blue-100 border-blue-300'
                                             : 'bg-gradient-to-r from-blue-50/30 to-purple-50/30 border-blue-200 hover:bg-blue-100 hover:border-blue-400 hover:shadow-md'
