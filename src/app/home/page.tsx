@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from "react";
-import { Loader, RefreshCw, Filter } from "lucide-react"
+import { Loader, RefreshCw, Filter, Plus } from "lucide-react"
 import { toast } from "sonner";
 import PopupEdit from '@/components/PopupEdit';
 import PopupAudio from "@/components/PopupAudio";
@@ -302,14 +302,6 @@ export default function Home() {
                         open={isEditOpen}
                         onOpenChange={setIsEditOpen}
                     />
-                    <PopupAudio
-                        open={isAudioOpen}
-                        onOpenChange={setIsAudioOpen}
-                    />
-                    <PopupPicture
-                        open={isPictureOpen}
-                        onOpenChange={setIsPictureOpen}
-                    />
                     <Setting
                         open={isSettingOpen}
                         onOpenChange={(open) => {
@@ -321,11 +313,19 @@ export default function Home() {
                 </>
             )}
 
-            <Bottom
+            {/* add button */}
+            <button
+                className="fixed bottom-10 right-10 w-14 h-14 rounded-full bg-blue-500 text-white flex items-center justify-center"
+                onClick={() => setIsEditOpen(true)}
+            >
+                <Plus className="w-7 h-7" />
+            </button>
+
+            {/* <Bottom
                 onPicture={() => setIsPictureOpen(true)}
                 onAdd={() => setIsEditOpen(true)}
                 onAudio={() => setIsAudioOpen(true)}
-            />
+            /> */}
         </main>
     );
 }

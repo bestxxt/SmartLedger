@@ -1,34 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, FormEvent } from 'react';
 import {
     CircleDollarSign,
-    CirclePlus,
-    CircleMinus,
-    Wallet,
-    Home,
-    Utensils,
-    Car,
-    GraduationCap,
-    Heart,
-    PartyPopper,
-    ShoppingBag,
-    Users,
-    Banknote,
-    Gift,
-    Receipt,
-    PiggyBank,
-    Briefcase,
-    Building2,
-    Workflow,
-    Clock,
-    Award,
-    Trophy,
-    Handshake,
-    HeartHandshake,
-    Package,
-    HelpCircle,
     ArrowUpCircle,
+    X,
+    Camera,
+    Mic,
+    Loader,
 } from 'lucide-react';
 import {
     Drawer,
@@ -39,305 +18,16 @@ import {
     DrawerFooter,
     DrawerClose,
 } from '@/components/ui/drawer';
-import NumericKeypad from '@/components/NumericKeypad';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon } from "lucide-react"
-import { format } from "date-fns"
-import { Calendar } from "@/components/ui/calendar"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 import { EditableTransaction, Transaction } from "@/models/transaction"
 import { Input } from "@/components/ui/input"
-import { main_income_categories, main_expense_categories } from "@/lib/constants"
 import { useTransactionStore } from '@/store/useTransactionStore';
 import { useUserStore } from '@/store/useUserStore';
 import { toast } from 'sonner';
-import FormattedNumber from './FormattedNumber';
+import EditForm from './EditForm';
+import PopupPicture from './PopupPicture';
+import PopupAudio from './PopupAudio';
 
-// Define category icon mapping
-const categoryIcons: Record<string, any> = {
-    // Income category icons
-    'Salary': Banknote,
-    'Bonus': Award,
-    'Investment': PiggyBank,
-    'Business': Briefcase,
-    'Rental': Building2,
-    'Freelance': Workflow,
-    'Part-time': Clock,
-    'Dividends': Trophy,
-    'Gifts': Gift,
-    'Reimbursement': Receipt,
-    'Subsidy': Receipt,
-    'Lottery': PartyPopper,
-    'Grants': Handshake,
-    'Royalties': HeartHandshake,
-    'Second-hand Sale': Package,
-    'Borrowing': Wallet,
-    'Charity': Heart,
-    // Expense category icons
-    'Housing': Home,
-    'Food': Utensils,
-    'Transportation': Car,
-    'Education': GraduationCap,
-    'Healthcare': Heart,
-    'Entertainment': PartyPopper,
-    'Shopping': ShoppingBag,
-    'Social': Users,
-    'Other': HelpCircle,
-};
-
-const CurrencySymbols: { [key: string]: string } = {
-    'USD': '$',
-    'CAD': '$',
-    'CNY': '¥',
-    'EUR': '€',
-};
-
-// DateTime picker component
-function DateTimePicker({ timestamp, onTimestampChange }: { timestamp: Date, onTimestampChange: (date: Date) => void }) {
-    return (
-        <Popover modal={true}>
-            <PopoverTrigger asChild>
-                <Button
-                    variant={"outline"}
-                    className={cn(
-                        "w-auto justify-start text-left font-normal h-16 rounded-lg"
-                    )}
-                >
-                    <CalendarIcon />
-                    <div className='flex items-center w-full'>
-                        {format(timestamp, "PPp")}
-                    </div>
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent align="start">
-                <Calendar
-                    mode="single"
-                    selected={timestamp}
-                    onSelect={(selectedDate) => {
-                        if (!selectedDate) return;
-                        const oldTime = timestamp;
-                        const newDate = new Date(selectedDate);
-                        newDate.setHours(oldTime.getHours());
-                        newDate.setMinutes(oldTime.getMinutes());
-                        newDate.setSeconds(oldTime.getSeconds());
-                        onTimestampChange(newDate);
-                    }}
-                    initialFocus
-                />
-                <hr />
-                <div className="flex items-center gap-2 p-4">
-                    <Select
-                        onValueChange={(value) => {
-                            const date = new Date(timestamp);
-                            const hours = date.getHours();
-                            let newHour = hours;
-                            if (value === 'AM') {
-                                if (hours >= 12) newHour = hours - 12;
-                            } else {
-                                if (hours < 12) newHour = hours + 12;
-                            }
-                            date.setHours(newHour);
-                            onTimestampChange(date);
-                        }}
-                    >
-                        <SelectTrigger className="w-[70px]">
-                            <SelectValue placeholder={format(timestamp, 'a')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="AM">AM</SelectItem>
-                            <SelectItem value="PM">PM</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Select
-                        onValueChange={(value) => {
-                            const date = new Date(timestamp);
-                            const minutes = date.getMinutes();
-                            const isPM = date.getHours() >= 12;
-                            let hr = parseInt(value, 10);
-                            if (isPM && hr < 12) hr += 12;
-                            if (!isPM && hr === 12) hr = 0;
-                            date.setHours(hr);
-                            onTimestampChange(date);
-                        }}
-                    >
-                        <SelectTrigger className="w-[70px]">
-                            <SelectValue placeholder={format(timestamp, 'hh')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map(hour => (
-                                <SelectItem key={hour} value={hour.toString().padStart(2, '0')}>
-                                    {hour.toString().padStart(2, '0')}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <span>:</span>
-                    <Select
-                        onValueChange={(value) => {
-                            const date = new Date(timestamp);
-                            date.setMinutes(parseInt(value, 10));
-                            onTimestampChange(date);
-                        }}
-                    >
-                        <SelectTrigger className="w-[70px]">
-                            <SelectValue placeholder={format(timestamp, 'mm')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {Array.from({ length: 60 }, (_, i) => i).map(min => (
-                                <SelectItem key={min} value={min.toString().padStart(2, '0')}>
-                                    {min.toString().padStart(2, '0')}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            </PopoverContent>
-        </Popover>
-    );
-}
-
-// Category selector component
-function CategorySelector({
-    type,
-    category,
-    onCategoryChange
-}: {
-    type: 'income' | 'expense',
-    category: string | undefined,
-    onCategoryChange: (value: string) => void
-}) {
-    return (
-        <div className="flex flex-col gap-4">
-            <Select
-                value={category || ''}
-                onValueChange={onCategoryChange}
-            >
-                <SelectTrigger className="w-full">
-                    <SelectValue placeholder={`Select ${type === 'income' ? 'Income' : 'Expense'} Category`}>
-                        {category && (
-                            <div className="flex items-center gap-2">
-                                {(() => {
-                                    const Icon = categoryIcons[category] || HelpCircle;
-                                    return <Icon className="h-4 w-4" />;
-                                })()}
-                                <span>{category}</span>
-                            </div>
-                        )}
-                    </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                    {(type === 'income' ? main_income_categories : main_expense_categories).map((cat) => {
-                        const Icon = categoryIcons[cat] || HelpCircle;
-                        return (
-                            <SelectItem key={cat} value={cat}>
-                                <div className="flex items-center gap-2">
-                                    <Icon className="h-4 w-4" />
-                                    <span>{cat}</span>
-                                </div>
-                            </SelectItem>
-                        );
-                    })}
-                </SelectContent>
-            </Select>
-        </div>
-    );
-}
-
-// Tag selector component
-function TagSelector({ tags, selectedTags, onTagsChange }: {
-    tags: Array<{ id: string, name: string, color?: string }>,
-    selectedTags: string[],
-    onTagsChange: (tags: string[]) => void
-}) {
-    // Create a collection of all tags, including user's current tags and transaction's selected tags
-    const allTags = new Map<string, { id: string, name: string, color?: string }>();
-
-    // Add user's current tags
-    tags.forEach(tag => {
-        allTags.set(tag.name, tag);
-    });
-
-    // Add transaction's selected tags that are not in user's current tags
-    selectedTags.forEach(tagName => {
-        if (!allTags.has(tagName)) {
-            allTags.set(tagName, { id: tagName, name: tagName });
-        }
-    });
-
-    return (
-        <div className="flex flex-wrap gap-2">
-            {Array.from(allTags.values()).map(tag => {
-                const isSelected = selectedTags?.includes(tag.name);
-                return (
-                    <Button
-                        key={tag.id}
-                        variant="outline"
-                        className={cn(
-                            "rounded-full min-w-fit",
-                            "border-2",
-                            tag.color && `border-[${tag.color}]`,
-                            isSelected && "bg-primary text-primary-foreground"
-                        )}
-                        style={{
-                            backgroundColor: isSelected
-                                ? (tag.color ? `${tag.color}20` : undefined)
-                                : undefined,
-                            color: isSelected
-                                ? (tag.color || undefined)
-                                : undefined
-                        }}
-                        onClick={() => {
-                            onTagsChange(
-                                isSelected
-                                    ? selectedTags?.filter((t) => t !== tag.name) || []
-                                    : [...(selectedTags || []), tag.name]
-                            );
-                        }}
-                    >
-                        <span className="whitespace-nowrap px-2">{tag.name}</span>
-                    </Button>
-                );
-            })}
-        </div>
-    );
-}
-
-// Location selector component
-function LocationSelector({ locations, selectedLocation, onLocationChange }: {
-    locations: Array<{ id: string, name: string }>,
-    selectedLocation: string | undefined,
-    onLocationChange: (location: string) => void
-}) {
-    return (
-        <Select
-            value={selectedLocation || ''}
-            onValueChange={onLocationChange}
-        >
-            <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select location" />
-            </SelectTrigger>
-            <SelectContent>
-                {locations.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.name}>
-                        {loc.name}
-                    </SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
-    );
-}
 
 export interface PopupEditProps {
     transaction?: Transaction;
@@ -348,7 +38,7 @@ export interface PopupEditProps {
 export default function PopupEdit({ transaction, open, onOpenChange }: PopupEditProps) {
     const { addTransaction, updateTransaction } = useTransactionStore();
     const { user } = useUserStore();
-
+    const inputRef = useRef<HTMLInputElement>(null);
     if (!user) {
         return null;
     }
@@ -369,9 +59,28 @@ export default function PopupEdit({ transaction, open, onOpenChange }: PopupEdit
 
     const [aiInput, setAiInput] = useState('');
     const [aiLoading, setAiLoading] = useState(false);
-
     const isEditMode = !!transaction;
-    const hasDifferentCurrency = isEditMode && transaction.originalCurrency !== transaction.currency;
+    // Camera (picture) state
+    const [cameraProcessing, setCameraProcessing] = useState(false);
+    // Audio recording state
+    const [recordState, setRecordState] = useState<'idle' | 'recording' | 'uploading' | 'finished'>('idle');
+    const [buttonEnabled, setButtonEnabled] = useState(true);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<BlobPart[]>([]);
+    const streamRef = useRef<MediaStream | null>(null);
+
+    // Reset audio on drawer close
+    useEffect(() => {
+        if (!open) {
+            // stop recording if active
+            mediaRecorderRef.current?.state !== 'inactive' && mediaRecorderRef.current?.stop();
+            streamRef.current?.getTracks().forEach(t => t.stop());
+            setRecordState('idle');
+            audioChunksRef.current = [];
+            setButtonEnabled(true);
+        }
+    }, [open]);
+
 
     useEffect(() => {
         if (transaction) {
@@ -390,6 +99,23 @@ export default function PopupEdit({ transaction, open, onOpenChange }: PopupEdit
             });
         }
     }, [transaction]);
+
+    const resetForm = () => {
+        setAiInput('');
+        setForm({
+            amount: 0,
+            originalAmount: 0.00,
+            currency: user?.currency || 'USD',
+            originalCurrency: user?.currency || 'USD',
+            type: 'expense',
+            category: 'Other',
+            timestamp: new Date(),
+            note: '',
+            tags: [],
+            location: '',
+            emoji: '💰',
+        });
+    }
 
     const handleSubmit = async () => {
         try {
@@ -439,7 +165,7 @@ export default function PopupEdit({ transaction, open, onOpenChange }: PopupEdit
             const data = await formData.json();
             if (data.success && data.result && data.result.length > 0) {
                 const t = data.result[0];
-                console.log('AI recognized transaction:', t);
+                // console.log('AI recognized transaction:', t);
                 setForm(prev => ({
                     ...prev,
                     originalAmount: t.amount,
@@ -463,197 +189,204 @@ export default function PopupEdit({ transaction, open, onOpenChange }: PopupEdit
         }
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setCameraProcessing(true);
+        // create submit form
+        const form = new FormData();
+        form.append('file', file);
+        form.append('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+        form.append('userCurrency', user?.currency || 'USD');
+        form.append('userLanguage', user?.language || 'en');
+        form.append('userTags', JSON.stringify(user?.tags.map((tag) => tag.name) || []));
+        form.append('userLocations', JSON.stringify(user?.locations.map((location) => location.name) || []));
+
+        fetch('/api/app/ai/pictureToBill', { method: 'POST', body: form })
+            .then(res => {
+                if (!res.ok) throw new Error(res.statusText);
+                return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // update your form…
+                    setForm(prev => ({
+                        ...prev,
+                        originalAmount: data.result.amount,
+                        originalCurrency: data.result.currency,
+                        type: data.result.type,
+                        category: data.result.category,
+                        timestamp: new Date(data.result.timestamp),
+                        note: data.result.note,
+                        tags: data.result.tags || [],
+                        location: data.result.location || undefined,
+                        emoji: data.result.emoji,
+                    }));
+                } else {
+                    toast.error('Failed to recognize transaction.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                toast.error('Failed to recognize transaction.');
+            })
+            .finally(() => {
+                setCameraProcessing(false);
+            });
+    };
+
+    // Audio recorder handler
+    const handleMic = async () => {
+        switch (recordState) {
+            case 'idle': {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    streamRef.current = stream;
+                    const recorder = new MediaRecorder(stream);
+                    mediaRecorderRef.current = recorder;
+                    audioChunksRef.current = [];
+                    recorder.ondataavailable = e => audioChunksRef.current.push(e.data);
+                    recorder.start();
+                    setRecordState('recording');
+                } catch (err) {
+                    console.error(err);
+                    toast.error('Microphone error');
+                }
+                break;
+            }
+            case 'recording': {
+                setButtonEnabled(false);
+                setRecordState('uploading');
+                mediaRecorderRef.current?.stop();
+                streamRef.current?.getTracks().forEach(t => t.stop());
+                await new Promise<void>(res => {
+                    if (mediaRecorderRef.current) mediaRecorderRef.current.onstop = () => res();
+                    else res();
+                });
+                const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                const file = new File([blob], 'rec.webm', { type: blob.type });
+                const body = new FormData();
+                body.append('file', file);
+                body.append('localTime', new Date().toISOString());
+                body.append('userCurrency', user?.currency || 'USD');
+                body.append('userLanguage', user?.language || 'en');
+                body.append('userTags', JSON.stringify(user?.tags.map((tag) => tag.name) || []));
+                body.append('userLocations', JSON.stringify(user?.locations.map((location) => location.name) || []));
+                const res = await fetch('/api/app/ai/audioToBill', { method: 'POST', body });
+                const data = await res.json();
+                console.log('data', data);
+                if (data.result) {
+                    const t = Array.isArray(data.result) ? data.result[0] : data.result;
+                    setForm(prev => ({
+                        ...prev,
+                        originalAmount: t.amount,
+                        originalCurrency: t.currency,
+                        type: t.type,
+                        category: t.category,
+                        timestamp: new Date(t.timestamp),
+                        note: t.note || '',
+                        tags: t.tags || [],
+                        location: t.location || '',
+                        emoji: t.emoji || '💰',
+                    }));
+                } else {
+                    toast.error('Audio recognition failed');
+                }
+                setButtonEnabled(true);
+                setRecordState('idle');
+                break;
+            }
+        }
+    };
+
     return (
-        <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
-            <DrawerContent className="p-6 w-full h-full px-2">
-                <DrawerHeader className="pt-0">
-                    <DrawerTitle className="flex justify-center gap-2">
-                        <CircleDollarSign />
-                        {isEditMode ? 'Edit Transaction' : 'Add Transaction'}
-                    </DrawerTitle>
-                </DrawerHeader>
-                {/* AI prompt input and upload button */}
-                <div className="flex flex-col gap-4 w-full overflow-y-scroll">
-                    <div className="space-y-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Date & Time & Income / Expense
-                        </label>
-                        <div className='flex justify-between items-center'>
-                            <DateTimePicker
-                                timestamp={form.timestamp}
-                                onTimestampChange={(date) => setForm(prev => ({ ...prev, timestamp: date }))}
-                            />
-                            <div className='flex gap-2'>
-                                <button
-                                    type="button"
-                                    onClick={() => setForm((prev) => ({ ...prev, type: 'income' }))}
-                                    className={`border rounded-full h-14 w-14 px-4 flex items-center gap-2 transition 
-                                    ${form.type === 'income' ? 'bg-teal-100 text-teal-700' : 'bg-white text-gray-700'}`}
-                                >
-                                    <CirclePlus />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setForm((prev) => ({ ...prev, type: 'expense' }))}
-                                    className={`border rounded-full h-14 w-14 px-4 flex items-center gap-2 transition 
-                                    ${form.type === 'expense' ? 'bg-red-100 text-red-700' : 'bg-white text-gray-700'}`}
-                                >
-                                    <CircleMinus />
-                                </button>
-                            </div>
-                        </div>
-                        <hr />
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Amount & Currency
-                        </label>
-                        <div className="flex flex-col gap-4">
-                            <div className="flex-1">
-                                <NumericKeypad
-                                    value={form.originalAmount?.toString() || '0'}
-                                    currencySymbols={CurrencySymbols[form.originalCurrency || 'USD']}
-                                    onChange={(newVal) => {
-                                        setForm((prev) => ({ ...prev, originalAmount: parseFloat(newVal) }));
+        <>
+            <input
+                type="file"
+                accept="image/*"
+                // capture="environment"
+                style={{ display: 'none' }}
+                ref={inputRef}
+                onChange={handleFileChange}
+            />
+
+            <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
+                <DrawerContent className="p-6 w-full px-2">
+                    <DrawerHeader className="pt-0">
+                        <DrawerTitle className="flex justify-center gap-2">
+                            <CircleDollarSign />
+                            {isEditMode ? 'Edit Transaction' : 'Add Transaction'}
+                        </DrawerTitle>
+                    </DrawerHeader>
+                    {/* AI prompt input and upload button */}
+                    <EditForm formData={form} onFormChange={setForm} />
+
+                    <DrawerFooter className=''>
+                        <div className="flex items-center gap-3 mb-4 relative">
+                            <div className="relative flex-1">
+                                <Input
+                                    value={aiInput}
+                                    onChange={e => setAiInput(e.target.value)}
+                                    placeholder="AI recognition"
+                                    className={`w-full h-12 pl-20 rounded-full pr-14 transition-all duration-300
+                                    ${aiLoading
+                                            ? 'bg-blue-100 border-blue-300'
+                                            : 'bg-gradient-to-r from-blue-50/30 to-purple-50/30 border-blue-200 hover:bg-blue-100 hover:border-blue-400 hover:shadow-md'
+                                        }
+                                    ${aiInput.trim()
+                                            ? 'border-blue-400 bg-gradient-to-r from-blue-100 to-purple-100'
+                                            : 'opacity-70'
+                                        }
+                                    focus-visible:ring-blue-300`}
+                                    disabled={aiLoading}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !aiLoading && aiInput.trim()) {
+                                            handleAIPrompt();
+                                        }
                                     }}
                                 />
-                            </div>
-                            <div className="flex gap-2 justify-center">
-                                {Object.keys(CurrencySymbols).map((currency) => (
-                                    <Button
-                                        key={currency}
-                                        variant="outline"
-                                        className={cn(
-                                            "w-15 justify-center",
-                                            form.originalCurrency === currency && "bg-blue-500 text-primary-foreground",
-                                        )}
-                                        onClick={() => {
-                                            setForm((prev) => ({ ...prev, originalCurrency: currency }));
-                                        }}
-                                    >
-                                        {currency}
-                                    </Button>
-                                ))}
-                            </div>
-                            {isEditMode && hasDifferentCurrency && (
-                                <div className="text-sm text-gray-500 text-center">
-                                    Original amount: {form.originalAmount} {form.originalCurrency}
-                                    <br />
-                                    Converted to: {form.amount} {form.currency}
-                                </div>
-                            )}
-                        </div>
-                        <hr />
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Category
-                        </label>
-                        <CategorySelector
-                            type={form.type}
-                            category={form.category}
-                            onCategoryChange={(value) => setForm(prev => ({ ...prev, category: value }))}
-                        />
-                        <hr />
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Note
-                        </label>
-                        <Input
-                            value={form.note || ''}
-                            onChange={(e) => setForm((prev) => ({ ...prev, note: e.target.value }))}
-                            placeholder="Add a note to your transaction"
-                        />
-                        <hr />
-
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Location
-                        </label>
-                        <LocationSelector
-                            locations={user?.locations || []}
-                            selectedLocation={form.location}
-                            onLocationChange={(value) => setForm(prev => ({ ...prev, location: value }))}
-                        />
-                        <hr />
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Tags
-                        </label>
-                        <TagSelector
-                            tags={user?.tags || []}
-                            selectedTags={form.tags || []}
-                            onTagsChange={(tags) => setForm(prev => ({ ...prev, tags }))}
-                        />
-                        <hr />
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Emoji
-                        </label>
-                        <div className="flex flex-col gap-2">
-                            <div className="flex flex-wrap gap-2">
-                                {['💰', '🍔', '🚗', '🏠', '👕', '🎮', '📱', '✈️', '🎬', '📚'].map((emoji) => (
-                                    <Button
-                                        key={emoji}
-                                        variant="outline"
-                                        className={cn(
-                                            "text-2xl",
-                                            form.emoji === emoji && "bg-primary text-primary-foreground"
-                                        )}
-                                        onClick={() => setForm((prev) => ({ ...prev, emoji }))}
-                                    >
-                                        {emoji}
-                                    </Button>
-                                ))}
-                            </div>
-                            <div className="flex items-center gap-2 mt-2">
-                                <Input
-                                    type="text"
-                                    value={form.emoji}
-                                    onChange={(e) => setForm((prev) => ({ ...prev, emoji: e.target.value }))}
-                                    className="w-28 text-2xl text-center p-0"
-                                    placeholder="😊"
-                                    maxLength={2}
-                                />
-                                <span className="text-sm text-gray-500">Input custom emoji</span>
+                                <button
+                                    className="hover:scale-110 w-10 h-10 rounded-full absolute left-1 top-1 transition-all duration-300 flex items-center justify-center"
+                                    onClick={() => inputRef.current?.click()}
+                                    disabled={cameraProcessing}
+                                >
+                                    {cameraProcessing === true ? <Loader className="animate-spin w-4 h-4" /> : <Camera className="w-4 h-4" />}
+                                </button>
+                                <button
+                                    className={`hover:scale-110 w-10 h-10 rounded-full absolute left-10 top-1  transition-all duration-300 flex items-center justify-center
+                  ${recordState === 'recording' ? 'text-red-500 border-2 border-red-500 animate-pulse' : ''}  
+                  ${recordState === 'uploading' ? 'text-blue-500' : ''}`}
+                                    onClick={handleMic}
+                                    disabled={!buttonEnabled}
+                                >
+                                    {recordState === 'uploading' ? <Loader className="animate-spin w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                                </button>
+                                <button
+                                    onClick={handleAIPrompt}
+                                    disabled={aiLoading || !aiInput.trim()}
+                                    className="h-10 w-10 rounded-full absolute right-1 top-1 transition-all duration-300 flex items-center justify-center"
+                                >
+                                    <ArrowUpCircle className={`transition-all ${aiLoading ? 'animate-bounce text-blue-500' : 'text-blue-600 hover:scale-110'}`} />
+                                </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <DrawerFooter className=''>
-                    <div className="flex items-center gap-3 mb-4 relative">
-                        <Input
-                            value={aiInput}
-                            onChange={e => setAiInput(e.target.value)}
-                            placeholder="AI recognition"
-                            className="flex-1 h-12 rounded-full pr-14 bg-gradient-to-r from-blue-50/30 to-purple-50/30 border-blue-200 focus-visible:ring-blue-300"
-                            disabled={aiLoading}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !aiLoading && aiInput.trim()) {
-                                    handleAIPrompt();
-                                }
-                            }}
-                        />
-                        <Button
-                            onClick={handleAIPrompt}
-                            disabled={aiLoading || !aiInput.trim()}
-                            variant="outline"
-                            size="icon"
-                            className={`h-10 w-15 rounded-full absolute right-1 transition-all duration-300 
-                                ${aiLoading ? 'bg-blue-100 border-blue-300' : 'hover:bg-blue-100 hover:border-blue-400 hover:shadow-md'} 
-                                ${aiInput.trim() ? 'border-blue-400 bg-gradient-to-r from-blue-100 to-purple-100' : 'opacity-70'}`}
-                        >
-                            <ArrowUpCircle className={`transition-all ${aiLoading ? 'animate-bounce text-blue-500' : 'text-blue-600 hover:scale-110'}`} />
-                        </Button>
-                    </div>
-                    <div className='flex justify-between'>
-                        <DrawerClose asChild>
-                            <Button variant="outline" className="w-[49%] h-10">Cancel</Button>
-                        </DrawerClose>
-                        <DrawerClose asChild>
-                            <Button
-                                className="w-[49%] h-10"
-                                onClick={handleSubmit}
-                            >
-                                {isEditMode ? 'Save Changes' : 'Add'}
-                            </Button>
-                        </DrawerClose>
-                    </div>
-                </DrawerFooter>
-            </DrawerContent>
-        </Drawer>
+                        <div className='flex justify-between'>
+                            <DrawerClose asChild>
+                                <Button variant="outline" className="w-[49%] h-10" onClick={() => resetForm()}>Cancel</Button>
+                            </DrawerClose>
+                            <DrawerClose asChild>
+                                <Button
+                                    className="w-[49%] h-10"
+                                    onClick={handleSubmit}
+                                >
+                                    {isEditMode ? 'Save Changes' : 'Add'}
+                                </Button>
+                            </DrawerClose>
+                        </div>
+                    </DrawerFooter>
+                </DrawerContent>
+            </Drawer>
+        </>
     );
 }
 

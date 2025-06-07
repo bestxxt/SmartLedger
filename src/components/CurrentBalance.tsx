@@ -33,7 +33,7 @@ export default function CurrentBalance() {
   const last = chartData[chartData.length - 1]?.balance || 0;
   const prev = chartData[chartData.length - 2]?.balance || 0;
   const growth = prev === 0 ? 0 : ((last - prev) / Math.abs(prev)) * 100;
-  console.log(chartData);
+  // console.log(chartData);
   return (
     <div className="bg-white p-6">
       <div className="space-y-1">
