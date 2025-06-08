@@ -16,22 +16,19 @@ import { motion } from 'framer-motion';
 function LoginBg() {
     return (
         <div className="fixed inset-0 -z-10 overflow-hidden">
-            {/* 主背景渐变 */}
+            
             <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" />
             
-            {/* 动态背景形状 */}
+           
             <div className="absolute inset-0">
-                {/* 大圆形背景 - 桌面版 */}
                 <div
                     className="absolute -top-40 -right-40 w-80 h-80 md:w-96 md:h-96 lg:w-[500px] lg:h-[500px] rounded-full bg-gradient-to-br from-blue-400/20 to-indigo-500/20 backdrop-blur-3xl"
                 />
                 
-                {/* 中等圆形背景 */}
                 <div
                     className="absolute -bottom-32 -left-32 w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full bg-gradient-to-tr from-purple-400/15 to-pink-400/15 backdrop-blur-3xl"
                 />
                 
-                {/* 小装饰圆形 */}
                 <motion.div
                     className="absolute top-1/4 left-1/4 w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-emerald-400/10 to-teal-400/10 backdrop-blur-2xl"
                     
@@ -39,7 +36,6 @@ function LoginBg() {
                 
             </div>
             
-            {/* 模糊光效 */}
             <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-400/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" />
             <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-purple-400/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" />
         </div>
