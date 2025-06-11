@@ -45,7 +45,7 @@ export class AIService {
                     "amount": number,                             // Default: 0 if not found
                     "type": "income" | "expense", 
                     "category": string,                           // Must match given categories
-                    "timestamp": string,                          // ISO 8601 (default: context.CurrentTime time)
+                    "timestamp": string,                          // using context.CurrentTime
                     "note": string,                               // Brief factual summary in ${context.userLanguage},Use objective and factual language.
                     "currency": string,                           // Currency mentioned in Text else context.currency
                     "location": string (optional),                // Match from context.locations
