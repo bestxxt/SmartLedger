@@ -9,9 +9,9 @@ type HeadProps = {
 };
 
 export default function Head({ onMenuClick }: HeadProps) {
-    const { user, user_loading } = useUserStore();
+    const { user } = useUserStore();
 
-    if (user_loading || !user) {
+    if (!user) {
         return (
             <div className="flex items-center justify-between py-2 px-4 w-full bg-white">
                 <Skeleton className="h-14 w-14 rounded-full bg-gray-200 ml-2" />

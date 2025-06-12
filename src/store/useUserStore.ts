@@ -33,7 +33,6 @@ export const useUserStore = create<UserState>((set) => ({
             console.error('Error fetching user data:', err);
             toast.error('Failed to fetch user data');
             set({ user_loading: false });
-            // 发生错误时也登出并跳转到登录页
             await signOut({ callbackUrl: '/login' });
         }
     },
