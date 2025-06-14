@@ -66,3 +66,21 @@ export const INITIAL_TAGS = [
     { name: 'Pet', color: '#40916C', description: 'Pet-related expenses' },
     { name: 'Other', color: '#495057', description: 'Other expenses' }
 ];
+
+export const EMOJI_LIST = [
+    { emoji: '💰', name: 'Money' },
+    { emoji: '🍔', name: 'Food' },
+    { emoji: '🚗', name: 'Transportation' },
+    { emoji: '🏠', name: 'Housing' },
+    { emoji: '🏥', name: 'Medical' },
+    { emoji: '👕', name: 'Clothing' },
+    { emoji: '🎮', name: 'Entertainment' },
+    { emoji: '📱', name: 'Technology' },
+    { emoji: '✈️', name: 'Travel' },
+    { emoji: '🎬', name: 'Movies' },
+    { emoji: '📚', name: 'Books' },
+    { emoji: '🎤', name: 'Music' },
+    { emoji: '🎁', name: 'Gift' },
+    { emoji: '🎯', name: 'Sports' },
+    { emoji: '🎭', name: 'Art' },
+];

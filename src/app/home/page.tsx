@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Calendar } from "@/components/ui/calendar"
 
 import {
     Select,
@@ -29,6 +30,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function Home() {
     const [isInView, setIsInView] = useState(true);
@@ -123,11 +125,11 @@ export default function Home() {
                 </div>
 
                 <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                    <DialogContent className="overflow-y-auto max-h-[85dvh] flex flex-col">
+                    <DialogContent className="max-h-[85dvh] flex flex-col">
                         <DialogHeader>
                             <DialogTitle>Filter Transactions</DialogTitle>
                         </DialogHeader>
-                        <div className="flex-1 overflow-y-auto">
+                        <div className="flex-1 ">
                             <div className="grid gap-4 py-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
@@ -136,7 +138,7 @@ export default function Home() {
                                             value={filters.type || 'all'}
                                             onValueChange={(value) => handleFilterChange('type', value)}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full    ">
                                                 <SelectValue placeholder="Select type" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -152,7 +154,7 @@ export default function Home() {
                                             value={filters.category || 'all'}
                                             onValueChange={(value) => handleFilterChange('category', value)}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full ">
                                                 <SelectValue placeholder="Select category" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -196,22 +198,43 @@ export default function Home() {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4 ">
                                     <div className="space-y-2">
                                         <Label>From Date</Label>
-                                        <Input
-                                            type="date"
-                                            value={filters.dateFrom}
-                                            onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-                                        />
+                                        <Popover modal={true}>
+                                            <PopoverTrigger className="w-full">
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full"
+                                                >
+                                                    {filters.dateFrom ? new Date(filters.dateFrom).toLocaleDateString() : 'Select Date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent>
+                                                <Calendar mode="single" selected={new Date(filters.dateFrom)} onSelect={(date) => {
+                                                    if (date) {
+                                                        handleFilterChange('dateFrom', date.toISOString());
+                                                    }
+                                                }} />
+                                            </PopoverContent>
+                                        </Popover>
                                     </div>
                                     <div className="space-y-2">
                                         <Label>To Date</Label>
-                                        <Input
-                                            type="date"
-                                            value={filters.dateTo}
-                                            onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-                                        />
+                                        <Popover modal={true}>
+                                            <PopoverTrigger className="w-full">
+                                                <Button variant="outline" className="w-full">
+                                                    {filters.dateTo ? new Date(filters.dateTo).toLocaleDateString() : 'Select Date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent>
+                                                <Calendar mode="single" selected={new Date(filters.dateTo)} onSelect={(date) => {
+                                                    if (date) {
+                                                        handleFilterChange('dateTo', date.toISOString());
+                                                    }
+                                                }} />
+                                            </PopoverContent>
+                                        </Popover>
                                     </div>
                                 </div>
 
@@ -262,7 +285,10 @@ export default function Home() {
                                 <Button
                                     variant="outline"
                                     className="w-[45%] h-11"
-                                    onClick={resetFilters}
+                                    onClick={() => {
+                                        resetFilters();
+                                        setIsFilterOpen(false);
+                                    }}
                                 >
                                     Reset
                                 </Button>
