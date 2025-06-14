@@ -13,14 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { ScrollArea } from "./ui/scroll-area";
 import { useUserStore } from '@/store/useUserStore';
+import { CURRENCIES } from "@/config/constants";
 
-
-const CurrencySymbols: { [key: string]: string } = {
-  'USD': '$',
-  'CAD': '$',
-  'CNY': '¥',
-  'EUR': '€',
-};
 
 const emojiList = ['💰', '🍔', '🚗', '🏠', '👕', '🎮', '📱', '✈️', '🎬', '📚'];
 
@@ -279,7 +273,7 @@ export default function EditForm({
                 <div className="p-4 space-y-4">
                   <NumericKeypad
                     value={formData.originalAmount?.toString() || '0'}
-                    currencySymbols={CurrencySymbols[formData.originalCurrency || 'USD']}
+                    currencySymbols={CURRENCIES.find(c => c.code === formData.originalCurrency)?.symbol || '$'}
                     onChange={(newVal) => {
                       handleChange({ originalAmount: parseFloat(newVal) });
                     }}
@@ -318,13 +312,13 @@ export default function EditForm({
                   <DialogTitle>Select Currency</DialogTitle>
                 </DialogHeader>
                 <div className="grid grid-cols-4 gap-2 p-4">
-                  {Object.keys(CurrencySymbols).map((currency) => (
+                  {CURRENCIES.map((currency) => (
                     <Button
-                      key={currency}
-                      variant={formData.originalCurrency === currency ? "default" : "outline"}
-                      onClick={() => handleChange({ originalCurrency: currency })}
+                      key={currency.code}
+                      variant={formData.originalCurrency === currency.code ? "default" : "outline"}
+                      onClick={() => handleChange({ originalCurrency: currency.code })}
                     >
-                      {currency}
+                      {currency.symbol}({currency.code})
                     </Button>
                   ))}
                 </div>

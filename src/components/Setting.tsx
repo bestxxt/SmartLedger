@@ -36,48 +36,14 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { signOut } from "next-auth/react"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
+import { TAG_COLORS, CURRENCIES, LANGUAGES } from "@/config/constants"
 
 export interface UserProps {
     user: User | null;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
 }
-
-const TAG_COLORS = [
-    { name: 'Red', value: '#ef4444' },
-    { name: 'Orange', value: '#f97316' },
-    { name: 'Yellow', value: '#eab308' },
-    { name: 'Green', value: '#22c55e' },
-    { name: 'Blue', value: '#3b82f6' },
-    { name: 'Purple', value: '#a855f7' },
-    { name: 'Pink', value: '#ec4899' },
-    { name: 'Gray', value: '#6b7280' },
-]
-
-// Add common currency list
-const CURRENCIES = [
-    { code: 'USD', symbol: '$', name: 'US Dollar' },
-    { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
-    { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' },
-    { code: 'EUR', symbol: '€', name: 'Euro' },
-]
-
-// Add language list
-const LANGUAGES = [
-    { code: 'en', name: 'English', nativeName: 'English' },
-    { code: 'zh', name: 'Chinese', nativeName: '中文' },
-]
-
 // Image compression function
 async function compressImage(file: File, maxSizeKB: number = 128): Promise<string> {
     return new Promise((resolve, reject) => {

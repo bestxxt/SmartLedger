@@ -1,16 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from "react";
-import { Loader, RefreshCw, Filter, Plus } from "lucide-react"
+import { RefreshCw, Filter, Plus } from "lucide-react"
 import { toast } from "sonner";
 import PopupEdit from '@/components/PopupEdit';
-import PopupAudio from "@/components/PopupAudio";
-import PopupPicture from "@/components/PopupPicture";
 import CurrentBalance from '@/components/CurrentBalance';
 import TransactionList from '@/components/TransactionList';
 import Setting from '@/components/Setting';
 import Head from "@/components/Head";
-import Bottom from "@/components/Bottom";
 import { main_income_categories, main_expense_categories } from '@/lib/constants';
 import { useTransactionStore } from '@/store/useTransactionStore';
 import { useUserStore } from '@/store/useUserStore';
@@ -24,7 +21,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useRouter } from "next/navigation";
 
 import {
     Select,
@@ -33,13 +29,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { signOut } from "next-auth/react";
 
 export default function Home() {
     const [isInView, setIsInView] = useState(true);
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [isAudioOpen, setIsAudioOpen] = useState(false);
-    const [isPictureOpen, setIsPictureOpen] = useState(false);
     const [isSettingOpen, setIsSettingOpen] = useState(false);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const { user, queryUser } = useUserStore();
@@ -53,7 +46,6 @@ export default function Home() {
         applyFilters,
         resetFilters,
     } = useTransactionStore();
-    const router = useRouter();
     const loaderRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -61,7 +53,6 @@ export default function Home() {
             queryUser();
         } catch (error) {
             console.error('Error fetching user data:', error);
-            // 不需要在这里处理登出，因为 useUserStore 中已经处理了
         }
     }, [queryUser]);
 

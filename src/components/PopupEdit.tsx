@@ -1,17 +1,15 @@
 'use client';
 
-import { useState, useEffect, useRef, FormEvent } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     CircleDollarSign,
     ArrowUpCircle,
-    X,
     Camera,
     Mic,
     Loader,
 } from 'lucide-react';
 import {
     Drawer,
-    DrawerTrigger,
     DrawerContent,
     DrawerHeader,
     DrawerTitle,
@@ -25,8 +23,7 @@ import { useTransactionStore } from '@/store/useTransactionStore';
 import { useUserStore } from '@/store/useUserStore';
 import { toast } from 'sonner';
 import EditForm from './EditForm';
-import PopupPicture from './PopupPicture';
-import PopupAudio from './PopupAudio';
+import { CURRENCIES } from '@/config/constants';
 
 
 export interface PopupEditProps {
