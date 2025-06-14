@@ -8,7 +8,7 @@ import { useUserStore } from '@/store/useUserStore';
 export default function CurrentBalance() {
   const { user, user_loading } = useUserStore();
 
-  if (user_loading || !user) {
+  if (!user) {
     return (
       <div className="bg-white p-6">
         <div className="space-y-2">

@@ -13,16 +13,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { ScrollArea } from "./ui/scroll-area";
 import { useUserStore } from '@/store/useUserStore';
+import { CURRENCIES, EMOJI_LIST } from "@/config/constants";
 
 
-const CurrencySymbols: { [key: string]: string } = {
-  'USD': '$',
-  'CAD': '$',
-  'CNY': '¥',
-  'EUR': '€',
-};
 
-const emojiList = ['💰', '🍔', '🚗', '🏠', '👕', '🎮', '📱', '✈️', '🎬', '📚'];
 
 // DateTime picker component
 function DateTimePicker({ timestamp, onTimestampChange }: { timestamp: Date, onTimestampChange: (date: Date) => void }) {
@@ -204,16 +198,16 @@ export default function EditForm({
                 </DialogHeader>
                 <p className="text-sm text-gray-500">Emoji</p>
                 <div className="grid grid-cols-5 gap-2 ">
-                  {emojiList.map((emoji) => (
+                  {EMOJI_LIST.map((emoji) => (
                     <button
-                      key={emoji}
+                      key={emoji.emoji}
                       className={cn(
                         "text-2xl p-0 h-12 w-12 border border-gray-300 rounded-lg flex items-center justify-center",
-                        formData.emoji === emoji && "border-black border-2"
+                        formData.emoji === emoji.emoji && "border-black border-2"
                       )}
-                      onClick={() => handleChange({ emoji })}
+                      onClick={() => handleChange({ emoji: emoji.emoji })}
                     >
-                      {emoji}
+                      {emoji.emoji}
                     </button>
                   ))}
                 </div>
@@ -238,12 +232,12 @@ export default function EditForm({
                   {formData.category || 'Select category'}
                 </span>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="h-[70%]">
                 <DialogHeader>
                   <DialogTitle>Select Category</DialogTitle>
                 </DialogHeader>
-                <ScrollArea className="h-[300px]">
-                  <div className="grid gap-2 p-2">
+                <div className="overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-2 p-2">
                     {main_categories.map((cat) => (
                       <Button
                         key={cat}
@@ -255,7 +249,7 @@ export default function EditForm({
                       </Button>
                     ))}
                   </div>
-                </ScrollArea>
+                </div>
               </DialogContent>
             </Dialog>
           </CardTitle>
@@ -279,7 +273,7 @@ export default function EditForm({
                 <div className="p-4 space-y-4">
                   <NumericKeypad
                     value={formData.originalAmount?.toString() || '0'}
-                    currencySymbols={CurrencySymbols[formData.originalCurrency || 'USD']}
+                    currencySymbols={CURRENCIES.find(c => c.code === formData.originalCurrency)?.symbol || '$'}
                     onChange={(newVal) => {
                       handleChange({ originalAmount: parseFloat(newVal) });
                     }}
@@ -310,21 +304,21 @@ export default function EditForm({
                   "cursor-pointer hover:bg-gray-100 p-1 rounded-md font-bold text-center border border-gray-300 truncate max-w-20",
                   formData.type === 'income' ? 'text-green-500' : 'text-red-500'
                 )}>
-                  {formData.originalCurrency || 'USD'}
+                  {CURRENCIES.find(c => c.code === formData.originalCurrency)?.symbol || '$'} {formData.originalCurrency || 'USD'}
                 </span>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Select Currency</DialogTitle>
                 </DialogHeader>
-                <div className="grid grid-cols-4 gap-2 p-4">
-                  {Object.keys(CurrencySymbols).map((currency) => (
+                <div className="grid grid-cols-3 gap-2 p-4">
+                  {CURRENCIES.map((currency) => (
                     <Button
-                      key={currency}
-                      variant={formData.originalCurrency === currency ? "default" : "outline"}
-                      onClick={() => handleChange({ originalCurrency: currency })}
+                      key={currency.code}
+                      variant={formData.originalCurrency === currency.code ? "default" : "outline"}
+                      onClick={() => handleChange({ originalCurrency: currency.code })}
                     >
-                      {currency}
+                      {currency.symbol} {currency.code}
                     </Button>
                   ))}
                 </div>

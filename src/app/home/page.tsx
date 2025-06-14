@@ -1,16 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from "react";
-import { Loader, RefreshCw, Filter, Plus } from "lucide-react"
+import { RefreshCw, Filter, Plus } from "lucide-react"
 import { toast } from "sonner";
 import PopupEdit from '@/components/PopupEdit';
-import PopupAudio from "@/components/PopupAudio";
-import PopupPicture from "@/components/PopupPicture";
 import CurrentBalance from '@/components/CurrentBalance';
 import TransactionList from '@/components/TransactionList';
 import Setting from '@/components/Setting';
 import Head from "@/components/Head";
-import Bottom from "@/components/Bottom";
 import { main_income_categories, main_expense_categories } from '@/lib/constants';
 import { useTransactionStore } from '@/store/useTransactionStore';
 import { useUserStore } from '@/store/useUserStore';
@@ -24,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useRouter } from "next/navigation";
+import { Calendar } from "@/components/ui/calendar"
 
 import {
     Select,
@@ -33,13 +30,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { signOut } from "next-auth/react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function Home() {
     const [isInView, setIsInView] = useState(true);
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [isAudioOpen, setIsAudioOpen] = useState(false);
-    const [isPictureOpen, setIsPictureOpen] = useState(false);
     const [isSettingOpen, setIsSettingOpen] = useState(false);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const { user, queryUser } = useUserStore();
@@ -53,7 +48,6 @@ export default function Home() {
         applyFilters,
         resetFilters,
     } = useTransactionStore();
-    const router = useRouter();
     const loaderRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -61,7 +55,6 @@ export default function Home() {
             queryUser();
         } catch (error) {
             console.error('Error fetching user data:', error);
-            // 不需要在这里处理登出，因为 useUserStore 中已经处理了
         }
     }, [queryUser]);
 
@@ -132,11 +125,11 @@ export default function Home() {
                 </div>
 
                 <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                    <DialogContent className="overflow-y-auto max-h-[85dvh] flex flex-col">
+                    <DialogContent className="max-h-[85dvh] flex flex-col">
                         <DialogHeader>
                             <DialogTitle>Filter Transactions</DialogTitle>
                         </DialogHeader>
-                        <div className="flex-1 overflow-y-auto">
+                        <div className="flex-1 ">
                             <div className="grid gap-4 py-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
@@ -145,7 +138,7 @@ export default function Home() {
                                             value={filters.type || 'all'}
                                             onValueChange={(value) => handleFilterChange('type', value)}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full    ">
                                                 <SelectValue placeholder="Select type" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -161,7 +154,7 @@ export default function Home() {
                                             value={filters.category || 'all'}
                                             onValueChange={(value) => handleFilterChange('category', value)}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full ">
                                                 <SelectValue placeholder="Select category" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -205,22 +198,43 @@ export default function Home() {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4 ">
                                     <div className="space-y-2">
                                         <Label>From Date</Label>
-                                        <Input
-                                            type="date"
-                                            value={filters.dateFrom}
-                                            onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-                                        />
+                                        <Popover modal={true}>
+                                            <PopoverTrigger className="w-full">
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-full"
+                                                >
+                                                    {filters.dateFrom ? new Date(filters.dateFrom).toLocaleDateString() : 'Select Date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent>
+                                                <Calendar mode="single" selected={new Date(filters.dateFrom)} onSelect={(date) => {
+                                                    if (date) {
+                                                        handleFilterChange('dateFrom', date.toISOString());
+                                                    }
+                                                }} />
+                                            </PopoverContent>
+                                        </Popover>
                                     </div>
                                     <div className="space-y-2">
                                         <Label>To Date</Label>
-                                        <Input
-                                            type="date"
-                                            value={filters.dateTo}
-                                            onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-                                        />
+                                        <Popover modal={true}>
+                                            <PopoverTrigger className="w-full">
+                                                <Button variant="outline" className="w-full">
+                                                    {filters.dateTo ? new Date(filters.dateTo).toLocaleDateString() : 'Select Date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent>
+                                                <Calendar mode="single" selected={new Date(filters.dateTo)} onSelect={(date) => {
+                                                    if (date) {
+                                                        handleFilterChange('dateTo', date.toISOString());
+                                                    }
+                                                }} />
+                                            </PopoverContent>
+                                        </Popover>
                                     </div>
                                 </div>
 
@@ -271,7 +285,10 @@ export default function Home() {
                                 <Button
                                     variant="outline"
                                     className="w-[45%] h-11"
-                                    onClick={resetFilters}
+                                    onClick={() => {
+                                        resetFilters();
+                                        setIsFilterOpen(false);
+                                    }}
                                 >
                                     Reset
                                 </Button>

@@ -45,7 +45,7 @@ Smart Ledger uses a separate FastAPI-based Whisper server (powered by faster-whi
 
 **Requirements**
 
-- Python 3.8+
+- 3.8 < Python < 3.12
  
 - `ffmpeg` installed (for `pydub` to work)
  
@@ -80,6 +80,8 @@ Or with `uvicorn`:
 ```bash
 uvicorn whisper_server:app --host 0.0.0.0 --port 8000
 ```
+
+If you want to use cuda: install cuDNN at https://developer.nvidia.com/cudnn-downloads
 
 ---
 ### ☁️ Run in Vercel

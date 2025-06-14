@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Query
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
@@ -7,8 +7,16 @@ import os
 import uuid
 import json
 from faster_whisper import WhisperModel
+from dotenv import load_dotenv, find_dotenv
 from pydub import AudioSegment
 import asyncio
+import sys
+
+env_path = find_dotenv("./.env", usecwd=True)
+if not env_path or not os.path.isfile(env_path):
+    print("Error: .env file not found in the current directory, program exiting.", file=sys.stderr)
+    sys.exit(1)
+load_dotenv(dotenv_path=env_path, override=True)
 
 # Constants for compression
 MAX_FILE_SIZE_MB = 25
@@ -16,11 +24,11 @@ MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024  # 25 MB in bytes
 
 # Model settings
 MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "small")
-DEVICE = os.getenv("WHISPER_DEVICE", "cuda")
-MODEL_CACHE_DIR = os.getenv("WHISPER_CACHE_DIR", "./whisper_cache")
+DEVICE = os.getenv("WHISPER_DEVICE", "cpu")
+MODEL_CACHE_DIR = os.getenv("WHISPER_CACHE_DIR", "/tmp/whisper_cache")
 BEAM_SIZE = int(os.getenv("WHISPER_BEAM_SIZE", 5))
-LANGUAGE = os.getenv("WHISPER_LANGUAGE", None)
-API_KEY = os.getenv("API_KEY", "Your_API_Key_Here")
+API_KEY = os.getenv("API_KEY","hellowhisper")
+print(f"Using Whisper model size: {MODEL_SIZE}, device: {DEVICE}, beam size: {BEAM_SIZE}")
 
 API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
@@ -76,7 +84,10 @@ def compress_audio(file_path: str) -> str:
 
 # stream API
 @app.post("/transcribe", dependencies=[Depends(get_api_key)])
-async def transcribe_audio(file: UploadFile = File(...)):
+async def transcribe_audio(
+        file: UploadFile = File(...),
+        stream: bool = Query(False, description="Whether to stream the transcription response")
+    ):
     content_type = file.content_type
     if content_type and not content_type.startswith(("audio/", "video/")):
         raise HTTPException(status_code=400, detail="Unsupported file type")
@@ -88,14 +99,13 @@ async def transcribe_audio(file: UploadFile = File(...)):
     with open(temp_path, "wb") as f:
         f.write(contents)
 
-    async def event_stream():
+    async def stream_response():
         try:
             proc_path = compress_audio(temp_path)
 
             segments, info = whisper_model.transcribe(
                 proc_path,
                 beam_size=BEAM_SIZE,
-                language=LANGUAGE
             )
 
             yield json.dumps({
@@ -117,55 +127,44 @@ async def transcribe_audio(file: UploadFile = File(...)):
                 if os.path.exists(path):
                     os.remove(path)
 
-    return StreamingResponse(event_stream(), media_type="application/json")
+    async def normal_response():
+        try:
+            proc_path = compress_audio(temp_path)
 
-# normal API
-@app.post("/transcribe_sync", dependencies=[Depends(get_api_key)])
-async def transcribe_audio_sync(file: UploadFile = File(...)):
-    content_type = file.content_type
-    if content_type and not content_type.startswith(("audio/", "video/")):
-        raise HTTPException(status_code=400, detail="Unsupported file type")
+            segments, info = whisper_model.transcribe(
+                proc_path,
+                beam_size=BEAM_SIZE,
+            )
 
-    ext = file.filename.split('.')[-1]
-    temp_id = uuid.uuid4()
-    temp_path = f"/tmp/{temp_id}.{ext}"
-    contents = await file.read()
-    with open(temp_path, "wb") as f:
-        f.write(contents)
+            result = {
+                "language": info.language,
+                "language_probability": info.language_probability,
+                "segments": [
+                    {
+                        "start": round(seg.start, 2),
+                        "end": round(seg.end, 2),
+                        "text": seg.text
+                    }
+                    for seg in segments
+                ]
+            }
 
-    try:
-        proc_path = compress_audio(temp_path)
-
-        segments, info = whisper_model.transcribe(
-            proc_path,
-            beam_size=BEAM_SIZE,
-            language=LANGUAGE
-        )
-
-        result = {
-            "language": info.language,
-            "language_probability": info.language_probability,
-            "segments": [
-                {
-                    "start": round(seg.start, 2),
-                    "end": round(seg.end, 2),
-                    "text": seg.text
-                }
-                for seg in segments
-            ]
-        }
-
-        return JSONResponse(content=result)
-    finally:
-        for p in [temp_path, f"{os.path.splitext(temp_path)[0]}_compressed.wav"]:
-            if os.path.exists(p):
-                os.remove(p)
+            return JSONResponse(content=result)
+        finally:
+            for p in [temp_path, f"{os.path.splitext(temp_path)[0]}_compressed.wav"]:
+                if os.path.exists(p):
+                    os.remove(p)
+    
+    if stream:
+        return StreamingResponse(stream_response(), media_type="application/json")
+    else:
+        return await normal_response()
 
 
 if __name__ == "__main__":
     uvicorn.run(
-        "audio:app",
+        "whisper_server:app",
         host="0.0.0.0",
         port=int(os.getenv("PORT", 8000)),
-        reload=False
+        reload=True
     )
