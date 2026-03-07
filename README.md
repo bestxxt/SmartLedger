@@ -37,6 +37,18 @@ Add your own custom tags or let the AI suggest and infer tags based on transacti
 All components are **open-source and self-manageable** . No vendor lock-in, no hidden data sharing — just transparent software that puts you in charge.
 
 
+## 🛣️ Planned Direction
+
+The following changes are planned for future development:
+
+1. **Frontend-first storage, optional backend**
+   - Remove the hard dependency on MongoDB. The app will become **frontend-first**: data is stored in **IndexedDB** by default.
+   - **Backend sync is optional**: users can optionally sync data to a server for backup or cross-device use. When used, the backend can still use MongoDB (or another database) for persistence.
+
+2. **Separate UIs for desktop and mobile**
+   - **Mobile**: use [Framework7](https://framework7.io/) for a native-feel mobile UI.
+   - **Desktop**: framework for the desktop UI is not yet decided (TBD).
+
 
 ## 🚀 Quickstart 
 
