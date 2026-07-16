@@ -9,3 +9,7 @@ smartledger.140.238.146.139.nip.io {
     # If the file doesn't exist, serve index.html.
     try_files {path} /index.html
 }
+
+smartledger-api.140.238.146.139.nip.io {
+    reverse_proxy backend:4000
+}
