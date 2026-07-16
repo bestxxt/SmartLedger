@@ -22,5 +22,6 @@ jobs:
           script: |
             cd SmartLedger
             git pull origin main
-            sudo docker compose down --remove-orphans
-            sudo docker compose up -d --build
+            export COMMIT_HASH=$(git rev-parse --short HEAD)
+            sudo -E docker compose down --remove-orphans
+            sudo -E docker compose up -d --build

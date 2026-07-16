@@ -9,6 +9,8 @@ COPY . .
 # We accept build arguments to set Vite env vars
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
+ARG COMMIT_HASH
+ENV VITE_APP_VERSION=$COMMIT_HASH
 
 RUN npm run build
 

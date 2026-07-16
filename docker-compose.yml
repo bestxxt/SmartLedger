@@ -22,6 +22,7 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_API_URL=https://smartledger-api.140.238.146.139.nip.io/api
+        - COMMIT_HASH=${COMMIT_HASH:-docker-build}
     restart: unless-stopped
     ports:
       - "8080:80"
