@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import api from '../api';
-import type { Transaction } from './useTransactionStore';
 
 export interface TrackingEntity {
   id: string;

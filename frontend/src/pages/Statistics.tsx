@@ -116,7 +116,7 @@ export default function Statistics() {
                           paddingAngle={2}
                           dataKey="value"
                         >
-                          {expenseByCategory.map((entry, index) => (
+                          {expenseByCategory.map((_entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
