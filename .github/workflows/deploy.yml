@@ -2,8 +2,8 @@ name: Deploy to Server
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*.*.*'
 
 concurrency:
   group: "production-deploy"
@@ -34,16 +34,13 @@ jobs:
       - name: Set lower case image name
         run: echo "IMAGE_NAME_LOWER=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-      - name: Get short SHA
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Build and push backend
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-backend:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-backend:${{ steps.vars.outputs.sha_short }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-backend:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-backend:${{ github.ref_name }}
 
       - name: Build and push frontend
         uses: docker/build-push-action@v5
@@ -52,8 +49,8 @@ jobs:
           push: true
           build-args: |
             VITE_API_URL=https://smartledger-api.140.238.146.139.nip.io/api
-            COMMIT_HASH=${{ steps.vars.outputs.sha_short }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-frontend:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-frontend:${{ steps.vars.outputs.sha_short }}
+            COMMIT_HASH=${{ github.ref_name }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-frontend:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-frontend:${{ github.ref_name }}
 
   deploy:
     needs: build-and-push
