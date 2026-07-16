@@ -11,6 +11,7 @@ COPY . .
 
 # Generate Prisma client
 RUN npx prisma generate
+RUN npm run build
 
 # Expose backend port
 EXPOSE 4000
