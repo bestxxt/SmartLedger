@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/bestxxt/smartledger-backend:latest
     restart: unless-stopped
     ports:
       - "4000:4000"
@@ -17,12 +15,7 @@ services:
       - DATABASE_URL=file:/app/prisma/data/dev.db
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=https://smartledger-api.140.238.146.139.nip.io/api
-        - COMMIT_HASH=${COMMIT_HASH:-docker-build}
+    image: ghcr.io/bestxxt/smartledger-frontend:latest
     restart: unless-stopped
     ports:
       - "8080:80"
