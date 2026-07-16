@@ -4,6 +4,8 @@ import { useUserStore } from '../store/useUserStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import CategoryManager from '../components/CategoryManager';
 
+declare const __APP_VERSION__: string;
+
 export default function Settings() {
   const { user, isAuthenticated, fetchUser, isLoading } = useUserStore();
   const { aiProvider, aiBaseUrl, aiApiKey, aiModel, systemPromptTemplate, setAiConfig, resetToDefaultPrompt } = useSettingsStore();
@@ -211,6 +213,12 @@ export default function Settings() {
 
         {/* Category Management */}
         <CategoryManager />
+
+        <div className="mt-12 text-center">
+          <p className="font-mono text-[10px] text-ink-light/50 tracking-widest uppercase">
+            Build Version: {__APP_VERSION__}
+          </p>
+        </div>
         
       </main>
     </>
