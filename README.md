@@ -1,4 +1,7 @@
-# Smart Ledger
+<div align="center">
+  <img src="imgs/logo.png" alt="Smart Ledger Logo" width="150" />
+  <h1>Smart Ledger</h1>
+</div>
 
 [中文版](README_zh.md)
 
