@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      - sqlite_data:/app/prisma/data
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=fallback_secret_for_dev
+      # We map the database URL to the volume path
+      - DATABASE_URL=file:/app/prisma/data/dev.db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=https://smartledger-api.140.238.146.139.nip.io
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+
+volumes:
+  sqlite_data:

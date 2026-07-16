@@ -1,0 +1,11 @@
+smartledger.140.238.146.139.nip.io {
+    # Set this path to your site's directory.
+    root * /srv
+
+    # Enable the static file server.
+    file_server
+
+    # Fallback for Single Page Applications (SPA).
+    # If the file doesn't exist, serve index.html.
+    try_files {path} /index.html
+}
