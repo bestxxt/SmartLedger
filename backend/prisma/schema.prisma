@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id                String       @id @default(uuid())
+  email             String       @unique
+  password          String
+  name              String
+  role              String       @default("user") // "admin" or "user"
+  avatar            String?      @default("")
+  language          String       @default("en") // "en" or "zh"
+  currency          String       @default("USD")
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  locations         String?      @default("[]") // Stored as JSON string
+  tags              String?      @default("[]") // Stored as JSON string
+  
+  // Relations
+  transactions      Transaction[]
+  entities          TrackingEntity[]
+  recurring         RecurringTransaction[]
+  hotwords          Hotword[]
+  categories        Category[]
+}
+
+model TrackingEntity {
+  id                String       @id @default(uuid())
+  userId            String
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name              String
+  type              String       // 'person', 'asset', 'subscription', 'other'
+  purchasePrice     Float?       // Original cost (if asset)
+  residualValue     Float?       // Salvage/residual value for accurate cost calculation
+  purchaseDate      DateTime?    // When it was acquired
+  status            String       @default("active") // 'active', 'archived'
+  
+  transactions      Transaction[]
+  
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model RecurringTransaction {
+  id                String       @id @default(uuid())
+  userId            String
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  amount            Float
+  type              String       // 'income' | 'expense'
+  category          String
+  frequency         String       // 'daily', 'weekly', 'monthly', 'yearly'
+  nextDate          DateTime     // When this should be processed next
+  active            Boolean      @default(true)
+  note              String?
+  
+  // We can track generated transactions from this schedule
+  transactions      Transaction[]
+  
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model Hotword {
+  id                String       @id @default(uuid())
+  userId            String
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  word              String
+  context           String?      // e.g., "Category: Food", or "Entity: iPhone"
+  replacement       String?      // If it's a correction rule (e.g., "Mcdnalds" -> "McDonalds")
+  
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model Transaction {
+  id                String       @id @default(uuid())
+  userId            String
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  amount            Float        // Amount in user's default currency
+  originalAmount    Float?       // Original amount in original currency
+  type              String       // 'income' | 'expense'
+  category          String
+  timestamp         DateTime
+  note              String?
+  currency          String?      // User's default currency
+  originalCurrency  String?      // Original transaction currency
+  
+  tags              String?      @default("[]") // JSON string of string array
+  location          String?
+  emoji             String?
+  imageUrl          String?
+  // New Relations
+  entityId          String?
+  entity            TrackingEntity? @relation(fields: [entityId], references: [id], onDelete: SetNull)
+  
+  recurringId       String?
+  recurring         RecurringTransaction? @relation(fields: [recurringId], references: [id], onDelete: SetNull)
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name      String
+  icon      String?  // Emoji representation
+  imageUrl  String?  // Custom uploaded icon URL
+  type      String   // 'expense' | 'income'
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

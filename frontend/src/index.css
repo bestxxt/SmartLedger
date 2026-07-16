@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #F4F1EA;
+  --color-ink: #1A1A1A;
+  --color-ink-light: #4A4A4A;
+  --color-brick: #C05B4D;
+  --color-olive: #7B8C70;
+  --color-denim: #5A7684;
+  --color-mustard: #D4B254;
+
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-tight text-ink;
+  }
+}
+
+@layer components {
+  .neo-box {
+    @apply bg-white border-2 border-ink rounded-none shadow-[4px_4px_0px_0px_rgba(26,26,26,1)];
+  }
+
+  .neo-input {
+    @apply w-full px-4 py-3 bg-white border-2 border-ink rounded-none focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2 focus:ring-offset-paper transition-all;
+  }
+
+  .neo-button {
+    @apply w-full bg-ink text-paper font-semibold py-3 px-6 border-2 border-ink rounded-none hover:bg-ink-light transition-colors active:scale-95;
+  }
+}
