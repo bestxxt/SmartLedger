@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="imgs/logo.png" alt="Smart Ledger Logo" width="150" />
+  <img src="https://umami.40.233.68.217.nip.io/q/CoqnQZG6B" alt="Smart Ledger Logo" width="150" />
   <h1>Smart Ledger</h1>
 </div>
 
