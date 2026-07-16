@@ -24,8 +24,7 @@ services:
         - VITE_API_URL=https://smartledger-api.140.238.146.139.nip.io
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
     depends_on:
       - backend
 
