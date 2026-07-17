@@ -26,10 +26,7 @@ export default function Home() {
         {/* Header */}
         <header className="flex justify-between items-end border-b-2 border-ink pb-4 mb-8">
           <div>
-            <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10 md:hidden object-contain" />
-              <h2 className="text-4xl font-bold font-serif italic">The Ledger</h2>
-            </div>
+            <h2 className="text-4xl font-bold font-serif italic">The Ledger</h2>
             <p className="text-ink-light font-mono uppercase tracking-widest text-xs mt-2 font-bold">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>

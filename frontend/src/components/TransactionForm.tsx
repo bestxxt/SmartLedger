@@ -53,6 +53,18 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
     fetchCategories();
   }, [fetchEntities, fetchHotwords, fetchCategories]);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
@@ -339,12 +351,12 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
             </div>
 
             {/* Footer */}
-            <div className="p-6 pb-safe bg-ink border-t border-paper/20 mt-auto">
+            <div className="p-6 pb-safe bg-paper border-t-4 border-ink mt-auto">
               <button 
                 type="submit" 
                 form="transaction-form"
                 disabled={isSubmitting}
-                className="w-full bg-paper text-ink font-bold font-mono py-4 uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(244,241,234,0.3)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(244,241,234,0.3)] active:translate-y-px active:shadow-[2px_2px_0px_0px_rgba(244,241,234,0.3)] transition-all disabled:opacity-50"
+                className="neo-button text-lg uppercase tracking-widest disabled:opacity-50"
               >
                 {isSubmitting ? 'Stamping...' : (initialData ? 'Update Record' : 'Stamp & Record')}
               </button>
