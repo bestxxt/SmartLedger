@@ -145,11 +145,11 @@ export default function Statistics() {
             <div className="neo-box p-6 bg-white flex flex-col">
               <h3 className="text-xl font-serif font-bold italic mb-6 border-b-2 border-ink pb-2">Semi-Annual Trajectory</h3>
               
-              <div className="h-72 w-full mt-4 flex-1">
+              <div className="h-72 w-full mt-4 flex-1 min-w-0 -ml-4 sm:ml-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={monthlyData}
-                    margin={{ top: 20, right: 0, left: -20, bottom: 5 }}
+                    margin={{ top: 20, right: 10, left: 0, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" opacity={0.2} vertical={false} />
                     <XAxis 
@@ -161,8 +161,9 @@ export default function Statistics() {
                     <YAxis 
                       axisLine={{ stroke: '#1A1A1A', strokeWidth: 2 }}
                       tickLine={{ stroke: '#1A1A1A', strokeWidth: 2 }}
-                      tick={{ fill: '#1A1A1A', fontFamily: CHART_FONT, fontWeight: 'bold', fontSize: 12 }}
-                      tickFormatter={(value) => `$${value}`}
+                      tick={{ fill: '#1A1A1A', fontFamily: CHART_FONT, fontWeight: 'bold', fontSize: 10 }}
+                      tickFormatter={(value) => value >= 1000 ? `$${(value/1000).toFixed(1).replace('.0','')}k` : `$${value}`}
+                      width={45}
                     />
                     <Tooltip 
                       cursor={{ fill: '#F4F1EA' }}
