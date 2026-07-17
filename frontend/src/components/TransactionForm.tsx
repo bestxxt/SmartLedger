@@ -199,7 +199,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
             <div className="flex items-center justify-between p-6 border-b-4 border-ink bg-white">
               <div>
                 <h2 className="text-2xl font-bold font-serif italic text-ink">Deposit Slip</h2>
-                <p className="text-xs uppercase tracking-widest font-mono font-bold mt-1 text-ink-light">
+                <p className="text-xs  tracking-widest font-mono font-bold mt-1 text-ink-light">
                   {initialData ? 'Amend Record' : 'Record of Transaction'}
                 </p>
               </div>
@@ -224,7 +224,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
                 {!initialData && (
                   <div className="p-4 border-2 border-dashed border-ink bg-paper/50 relative">
                     <div className="flex justify-between items-center mb-2">
-                      <label className="block text-xs font-bold font-mono uppercase tracking-widest text-ink">AI Auto-Extraction</label>
+                      <label className="block text-xs font-bold font-mono  tracking-widest text-ink">AI Auto-Extraction</label>
                       <Sparkles size={16} className="text-ink" />
                     </div>
                     
@@ -245,7 +245,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
                       type="button"
                       onClick={handleAiParse}
                       disabled={isAiParsing || !aiTranscript.trim()}
-                      className="mt-2 w-full flex items-center justify-center gap-2 border-2 border-ink py-2 font-mono font-bold text-xs uppercase tracking-widest hover:bg-ink hover:text-paper transition-colors disabled:opacity-50"
+                      className="mt-2 w-full flex items-center justify-center gap-2 border-2 border-ink py-2 font-mono font-bold text-xs  tracking-widest hover:bg-ink hover:text-paper transition-colors disabled:opacity-50"
                     >
                       {isAiParsing ? 'Analyzing Data...' : 'Parse & Autofill Form'}
                     </button>
@@ -256,13 +256,13 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
                 <div className="flex gap-4">
                   <label className="flex-1 relative cursor-pointer group">
                     <input type="radio" name="type" value="expense" checked={type === 'expense'} onChange={() => setType('expense')} className="peer sr-only" />
-                    <div className="h-12 border-2 border-ink flex items-center justify-center font-mono font-bold uppercase text-sm tracking-wider peer-checked:bg-ink peer-checked:text-paper group-hover:bg-ink/5 transition-colors">
+                    <div className="h-12 border-2 border-ink flex items-center justify-center font-mono font-bold  text-sm tracking-wider peer-checked:bg-ink peer-checked:text-paper group-hover:bg-ink/5 transition-colors">
                       Withdrawal
                     </div>
                   </label>
                   <label className="flex-1 relative cursor-pointer group">
                     <input type="radio" name="type" value="income" checked={type === 'income'} onChange={() => setType('income')} className="peer sr-only" />
-                    <div className="h-12 border-2 border-ink flex items-center justify-center font-mono font-bold uppercase text-sm tracking-wider peer-checked:bg-ink peer-checked:text-paper group-hover:bg-ink/5 transition-colors">
+                    <div className="h-12 border-2 border-ink flex items-center justify-center font-mono font-bold  text-sm tracking-wider peer-checked:bg-ink peer-checked:text-paper group-hover:bg-ink/5 transition-colors">
                       Deposit
                     </div>
                   </label>
@@ -270,7 +270,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
                 
                 {/* Date and Time */}
                 <div>
-                  <label className="block text-xs font-bold font-mono uppercase tracking-widest mb-2 border-b-2 border-ink pb-1">Date & Time</label>
+                  <label className="block text-xs font-bold font-mono  tracking-widest mb-2 border-b-2 border-ink pb-1">Date & Time</label>
                   <input
                     type="datetime-local"
                     value={timestamp}
@@ -282,7 +282,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
 
                 {/* Amount Input */}
                 <div>
-                  <label className="block text-xs font-bold font-mono uppercase tracking-widest mb-2 border-b-2 border-ink pb-1">Amount</label>
+                  <label className="block text-xs font-bold font-mono  tracking-widest mb-2 border-b-2 border-ink pb-1">Amount</label>
                   <div className="relative flex items-end mt-4">
                     <span className="text-3xl font-serif font-bold italic mr-2 text-ink">$</span>
                     <input
@@ -299,7 +299,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
 
                 {/* Categories Grid */}
                 <div>
-                  <label className="block text-xs font-bold font-mono uppercase tracking-widest mb-4 border-b-2 border-ink pb-1">Classification</label>
+                  <label className="block text-xs font-bold font-mono  tracking-widest mb-4 border-b-2 border-ink pb-1">Classification</label>
                   <div className="grid grid-cols-2 gap-3">
                     {categories.map((cat) => (
                       <label key={cat.id} className="relative cursor-pointer group">
@@ -310,7 +310,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
                           ) : (
                             <span className="text-xl">{cat.icon || '📌'}</span>
                           )}
-                          <span className="font-mono font-bold text-xs uppercase tracking-wider line-clamp-1 flex-1">{cat.name}</span>
+                          <span className="font-mono font-bold text-xs  tracking-wider line-clamp-1 flex-1">{cat.name}</span>
                           {category === cat.name && <Check size={16} strokeWidth={3} />}
                         </div>
                       </label>
@@ -321,7 +321,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
                 {/* Entity Selection */}
                 {entities.length > 0 && (
                   <div>
-                    <label className="block text-xs font-bold font-mono uppercase tracking-widest mb-2 border-b-2 border-ink pb-1">Associated Object / Entity</label>
+                    <label className="block text-xs font-bold font-mono  tracking-widest mb-2 border-b-2 border-ink pb-1">Associated Object / Entity</label>
                     <select
                       value={entityId}
                       onChange={(e) => setEntityId(e.target.value)}
@@ -337,7 +337,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
 
                 {/* Note */}
                 <div>
-                  <label className="block text-xs font-bold font-mono uppercase tracking-widest mb-2 border-b-2 border-ink pb-1">Particulars / Memo</label>
+                  <label className="block text-xs font-bold font-mono  tracking-widest mb-2 border-b-2 border-ink pb-1">Particulars / Memo</label>
                   <input
                     type="text"
                     value={note}
@@ -356,7 +356,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
                 type="submit" 
                 form="transaction-form"
                 disabled={isSubmitting}
-                className="neo-button text-lg uppercase tracking-widest disabled:opacity-50"
+                className="neo-button text-lg  tracking-widest disabled:opacity-50"
               >
                 {isSubmitting ? 'Stamping...' : (initialData ? 'Update Record' : 'Stamp & Record')}
               </button>

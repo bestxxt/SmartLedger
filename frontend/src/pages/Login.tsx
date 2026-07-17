@@ -50,7 +50,7 @@ export default function Login() {
           </div>
           <div className="w-full h-px bg-ink mb-2"></div>
           <div className="w-full h-0.5 bg-ink mb-4"></div>
-          <p className="text-ink-light uppercase tracking-widest text-xs font-bold font-mono">Vol. I — Account Access</p>
+          <p className="text-ink-light  tracking-widest text-xs font-bold font-mono">Vol. I — Account Access</p>
         </div>
 
         {error && (
@@ -61,7 +61,7 @@ export default function Login() {
 
         <form className="space-y-6" onSubmit={handleLogin}>
           <div>
-            <label className="block text-sm font-bold text-ink uppercase tracking-wider mb-2 font-mono">Email Address</label>
+            <label className="block text-sm font-bold text-ink  tracking-wider mb-2 font-mono">Email Address</label>
             <input 
               type="email" 
               required
@@ -72,7 +72,7 @@ export default function Login() {
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-ink uppercase tracking-wider mb-2 font-mono">Password</label>
+            <label className="block text-sm font-bold text-ink  tracking-wider mb-2 font-mono">Password</label>
             <input 
               type="password" 
               required
@@ -86,7 +86,7 @@ export default function Login() {
           <button 
             type="submit"
             disabled={loading}
-            className="neo-button mt-4 uppercase tracking-widest text-sm disabled:opacity-50"
+            className="neo-button mt-4  tracking-widest text-sm disabled:opacity-50"
           >
             {loading ? 'Authenticating...' : 'Authenticate'}
           </button>

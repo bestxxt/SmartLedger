@@ -45,7 +45,7 @@ export default function Register() {
           <h1 className="text-4xl sm:text-5xl font-bold font-serif text-ink mb-4 italic">Subscribe</h1>
           <div className="w-full h-px bg-ink mb-2"></div>
           <div className="w-full h-0.5 bg-ink mb-4"></div>
-          <p className="text-ink-light uppercase tracking-widest text-xs font-bold font-mono">Vol. I — New Registration</p>
+          <p className="text-ink-light  tracking-widest text-xs font-bold font-mono">Vol. I — New Registration</p>
         </div>
 
         {error && (
@@ -56,7 +56,7 @@ export default function Register() {
 
         <form className="space-y-6" onSubmit={handleRegister}>
           <div>
-            <label className="block text-sm font-bold text-ink uppercase tracking-wider mb-2 font-mono">Full Name</label>
+            <label className="block text-sm font-bold text-ink  tracking-wider mb-2 font-mono">Full Name</label>
             <input 
               type="text" 
               required
@@ -67,7 +67,7 @@ export default function Register() {
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-ink uppercase tracking-wider mb-2 font-mono">Email Address</label>
+            <label className="block text-sm font-bold text-ink  tracking-wider mb-2 font-mono">Email Address</label>
             <input 
               type="email" 
               required
@@ -78,7 +78,7 @@ export default function Register() {
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-ink uppercase tracking-wider mb-2 font-mono">Password</label>
+            <label className="block text-sm font-bold text-ink  tracking-wider mb-2 font-mono">Password</label>
             <input 
               type="password" 
               required
@@ -92,7 +92,7 @@ export default function Register() {
           <button 
             type="submit"
             disabled={loading}
-            className="neo-button mt-4 uppercase tracking-widest text-sm disabled:opacity-50"
+            className="neo-button mt-4  tracking-widest text-sm disabled:opacity-50"
           >
             {loading ? 'Creating Record...' : 'Create Record'}
           </button>

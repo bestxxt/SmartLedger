@@ -21,7 +21,7 @@ export default function MobileNav() {
         return isActive ? (
           <div key={item.path} className="flex flex-col items-center text-ink">
             <Icon size={24} strokeWidth={2.5} />
-            <span className="text-[10px] font-bold font-mono uppercase tracking-wider mt-1">{item.label}</span>
+            <span className="text-[10px] font-bold font-mono  tracking-wider mt-1">{item.label}</span>
           </div>
         ) : (
           <Link 
@@ -30,7 +30,7 @@ export default function MobileNav() {
             className="flex flex-col items-center text-ink-light hover:text-ink transition-colors"
           >
             <Icon size={24} strokeWidth={2.5} />
-            <span className="text-[10px] font-bold font-mono uppercase tracking-wider mt-1">{item.label}</span>
+            <span className="text-[10px] font-bold font-mono  tracking-wider mt-1">{item.label}</span>
           </Link>
         );
       })}

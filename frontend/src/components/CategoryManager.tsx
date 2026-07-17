@@ -60,7 +60,7 @@ export default function CategoryManager() {
         {!isAdding && !editingId && (
           <button 
             onClick={() => { setIsAdding(true); setFormData({ name: '', icon: '', imageUrl: '', type: 'expense' }); }}
-            className="flex items-center gap-1 text-xs font-mono font-bold uppercase tracking-widest hover:text-brick"
+            className="flex items-center gap-1 text-xs font-mono font-bold  tracking-widest hover:text-brick"
           >
             <Plus size={14} /> Add Category
           </button>
@@ -79,11 +79,11 @@ export default function CategoryManager() {
             {editingId === c.id ? (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div>
-                  <label className="block text-[10px] font-mono font-bold uppercase mb-1">Name</label>
+                  <label className="block text-[10px] font-mono font-bold  mb-1">Name</label>
                   <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="neo-input text-sm py-2 px-3" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-mono font-bold uppercase mb-1">Icon</label>
+                  <label className="block text-[10px] font-mono font-bold  mb-1">Icon</label>
                   <button 
                     onClick={() => setIsIconPickerOpen(true)}
                     className="neo-input text-sm py-2 px-3 flex items-center justify-center bg-paper hover:bg-ink hover:text-paper transition-colors"
@@ -106,7 +106,7 @@ export default function CategoryManager() {
                   )}
                   <div>
                     <p className="font-bold font-mono text-sm">{c.name}</p>
-                    <p className="text-[10px] font-mono uppercase text-ink-light">{c.type}</p>
+                    <p className="text-[10px] font-mono  text-ink-light">{c.type}</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -120,21 +120,21 @@ export default function CategoryManager() {
 
         {isAdding && (
           <div className="border-2 border-dashed border-ink p-4 bg-paper/50">
-            <h4 className="font-mono text-xs font-bold uppercase mb-4">New Category</h4>
+            <h4 className="font-mono text-xs font-bold  mb-4">New Category</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
               <div>
-                <label className="block text-[10px] font-mono font-bold uppercase mb-1">Name</label>
+                <label className="block text-[10px] font-mono font-bold  mb-1">Name</label>
                 <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="neo-input text-sm py-2 px-3" placeholder="E.g. Groceries" />
               </div>
               <div>
-                <label className="block text-[10px] font-mono font-bold uppercase mb-1">Type</label>
+                <label className="block text-[10px] font-mono font-bold  mb-1">Type</label>
                 <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="neo-input text-sm py-2 px-3 appearance-none cursor-pointer">
                   <option value="expense">Expense</option>
                   <option value="income">Income</option>
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-mono font-bold uppercase mb-1">Icon</label>
+                <label className="block text-[10px] font-mono font-bold  mb-1">Icon</label>
                 <button 
                   onClick={() => setIsIconPickerOpen(true)}
                   className="neo-input text-sm py-2 px-3 flex items-center justify-center bg-paper hover:bg-ink hover:text-paper transition-colors"
@@ -143,8 +143,8 @@ export default function CategoryManager() {
                 </button>
               </div>
               <div className="lg:col-span-4 flex gap-2 justify-end">
-                <button onClick={cancelEdit} className="bg-paper border-2 border-ink text-ink font-bold px-4 py-2 text-xs uppercase hover:bg-brick hover:text-paper transition-colors">Cancel</button>
-                <button onClick={() => handleSave()} disabled={!formData.name} className="bg-ink border-2 border-ink text-paper font-bold px-6 py-2 text-xs uppercase disabled:opacity-50">Create</button>
+                <button onClick={cancelEdit} className="bg-paper border-2 border-ink text-ink font-bold px-4 py-2 text-xs  hover:bg-brick hover:text-paper transition-colors">Cancel</button>
+                <button onClick={() => handleSave()} disabled={!formData.name} className="bg-ink border-2 border-ink text-paper font-bold px-6 py-2 text-xs  disabled:opacity-50">Create</button>
               </div>
             </div>
           </div>

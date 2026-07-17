@@ -61,7 +61,7 @@ export default function Settings() {
         <header className="flex justify-between items-end border-b-2 border-ink pb-4 mb-8">
           <div>
             <h2 className="text-4xl font-bold font-serif italic">Press Setup</h2>
-            <p className="text-ink-light font-mono uppercase tracking-widest text-xs mt-2 font-bold">
+            <p className="text-ink-light font-mono  tracking-widest text-xs mt-2 font-bold">
               Account Configuration
             </p>
           </div>
@@ -81,17 +81,17 @@ export default function Settings() {
             ) : (
               <div className="space-y-6">
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-widest font-bold text-ink-light mb-1">Full Name</p>
+                  <p className="font-mono text-[10px]  tracking-widest font-bold text-ink-light mb-1">Full Name</p>
                   <p className="font-bold text-lg text-ink">{user?.name}</p>
                 </div>
                 
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-widest font-bold text-ink-light mb-1">Email Address</p>
+                  <p className="font-mono text-[10px]  tracking-widest font-bold text-ink-light mb-1">Email Address</p>
                   <p className="font-mono text-ink">{user?.email}</p>
                 </div>
 
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-widest font-bold text-ink-light mb-1">Current Capital</p>
+                  <p className="font-mono text-[10px]  tracking-widest font-bold text-ink-light mb-1">Current Capital</p>
                   <p className="font-serif font-bold italic text-2xl text-ink mb-6">
                     ${(user?.stats?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </p>
@@ -124,7 +124,7 @@ export default function Settings() {
                 <span className="font-mono text-sm font-bold">Daily Report Email</span>
               </label>
               
-              <p className="font-mono text-[10px] uppercase tracking-widest mt-6 text-ink-light">
+              <p className="font-mono text-[10px]  tracking-widest mt-6 text-ink-light">
                 * Additional preferences will be available in the next volume.
               </p>
             </div>
@@ -139,7 +139,7 @@ export default function Settings() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-xs font-bold font-mono uppercase tracking-widest mb-2">Provider Name</label>
+              <label className="block text-xs font-bold font-mono  tracking-widest mb-2">Provider Name</label>
               <input 
                 type="text" 
                 value={aiProvider}
@@ -150,7 +150,7 @@ export default function Settings() {
             </div>
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="block text-xs font-bold font-mono uppercase tracking-widest">Model</label>
+                <label className="block text-xs font-bold font-mono  tracking-widest">Model</label>
                 <button 
                   onClick={handleFetchModels}
                   disabled={isFetchingModels || !aiBaseUrl || !aiApiKey}
@@ -183,7 +183,7 @@ export default function Settings() {
               {fetchError && <p className="text-brick text-[10px] font-mono mt-1 font-bold">{fetchError}</p>}
             </div>
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold font-mono uppercase tracking-widest mb-2">Base URL</label>
+              <label className="block text-xs font-bold font-mono  tracking-widest mb-2">Base URL</label>
               <input 
                 type="text" 
                 value={aiBaseUrl}
@@ -193,7 +193,7 @@ export default function Settings() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold font-mono uppercase tracking-widest mb-2">API Key (Stored locally)</label>
+              <label className="block text-xs font-bold font-mono  tracking-widest mb-2">API Key (Stored locally)</label>
               <input 
                 type="password" 
                 value={aiApiKey}
@@ -206,7 +206,7 @@ export default function Settings() {
 
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="block text-xs font-bold font-mono uppercase tracking-widest">System Prompt Template</label>
+              <label className="block text-xs font-bold font-mono  tracking-widest">System Prompt Template</label>
               <button onClick={resetToDefaultPrompt} className="text-xs font-mono underline hover:text-brick">Reset to Default</button>
             </div>
             <p className="text-xs font-mono text-ink-light mb-2">
@@ -224,7 +224,7 @@ export default function Settings() {
         <CategoryManager />
 
         <div className="mt-12 text-center">
-          <p className="font-mono text-[10px] text-ink-light/50 tracking-widest uppercase">
+          <p className="font-mono text-[10px] text-ink-light/50 tracking-widest ">
             Build Version: {__APP_VERSION__}
           </p>
         </div>

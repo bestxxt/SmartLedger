@@ -40,7 +40,7 @@ export default function Entities() {
       <header className="flex justify-between items-end border-b-2 border-ink pb-4 mb-8">
         <div>
           <h2 className="text-4xl font-bold font-serif italic">Entity Tracker</h2>
-          <p className="text-ink-light font-mono uppercase tracking-widest text-xs mt-2 font-bold">
+          <p className="text-ink-light font-mono  tracking-widest text-xs mt-2 font-bold">
             Asset & Subscription Management
           </p>
         </div>
@@ -59,7 +59,7 @@ export default function Entities() {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`font-mono text-xs uppercase tracking-widest font-bold px-4 py-2 border-2 whitespace-nowrap ${filter === f ? 'bg-ink text-paper border-ink' : 'border-transparent text-ink-light hover:border-ink/30 hover:text-ink'}`}
+            className={`font-mono text-xs  tracking-widest font-bold px-4 py-2 border-2 whitespace-nowrap ${filter === f ? 'bg-ink text-paper border-ink' : 'border-transparent text-ink-light hover:border-ink/30 hover:text-ink'}`}
           >
             {f === 'all' ? 'All Entities' : f}
           </button>
@@ -83,7 +83,7 @@ export default function Entities() {
                   <div className="w-10 h-10 bg-ink text-paper flex items-center justify-center border-2 border-ink">
                     <Package size={20} />
                   </div>
-                  <span className="font-mono text-[10px] uppercase tracking-widest font-bold px-2 py-1 bg-paper border border-ink text-ink">
+                  <span className="font-mono text-[10px]  tracking-widest font-bold px-2 py-1 bg-paper border border-ink text-ink">
                     {entity.type}
                   </span>
                 </div>
@@ -98,12 +98,12 @@ export default function Entities() {
               
               <div className="mt-6 pt-4 border-t border-ink/10 flex justify-between items-end">
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-ink/50 mb-1">Status</p>
-                  <p className="font-bold text-sm uppercase font-mono">{entity.status}</p>
+                  <p className="font-mono text-[10px]  tracking-widest text-ink/50 mb-1">Status</p>
+                  <p className="font-bold text-sm  font-mono">{entity.status}</p>
                 </div>
                 {entity.type === 'asset' && entity.purchasePrice && entity.purchaseDate && (
                   <div className="text-right">
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-ink/50 mb-1">Daily Cost</p>
+                    <p className="font-mono text-[10px]  tracking-widest text-ink/50 mb-1">Daily Cost</p>
                     <p className="font-serif font-bold italic text-brick text-lg">${calculateDailyCost(entity)}</p>
                   </div>
                 )}

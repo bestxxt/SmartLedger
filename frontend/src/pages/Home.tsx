@@ -40,7 +40,7 @@ export default function Home() {
         <header className="flex justify-between items-end border-b-2 border-ink pb-4 mb-8">
           <div>
             <h2 className="text-4xl font-bold font-serif italic">The Ledger</h2>
-            <p className="text-ink-light font-mono uppercase tracking-widest text-xs mt-2 font-bold">
+            <p className="text-ink-light font-mono  tracking-widest text-xs mt-2 font-bold">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
@@ -69,7 +69,7 @@ export default function Home() {
               <div className="absolute bottom-4 right-4 text-6xl opacity-5 font-serif italic">§</div>
               
               <div className="relative z-10">
-                <h3 className="font-mono text-xs uppercase tracking-[0.3em] font-bold text-paper/70 mb-2">Total Capital</h3>
+                <h3 className="font-mono text-xs  tracking-[0.3em] font-bold text-paper/70 mb-2">Total Capital</h3>
                 {isUserLoading ? (
                   <div className="h-16 flex items-center">
                     <div className="h-8 w-48 bg-paper/20 animate-pulse"></div>
@@ -82,11 +82,11 @@ export default function Home() {
                 
                 <div className="mt-8 grid grid-cols-2 gap-4 border-t border-paper/20 pt-6">
                   <div>
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-paper/70 mb-1">Monthly Income</p>
+                    <p className="font-mono text-[10px]  tracking-wider text-paper/70 mb-1">Monthly Income</p>
                     <p className="text-xl font-bold text-olive">+${(user?.stats?.totalIncome || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                   </div>
                   <div>
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-paper/70 mb-1">Monthly Expense</p>
+                    <p className="font-mono text-[10px]  tracking-wider text-paper/70 mb-1">Monthly Expense</p>
                     <p className="text-xl font-bold text-brick-light">-${(user?.stats?.totalExpense || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                   </div>
                 </div>
@@ -97,7 +97,7 @@ export default function Home() {
             <section>
               <div className="flex justify-between items-center mb-4 border-b-2 border-ink pb-2">
                 <h3 className="text-xl font-serif font-bold italic">Recent Movements</h3>
-                <span className="font-mono text-[10px] uppercase tracking-widest font-bold px-2 py-1 bg-ink text-paper">This Month</span>
+                <span className="font-mono text-[10px]  tracking-widest font-bold px-2 py-1 bg-ink text-paper">This Month</span>
               </div>
               
               <div className="bg-white border-4 border-ink shadow-[8px_8px_0px_0px_rgba(26,26,26,1)]">
@@ -135,7 +135,7 @@ export default function Home() {
                                   )}
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="font-bold text-ink uppercase tracking-wider font-mono text-sm truncate">{tx.category}</p>
+                                  <p className="font-bold text-ink  tracking-wider font-mono text-sm truncate">{tx.category}</p>
                                   <p className="text-xs font-mono text-ink-light mt-1 flex items-center gap-2">
                                     {tx.note && (
                                       <span className="italic truncate">{tx.note}</span>
@@ -161,7 +161,7 @@ export default function Home() {
           <div className="lg:col-span-4 space-y-8">
 
             <div className="border-4 border-ink p-6 relative">
-              <div className="absolute -top-4 bg-paper px-2 left-4 font-bold font-mono uppercase tracking-widest text-sm text-ink">
+              <div className="absolute -top-4 bg-paper px-2 left-4 font-bold font-mono  tracking-widest text-sm text-ink">
                 Quick Draft
               </div>
               <p className="font-mono text-sm text-ink-light mb-4">Draft a new financial record rapidly.</p>

@@ -53,7 +53,7 @@ export default function Archive() {
         <header className="flex justify-between items-end border-b-2 border-ink pb-4 mb-8">
           <div>
             <h2 className="text-4xl font-bold font-serif italic">Ledger Archive</h2>
-            <p className="text-ink-light font-mono uppercase tracking-widest text-xs mt-2 font-bold">
+            <p className="text-ink-light font-mono  tracking-widest text-xs mt-2 font-bold">
               Complete Financial Records
             </p>
           </div>
@@ -66,7 +66,7 @@ export default function Archive() {
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`font-mono text-sm uppercase tracking-widest font-bold px-4 py-2 border-2 ${filter === f ? 'bg-ink text-paper border-ink' : 'border-transparent text-ink-light hover:border-ink/30 hover:text-ink'}`}
+                className={`font-mono text-sm  tracking-widest font-bold px-4 py-2 border-2 ${filter === f ? 'bg-ink text-paper border-ink' : 'border-transparent text-ink-light hover:border-ink/30 hover:text-ink'}`}
               >
                 {f === 'all' ? 'Entire Ledger' : f === 'income' ? 'Deposits Only' : 'Withdrawals Only'}
               </button>
@@ -74,12 +74,12 @@ export default function Archive() {
           </div>
 
           <div className="flex items-center gap-3 font-mono text-sm font-bold">
-            <label htmlFor="month-select" className="uppercase tracking-widest text-ink-light">Vol.</label>
+            <label htmlFor="month-select" className=" tracking-widest text-ink-light">Vol.</label>
             <select 
               id="month-select"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-transparent border-b-2 border-ink py-1 focus:outline-none uppercase tracking-widest"
+              className="bg-transparent border-b-2 border-ink py-1 focus:outline-none  tracking-widest"
             >
               <option value="all">All Volumes</option>
               {availableMonths.map(m => {
@@ -98,7 +98,7 @@ export default function Archive() {
         {/* Financial Table */}
         <div className="bg-white border-4 border-ink shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] overflow-x-auto">
           <div className="min-w-[600px]">
-            <div className="grid grid-cols-12 border-b-4 border-ink bg-paper p-4 font-mono font-bold uppercase tracking-widest text-xs">
+            <div className="grid grid-cols-12 border-b-4 border-ink bg-paper p-4 font-mono font-bold  tracking-widest text-xs">
               <div className="col-span-3">Date / Category</div>
               <div className="col-span-4 border-l-2 border-ink pl-4">Particulars (Memo)</div>
               <div className="col-span-3 border-l-2 border-ink pl-4 text-right">Amount</div>
@@ -114,7 +114,7 @@ export default function Archive() {
                 filteredTransactions.map((tx) => (
                   <div key={tx.id} className="grid grid-cols-12 p-4 hover:bg-paper/50 transition-colors group">
                     <div className="col-span-3">
-                      <p className="font-bold text-ink uppercase tracking-wider font-mono text-sm flex items-center gap-2">
+                      <p className="font-bold text-ink  tracking-wider font-mono text-sm flex items-center gap-2">
                         <span className="w-8 h-8 flex items-center justify-center text-lg">
                           {(tx as any).imageUrl ? (
                             <img src={(tx as any).imageUrl} alt={tx.category} className="w-6 h-6 object-contain" />

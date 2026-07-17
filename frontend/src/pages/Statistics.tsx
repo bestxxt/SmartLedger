@@ -82,7 +82,7 @@ export default function Statistics() {
         <header className="flex justify-between items-end border-b-2 border-ink pb-4 mb-8">
           <div>
             <h2 className="text-4xl font-bold font-serif italic">Statistical Report</h2>
-            <p className="text-ink-light font-mono uppercase tracking-widest text-xs mt-2 font-bold">
+            <p className="text-ink-light font-mono  tracking-widest text-xs mt-2 font-bold">
               Visual Data Analysis
             </p>
           </div>
@@ -129,7 +129,7 @@ export default function Statistics() {
                   </div>
                   
                   {/* Custom Legend */}
-                  <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs font-mono font-bold uppercase tracking-wider">
+                  <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs font-mono font-bold  tracking-wider">
                     {expenseByCategory.map((entry, index) => (
                       <div key={entry.name} className="flex items-center gap-1">
                         <div className="w-3 h-3 border border-ink" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>

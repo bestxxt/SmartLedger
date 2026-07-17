@@ -44,7 +44,7 @@ export default function EntityForm({ onClose }: { onClose: () => void }) {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block font-mono text-xs font-bold uppercase tracking-widest mb-2">Entity Name</label>
+            <label className="block font-mono text-xs font-bold  tracking-widest mb-2">Entity Name</label>
             <input 
               type="text" 
               required
@@ -56,7 +56,7 @@ export default function EntityForm({ onClose }: { onClose: () => void }) {
           </div>
 
           <div>
-            <label className="block font-mono text-xs font-bold uppercase tracking-widest mb-2">Type</label>
+            <label className="block font-mono text-xs font-bold  tracking-widest mb-2">Type</label>
             <select 
               value={type}
               onChange={e => setType(e.target.value)}
@@ -72,7 +72,7 @@ export default function EntityForm({ onClose }: { onClose: () => void }) {
           {type === 'asset' && (
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block font-mono text-xs font-bold uppercase tracking-widest mb-2">Purchase Price</label>
+                <label className="block font-mono text-xs font-bold  tracking-widest mb-2">Purchase Price</label>
                 <input 
                   type="number" 
                   step="0.01"
@@ -83,7 +83,7 @@ export default function EntityForm({ onClose }: { onClose: () => void }) {
                 />
               </div>
               <div>
-                <label className="block font-mono text-xs font-bold uppercase tracking-widest mb-2">Residual Value</label>
+                <label className="block font-mono text-xs font-bold  tracking-widest mb-2">Residual Value</label>
                 <input 
                   type="number" 
                   step="0.01"
@@ -94,7 +94,7 @@ export default function EntityForm({ onClose }: { onClose: () => void }) {
                 />
               </div>
               <div className="col-span-2">
-                <label className="block font-mono text-xs font-bold uppercase tracking-widest mb-2">Purchase Date</label>
+                <label className="block font-mono text-xs font-bold  tracking-widest mb-2">Purchase Date</label>
                 <input 
                   type="date"
                   value={purchaseDate}
@@ -109,7 +109,7 @@ export default function EntityForm({ onClose }: { onClose: () => void }) {
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="neo-button uppercase tracking-widest text-sm disabled:opacity-50"
+              className="neo-button  tracking-widest text-sm disabled:opacity-50"
             >
               {isSubmitting ? 'Registering...' : 'Register Entity'}
             </button>
