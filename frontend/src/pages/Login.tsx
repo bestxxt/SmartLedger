@@ -44,7 +44,10 @@ export default function Login() {
 
       <div className="w-full max-w-md bg-paper border-4 border-ink p-8 sm:p-12 shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] relative z-10">
         <div className="text-center mb-10">
-          <h1 className="text-4xl sm:text-5xl font-bold font-serif text-ink mb-4 italic">The Ledger</h1>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <img src="/logo.png" alt="Logo" className="w-12 h-12 sm:w-14 sm:h-14 object-contain" />
+            <h1 className="text-4xl sm:text-5xl font-bold font-serif text-ink italic m-0">The Ledger</h1>
+          </div>
           <div className="w-full h-px bg-ink mb-2"></div>
           <div className="w-full h-0.5 bg-ink mb-4"></div>
           <p className="text-ink-light uppercase tracking-widest text-xs font-bold font-mono">Vol. I — Account Access</p>

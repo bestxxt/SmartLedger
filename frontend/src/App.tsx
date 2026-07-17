@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -24,6 +25,15 @@ function AnimatedAuthRoutes() {
 
 function AppRoutes() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const handleUnauthorized = () => {
+      navigate('/login');
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, [navigate]);
   
   // If we are on login or register, we use the auth routes with full page animation
   if (location.pathname === '/login' || location.pathname === '/register') {

@@ -55,7 +55,7 @@ export const useUserStore = create<UserState>((set) => ({
   logout: () => {
     localStorage.removeItem('token');
     set({ user: null, isAuthenticated: false });
-    window.location.href = '/login';
+    window.dispatchEvent(new Event('auth:unauthorized'));
   },
 
   setAuthToken: (token: string) => {

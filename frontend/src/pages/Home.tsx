@@ -26,7 +26,10 @@ export default function Home() {
         {/* Header */}
         <header className="flex justify-between items-end border-b-2 border-ink pb-4 mb-8">
           <div>
-            <h2 className="text-4xl font-bold font-serif italic">The Ledger</h2>
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10 md:hidden object-contain" />
+              <h2 className="text-4xl font-bold font-serif italic">The Ledger</h2>
+            </div>
             <p className="text-ink-light font-mono uppercase tracking-widest text-xs mt-2 font-bold">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
@@ -102,28 +105,28 @@ export default function Home() {
                   <div className="divide-y-2 divide-ink">
                     {transactions.slice(0, 5).map((tx) => (
                       <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-paper/50 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 flex items-center justify-center text-xl">
+                        <div className="flex items-center gap-4 min-w-0 mr-4">
+                          <div className="w-12 h-12 flex items-center justify-center text-xl shrink-0">
                             {(tx as any).imageUrl ? (
                               <img src={(tx as any).imageUrl} alt={tx.category} className="w-10 h-10 object-contain" />
                             ) : (
                               tx.emoji || '📝'
                             )}
                           </div>
-                          <div>
-                            <p className="font-bold text-ink uppercase tracking-wider font-mono text-sm">{tx.category}</p>
+                          <div className="min-w-0">
+                            <p className="font-bold text-ink uppercase tracking-wider font-mono text-sm truncate">{tx.category}</p>
                             <p className="text-xs font-mono text-ink-light mt-1 flex items-center gap-2">
-                              <span>{new Date(tx.timestamp).toLocaleDateString()}</span>
+                              <span className="shrink-0">{new Date(tx.timestamp).toLocaleDateString()}</span>
                               {tx.note && (
                                 <>
-                                  <span className="w-1 h-1 bg-ink/30 rounded-full"></span>
-                                  <span className="italic truncate max-w-[120px] sm:max-w-[200px]">{tx.note}</span>
+                                  <span className="w-1 h-1 bg-ink/30 rounded-full shrink-0"></span>
+                                  <span className="italic truncate">{tx.note}</span>
                                 </>
                               )}
                             </p>
                           </div>
                         </div>
-                        <div className={`font-bold font-serif text-xl ${tx.type === 'income' ? 'text-olive' : 'text-brick'}`}>
+                        <div className={`font-bold font-serif text-xl whitespace-nowrap shrink-0 ${tx.type === 'income' ? 'text-olive' : 'text-brick'}`}>
                           {tx.type === 'income' ? '+' : '-'}${tx.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </div>
                       </div>

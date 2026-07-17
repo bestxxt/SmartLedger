@@ -173,7 +173,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-ink/20 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-ink/20 backdrop-blur-sm z-[60]"
           />
 
           {/* Slide-over Drawer */}
@@ -182,7 +182,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 w-full max-w-md bg-paper border-l-4 border-ink shadow-[-8px_0_0_0_rgba(26,26,26,1)] z-50 flex flex-col overflow-y-auto"
+            className="fixed inset-y-0 right-0 w-full max-w-md bg-paper border-l-4 border-ink shadow-[-8px_0_0_0_rgba(26,26,26,1)] z-[70] flex flex-col overflow-y-auto"
           >
             <div className="flex items-center justify-between p-6 border-b-4 border-ink bg-white">
               <div>
@@ -339,7 +339,7 @@ export default function TransactionForm({ isOpen, onClose, initialData }: Transa
             </div>
 
             {/* Footer */}
-            <div className="p-6 bg-ink border-t border-paper/20 mt-auto">
+            <div className="p-6 pb-safe bg-ink border-t border-paper/20 mt-auto">
               <button 
                 type="submit" 
                 form="transaction-form"
