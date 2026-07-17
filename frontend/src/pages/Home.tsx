@@ -20,6 +20,19 @@ export default function Home() {
     }
   }, [isAuthenticated, navigate]);
 
+  const now = new Date();
+  const currentMonthTransactions = transactions.filter(tx => {
+    const txDate = new Date(tx.timestamp);
+    return txDate.getMonth() === now.getMonth() && txDate.getFullYear() === now.getFullYear();
+  });
+
+  const groupedTransactions = currentMonthTransactions.reduce((acc, tx) => {
+    const dateStr = new Date(tx.timestamp).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    if (!acc[dateStr]) acc[dateStr] = [];
+    acc[dateStr].push(tx);
+    return acc;
+  }, {} as Record<string, typeof transactions>);
+
   return (
     <>
       <main className="flex-1 p-4 md:p-10 pb-24 md:pb-10 max-w-5xl mx-auto w-full relative">
@@ -31,13 +44,18 @@ export default function Home() {
               {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
-          <button 
-            onClick={() => setIsEntryFormOpen(true)}
-            className="neo-button w-auto bg-brick text-paper border-ink hover:bg-brick-light flex items-center gap-2 group px-6 hidden sm:flex"
-          >
-            <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
-            <span>New Entry</span>
-          </button>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsEntryFormOpen(true)}
+              className="neo-button w-auto bg-brick text-paper border-ink hover:bg-brick-light flex items-center gap-2 group px-6 hidden sm:flex"
+            >
+              <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+              <span>New Entry</span>
+            </button>
+            <div className="w-12 h-12 bg-ink text-paper rounded-full flex items-center justify-center font-serif text-2xl italic shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] border-2 border-ink">
+              {user?.name.charAt(0).toUpperCase() || 'U'}
+            </div>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -79,13 +97,13 @@ export default function Home() {
             <section>
               <div className="flex justify-between items-center mb-4 border-b-2 border-ink pb-2">
                 <h3 className="text-xl font-serif font-bold italic">Recent Movements</h3>
-                <span className="font-mono text-[10px] uppercase tracking-widest font-bold px-2 py-1 bg-ink text-paper">Last 5</span>
+                <span className="font-mono text-[10px] uppercase tracking-widest font-bold px-2 py-1 bg-ink text-paper">This Month</span>
               </div>
               
               <div className="bg-white border-4 border-ink shadow-[8px_8px_0px_0px_rgba(26,26,26,1)]">
                 {isTxLoading ? (
                   <div className="p-8 text-center font-mono text-ink-light animate-pulse">Loading ledgers...</div>
-                ) : transactions.length === 0 ? (
+                ) : currentMonthTransactions.length === 0 ? (
                   <div className="p-12 text-center flex flex-col items-center justify-center border-2 border-dashed border-ink/20 m-4">
                     <div className="w-16 h-16 mb-4 opacity-20">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square">
@@ -99,32 +117,37 @@ export default function Home() {
                     <p className="text-sm font-mono text-ink-light mt-2">Stamp your first transaction to begin.</p>
                   </div>
                 ) : (
-                  <div className="divide-y-2 divide-ink">
-                    {transactions.slice(0, 5).map((tx) => (
-                      <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-paper/50 transition-colors">
-                        <div className="flex items-center gap-4 min-w-0 mr-4">
-                          <div className="w-12 h-12 flex items-center justify-center text-xl shrink-0">
-                            {(tx as any).imageUrl ? (
-                              <img src={(tx as any).imageUrl} alt={tx.category} className="w-10 h-10 object-contain" />
-                            ) : (
-                              tx.emoji || '📝'
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-ink uppercase tracking-wider font-mono text-sm truncate">{tx.category}</p>
-                            <p className="text-xs font-mono text-ink-light mt-1 flex items-center gap-2">
-                              <span className="shrink-0">{new Date(tx.timestamp).toLocaleDateString()}</span>
-                              {tx.note && (
-                                <>
-                                  <span className="w-1 h-1 bg-ink/30 rounded-full shrink-0"></span>
-                                  <span className="italic truncate">{tx.note}</span>
-                                </>
-                              )}
-                            </p>
-                          </div>
+                  <div>
+                    {Object.entries(groupedTransactions).map(([dateStr, txs]) => (
+                      <div key={dateStr}>
+                        <div className="bg-paper border-y-2 border-ink py-1 px-4 text-center font-serif italic font-bold text-xs">
+                          — {dateStr} —
                         </div>
-                        <div className={`font-bold font-serif text-xl whitespace-nowrap shrink-0 ${tx.type === 'income' ? 'text-olive' : 'text-brick'}`}>
-                          {tx.type === 'income' ? '+' : '-'}${tx.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        <div className="divide-y-2 divide-ink border-b-2 border-ink last:border-b-0">
+                          {txs.map((tx) => (
+                            <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-paper/50 transition-colors bg-white">
+                              <div className="flex items-center gap-4 min-w-0 mr-4">
+                                <div className="w-12 h-12 flex items-center justify-center text-xl shrink-0">
+                                  {(tx as any).imageUrl ? (
+                                    <img src={(tx as any).imageUrl} alt={tx.category} className="w-10 h-10 object-contain" />
+                                  ) : (
+                                    tx.emoji || '📝'
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-bold text-ink uppercase tracking-wider font-mono text-sm truncate">{tx.category}</p>
+                                  <p className="text-xs font-mono text-ink-light mt-1 flex items-center gap-2">
+                                    {tx.note && (
+                                      <span className="italic truncate">{tx.note}</span>
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className={`font-bold font-serif text-xl whitespace-nowrap shrink-0 ${tx.type === 'income' ? 'text-olive' : 'text-brick'}`}>
+                                {tx.type === 'income' ? '+' : '-'}${tx.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ))}
@@ -136,26 +159,6 @@ export default function Home() {
 
           {/* Right Column */}
           <div className="lg:col-span-4 space-y-8">
-            {/* User Profile Mini */}
-            <div className="neo-box p-6 bg-white flex items-center gap-4">
-              <div className="w-12 h-12 bg-ink text-paper rounded-full flex items-center justify-center font-serif text-2xl italic">
-                {user?.name.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-widest font-bold text-ink-light">Account Holder</p>
-                <p className="font-bold text-ink">{user?.name}</p>
-              </div>
-            </div>
-
-            {/* Print Ad / Decorative Element */}
-            <div className="border-4 border-ink p-1">
-              <div className="border-2 border-ink p-6 text-center bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')]">
-                <h4 className="font-serif font-bold italic text-2xl mb-2">Subscribe</h4>
-                <p className="font-mono text-xs uppercase tracking-widest mb-4">To the daily financial chronicle</p>
-                <div className="w-full border-b-2 border-dashed border-ink mb-4"></div>
-                <p className="text-[10px] uppercase font-bold text-ink-light">Keep your records straight & narrow.</p>
-              </div>
-            </div>
 
             <div className="border-4 border-ink p-6 relative">
               <div className="absolute -top-4 bg-paper px-2 left-4 font-bold font-mono uppercase tracking-widest text-sm text-ink">

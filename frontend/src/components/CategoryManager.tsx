@@ -2,11 +2,23 @@ import { useState, useEffect } from 'react';
 import { useCategoryStore } from '../store/useCategoryStore';
 import { Plus, Trash2, Edit2, X, Check } from 'lucide-react';
 
+const RETRO_ICONS = [
+  '/icons/retro-coffee.png', '/icons/retro-dining.png', '/icons/retro-drinks.png', 
+  '/icons/retro-snacks.png', '/icons/retro-train.png', '/icons/retro-taxi.png', 
+  '/icons/retro-transit.png', '/icons/retro-flight.png', '/icons/retro-housing.png', 
+  '/icons/retro-utilities.png', '/icons/retro-groceries.png', '/icons/retro-telecom.png', 
+  '/icons/retro-shopping.png', '/icons/retro-movies.png', '/icons/retro-music.png', 
+  '/icons/retro-hobbies.png', '/icons/retro-salary.png', '/icons/retro-investments.png', 
+  '/icons/retro-bonus.png', '/icons/retro-medical.png', '/icons/retro-education.png', 
+  '/icons/retro-book.png', '/icons/retro-gift.png', '/icons/retro-tool.png', '/icons/retro-misc.png'
+];
+
 export default function CategoryManager() {
   const { categories, fetchCategories, createCategory, updateCategory, deleteCategory, isLoading } = useCategoryStore();
   
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
   
   const [formData, setFormData] = useState({ name: '', icon: '', imageUrl: '', type: 'expense' });
 
@@ -71,12 +83,13 @@ export default function CategoryManager() {
                   <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="neo-input text-sm py-2 px-3" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-mono font-bold uppercase mb-1">Emoji Icon</label>
-                  <input type="text" value={formData.icon} onChange={e => setFormData({...formData, icon: e.target.value})} className="neo-input text-sm py-2 px-3" placeholder="🛒" />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-mono font-bold uppercase mb-1">Image URL (Optional)</label>
-                  <input type="text" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="neo-input text-sm py-2 px-3" placeholder="https://..." />
+                  <label className="block text-[10px] font-mono font-bold uppercase mb-1">Retro Icon</label>
+                  <button 
+                    onClick={() => setIsIconPickerOpen(true)}
+                    className="neo-input text-sm py-2 px-3 flex items-center justify-center bg-paper hover:bg-ink hover:text-paper transition-colors"
+                  >
+                    {formData.imageUrl ? <img src={formData.imageUrl} className="w-6 h-6 object-contain" alt="selected" /> : 'Select Icon'}
+                  </button>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => handleSave(c.id)} className="neo-button flex-1 !py-2 !px-3 text-xs flex justify-center items-center gap-1"><Check size={14} /> Save</button>
@@ -121,12 +134,13 @@ export default function CategoryManager() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-mono font-bold uppercase mb-1">Emoji Icon</label>
-                <input type="text" value={formData.icon} onChange={e => setFormData({...formData, icon: e.target.value})} className="neo-input text-sm py-2 px-3" placeholder="🛒" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-mono font-bold uppercase mb-1">Image URL (Optional)</label>
-                <input type="text" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="neo-input text-sm py-2 px-3" placeholder="https://..." />
+                <label className="block text-[10px] font-mono font-bold uppercase mb-1">Retro Icon</label>
+                <button 
+                  onClick={() => setIsIconPickerOpen(true)}
+                  className="neo-input text-sm py-2 px-3 flex items-center justify-center bg-paper hover:bg-ink hover:text-paper transition-colors"
+                >
+                  {formData.imageUrl ? <img src={formData.imageUrl} className="w-6 h-6 object-contain" alt="selected" /> : 'Select Icon'}
+                </button>
               </div>
               <div className="lg:col-span-4 flex gap-2 justify-end">
                 <button onClick={cancelEdit} className="bg-paper border-2 border-ink text-ink font-bold px-4 py-2 text-xs uppercase hover:bg-brick hover:text-paper transition-colors">Cancel</button>
@@ -136,6 +150,32 @@ export default function CategoryManager() {
           </div>
         )}
       </div>
+      {/* Icon Picker Modal */}
+      {isIconPickerOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={() => setIsIconPickerOpen(false)}></div>
+          <div className="neo-box bg-paper w-full max-w-2xl max-h-[80vh] flex flex-col relative z-10">
+            <div className="flex justify-between items-center p-4 border-b-2 border-ink bg-white">
+              <h3 className="font-serif font-bold italic text-xl">Select Retro Icon</h3>
+              <button onClick={() => setIsIconPickerOpen(false)} className="hover:text-brick"><X size={20} /></button>
+            </div>
+            <div className="p-4 overflow-y-auto grid grid-cols-4 sm:grid-cols-5 gap-4">
+              {RETRO_ICONS.map((iconPath) => (
+                <button
+                  key={iconPath}
+                  onClick={() => {
+                    setFormData({ ...formData, imageUrl: iconPath });
+                    setIsIconPickerOpen(false);
+                  }}
+                  className={`p-2 border-2 ${formData.imageUrl === iconPath ? 'border-brick bg-brick/10' : 'border-ink/20 hover:border-ink hover:bg-white'} transition-all flex items-center justify-center aspect-square`}
+                >
+                  <img src={iconPath} alt="icon" className="w-10 h-10 object-contain" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
