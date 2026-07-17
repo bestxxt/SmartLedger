@@ -145,7 +145,7 @@ export default function Statistics() {
             <div className="neo-box p-6 bg-white flex flex-col">
               <h3 className="text-xl font-serif font-bold italic mb-6 border-b-2 border-ink pb-2">Semi-Annual Trajectory</h3>
               
-              <div className="h-72 w-full mt-4 flex-1 min-w-0 -ml-4 sm:ml-0">
+              <div className="w-full mt-4 min-w-0 -ml-4 sm:ml-0" style={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={monthlyData}
@@ -162,7 +162,11 @@ export default function Statistics() {
                       axisLine={{ stroke: '#1A1A1A', strokeWidth: 2 }}
                       tickLine={{ stroke: '#1A1A1A', strokeWidth: 2 }}
                       tick={{ fill: '#1A1A1A', fontFamily: CHART_FONT, fontWeight: 'bold', fontSize: 10 }}
-                      tickFormatter={(value) => value >= 1000 ? `$${(value/1000).toFixed(1).replace('.0','')}k` : `$${value}`}
+                      tickFormatter={(value) => {
+                        const num = Number(value);
+                        if (isNaN(num)) return `${value}`;
+                        return num >= 1000 ? `$${(num/1000).toFixed(1).replace('.0','')}k` : `$${num}`;
+                      }}
                       width={45}
                     />
                     <Tooltip 
