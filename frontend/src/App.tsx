@@ -1,13 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Archive from './pages/Archive';
-import Entities from './pages/Entities';
-import Settings from './pages/Settings';
-import Statistics from './pages/Statistics';
 import Layout from './components/Layout';
 
 function AnimatedAuthRoutes() {
