@@ -7,7 +7,7 @@ import CategoryManager from '../components/CategoryManager';
 declare const __APP_VERSION__: string;
 
 export default function Settings() {
-  const { user, isAuthenticated, fetchUser, isLoading } = useUserStore();
+  const { user, isAuthenticated, fetchUser, isLoading, logout } = useUserStore();
   const { aiProvider, aiBaseUrl, aiApiKey, aiModel, systemPromptTemplate, setAiConfig, resetToDefaultPrompt } = useSettingsStore();
   const navigate = useNavigate();
 
@@ -92,9 +92,18 @@ export default function Settings() {
 
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-widest font-bold text-ink-light mb-1">Current Capital</p>
-                  <p className="font-serif font-bold italic text-2xl text-ink">
+                  <p className="font-serif font-bold italic text-2xl text-ink mb-6">
                     ${(user?.stats?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </p>
+                </div>
+                
+                <div className="pt-4 border-t-2 border-dashed border-ink/20">
+                  <button 
+                    onClick={() => logout()}
+                    className="w-full bg-paper border-2 border-brick text-brick font-bold py-3 hover:bg-brick hover:text-paper transition-colors flex items-center justify-center gap-2"
+                  >
+                    Logout / Disconnect
+                  </button>
                 </div>
               </div>
             )}

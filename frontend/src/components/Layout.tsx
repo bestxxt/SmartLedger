@@ -1,11 +1,15 @@
-import { useLocation, useOutlet } from 'react-router-dom';
+import { useLocation, Routes, Route } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
+import Home from '../pages/Home';
+import Archive from '../pages/Archive';
+import Entities from '../pages/Entities';
+import Settings from '../pages/Settings';
+import Statistics from '../pages/Statistics';
 
 export default function Layout() {
   const location = useLocation();
-  const outlet = useOutlet();
 
   return (
     <div className="min-h-screen bg-paper flex flex-col md:flex-row font-sans selection:bg-ink selection:text-paper">
@@ -20,7 +24,13 @@ export default function Layout() {
           transition={{ duration: 0.2 }}
           className="flex-1 w-full"
         >
-          {outlet}
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<Home />} />
+            <Route path="/archive" element={<Archive />} />
+            <Route path="/entities" element={<Entities />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/statistics" element={<Statistics />} />
+          </Routes>
         </motion.div>
       </AnimatePresence>
       

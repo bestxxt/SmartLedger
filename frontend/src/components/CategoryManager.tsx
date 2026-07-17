@@ -83,7 +83,7 @@ export default function CategoryManager() {
                   <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="neo-input text-sm py-2 px-3" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-mono font-bold uppercase mb-1">Retro Icon</label>
+                  <label className="block text-[10px] font-mono font-bold uppercase mb-1">Icon</label>
                   <button 
                     onClick={() => setIsIconPickerOpen(true)}
                     className="neo-input text-sm py-2 px-3 flex items-center justify-center bg-paper hover:bg-ink hover:text-paper transition-colors"
@@ -134,7 +134,7 @@ export default function CategoryManager() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-mono font-bold uppercase mb-1">Retro Icon</label>
+                <label className="block text-[10px] font-mono font-bold uppercase mb-1">Icon</label>
                 <button 
                   onClick={() => setIsIconPickerOpen(true)}
                   className="neo-input text-sm py-2 px-3 flex items-center justify-center bg-paper hover:bg-ink hover:text-paper transition-colors"
@@ -156,7 +156,7 @@ export default function CategoryManager() {
           <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={() => setIsIconPickerOpen(false)}></div>
           <div className="neo-box bg-paper w-full max-w-2xl max-h-[80vh] flex flex-col relative z-10">
             <div className="flex justify-between items-center p-4 border-b-2 border-ink bg-white">
-              <h3 className="font-serif font-bold italic text-xl">Select Retro Icon</h3>
+              <h3 className="font-serif font-bold italic text-xl">Select Icon</h3>
               <button onClick={() => setIsIconPickerOpen(false)} className="hover:text-brick"><X size={20} /></button>
             </div>
             <div className="p-4 overflow-y-auto grid grid-cols-4 sm:grid-cols-5 gap-4">

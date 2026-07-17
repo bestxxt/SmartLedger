@@ -41,17 +41,7 @@ function AppRoutes() {
   }
 
   // Otherwise, we use the main layout
-  return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/archive" element={<Archive />} />
-        <Route path="/entities" element={<Entities />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/statistics" element={<Statistics />} />
-      </Route>
-    </Routes>
-  );
+  return <Layout />;
 }
 
 function App() {
