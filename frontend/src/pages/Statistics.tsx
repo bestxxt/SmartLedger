@@ -94,7 +94,7 @@ export default function Statistics() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* Pie Chart: Expenses by Category */}
-            <div className="neo-box p-6 bg-white flex flex-col">
+            <div className="neo-box p-6 bg-white flex flex-col h-full">
               <h3 className="text-xl font-serif font-bold italic mb-6 border-b-2 border-ink pb-2">Outflow by Classification</h3>
               {expenseByCategory.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center font-mono text-ink-light text-sm p-10 border-2 border-dashed border-ink/30 m-4">
@@ -142,10 +142,10 @@ export default function Statistics() {
             </div>
 
             {/* Bar Chart: Last 6 Months */}
-            <div className="neo-box p-6 bg-white flex flex-col">
+            <div className="neo-box p-6 bg-white flex flex-col h-full">
               <h3 className="text-xl font-serif font-bold italic mb-6 border-b-2 border-ink pb-2">Semi-Annual Trajectory</h3>
               
-              <div className="w-full mt-4 min-w-0 -ml-4 sm:ml-0" style={{ height: 300 }}>
+              <div className="w-full mt-4 min-w-0 -ml-4 sm:ml-0 flex-1 min-h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={monthlyData}
